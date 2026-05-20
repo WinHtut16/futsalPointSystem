@@ -30,26 +30,30 @@ export default function RegisterForm() {
     }
 
     setLoading(true)
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.signUp({
-      email: phoneToEmail(normalized),
-      password,
-      options: {
-        data: { phone: normalized, username: username.trim() },
-      },
+
+    // Step 1: Create account via server API (uses admin SDK — no email rate limits)
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: normalized, username: username.trim(), password }),
     })
 
-    if (authError) {
-      const msg = authError.message.toLowerCase()
-      if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('email address') ) {
-        setError('This phone number is already registered.')
-      } else if (msg.includes('rate limit') || msg.includes('too many')) {
-        setError('Too many attempts. Please wait a few minutes and try again.')
-      } else if (msg.includes('password')) {
-        setError('Password must be at least 6 characters.')
-      } else {
-        setError('Registration failed. Please check your details and try again.')
-      }
+    const json = await res.json()
+    if (!res.ok) {
+      setError(json.error ?? 'Registration failed. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    // Step 2: Sign in client-side to establish browser session
+    const supabase = createClient()
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: phoneToEmail(normalized),
+      password,
+    })
+
+    if (signInError) {
+      setError('Account created! Please go to the login page to sign in.')
       setLoading(false)
       return
     }
