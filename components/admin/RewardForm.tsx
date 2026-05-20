@@ -1,0 +1,115 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Input from '@/components/ui/Input'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
+
+export default function RewardForm() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    points_cost: '',
+    stock: '',
+  })
+
+  function set(field: keyof typeof form) {
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((prev) => ({ ...prev, [field]: e.target.value }))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+
+    const cost = parseInt(form.points_cost)
+    if (!form.name.trim() || cost <= 0) {
+      setError('Name and a positive points cost are required.')
+      return
+    }
+
+    setLoading(true)
+    const res = await fetch('/api/rewards', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.name.trim(),
+        description: form.description.trim() || null,
+        points_cost: cost,
+        stock: form.stock ? parseInt(form.stock) : null,
+      }),
+    })
+    setLoading(false)
+
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error ?? 'Failed to create reward.')
+      return
+    }
+
+    router.push('/admin/rewards')
+    router.refresh()
+  }
+
+  return (
+    <Card>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          id="name"
+          label="Reward Name"
+          placeholder="e.g. 1 Bottle Water, 1 Hr Free Play"
+          value={form.name}
+          onChange={set('name')}
+          required
+          maxLength={100}
+        />
+        <Input
+          id="description"
+          label="Description (optional)"
+          placeholder="Additional details"
+          value={form.description}
+          onChange={set('description')}
+          maxLength={200}
+        />
+        <Input
+          id="points_cost"
+          label="Points Required"
+          type="number"
+          min="1"
+          placeholder="e.g. 50"
+          value={form.points_cost}
+          onChange={set('points_cost')}
+          required
+        />
+        <Input
+          id="stock"
+          label="Stock (leave blank for unlimited)"
+          type="number"
+          min="0"
+          placeholder="e.g. 10"
+          value={form.stock}
+          onChange={set('stock')}
+        />
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="secondary"
+            size="md"
+            className="flex-1"
+            onClick={() => router.back()}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" size="md" loading={loading} className="flex-1">
+            Create Reward
+          </Button>
+        </div>
+      </form>
+    </Card>
+  )
+}
