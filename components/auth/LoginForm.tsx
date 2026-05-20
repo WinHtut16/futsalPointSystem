@@ -27,7 +27,12 @@ export default function LoginForm() {
     })
 
     if (authError) {
-      setError('Invalid phone number or password.')
+      const msg = authError.message.toLowerCase()
+      if (msg.includes('rate limit') || msg.includes('too many')) {
+        setError('Too many attempts. Please wait a few minutes and try again.')
+      } else {
+        setError('Invalid phone number or password.')
+      }
       setLoading(false)
       return
     }

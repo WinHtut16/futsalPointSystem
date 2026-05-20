@@ -40,9 +40,16 @@ export default function RegisterForm() {
     })
 
     if (authError) {
-      setError(authError.message === 'User already registered'
-        ? 'This phone number is already registered.'
-        : authError.message)
+      const msg = authError.message.toLowerCase()
+      if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('email address') ) {
+        setError('This phone number is already registered.')
+      } else if (msg.includes('rate limit') || msg.includes('too many')) {
+        setError('Too many attempts. Please wait a few minutes and try again.')
+      } else if (msg.includes('password')) {
+        setError('Password must be at least 6 characters.')
+      } else {
+        setError('Registration failed. Please check your details and try again.')
+      }
       setLoading(false)
       return
     }
