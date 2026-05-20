@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { phoneToEmail, normalizePhone } from '@/lib/utils'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import PasswordStrengthMeter, { calcStrength } from '@/components/ui/PasswordStrengthMeter'
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -24,14 +25,18 @@ export default function RegisterForm() {
       setError('Enter a valid Myanmar phone number (e.g. 09XXXXXXXXX).')
       return
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.')
+      return
+    }
+    if (calcStrength(password) < 2) {
+      setError('Password is too weak. Add numbers or uppercase letters.')
       return
     }
 
     setLoading(true)
 
-    // Step 1: Create account via server API (uses admin SDK — no email rate limits)
+    // Create account via server API (admin SDK — no email rate limits)
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -45,7 +50,7 @@ export default function RegisterForm() {
       return
     }
 
-    // Step 2: Sign in client-side to establish browser session
+    // Sign in client-side to establish browser session
     const supabase = createClient()
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: phoneToEmail(normalized),
@@ -86,17 +91,20 @@ export default function RegisterForm() {
         minLength={2}
         maxLength={50}
       />
-      <Input
-        id="password"
-        label="Password"
-        type="password"
-        placeholder="Min. 6 characters"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        autoComplete="new-password"
-        minLength={6}
-      />
+      <div className="space-y-2">
+        <Input
+          id="password"
+          label="Password"
+          type="password"
+          placeholder="Min. 8 characters"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="new-password"
+          minLength={8}
+        />
+        <PasswordStrengthMeter password={password} />
+      </div>
       {error && (
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
       )}

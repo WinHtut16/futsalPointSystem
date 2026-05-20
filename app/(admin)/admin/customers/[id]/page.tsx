@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import TransactionItem from '@/components/customer/TransactionItem'
 import AddPointsForm from '@/components/admin/AddPointsForm'
+import ResetPasswordForm from '@/components/admin/ResetPasswordForm'
+import DeleteCustomerButton from '@/components/admin/DeleteCustomerButton'
 import type { PointTransaction } from '@/types'
 import Link from 'next/link'
 
@@ -33,6 +35,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         </Link>
       </div>
 
+      {/* Profile summary */}
       <Card>
         <p className="text-xl font-bold text-gray-900">{customer.username}</p>
         <p className="text-sm text-gray-500">{customer.phone}</p>
@@ -41,11 +44,19 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         </p>
       </Card>
 
+      {/* Add Points */}
       <Card>
         <h2 className="font-semibold text-gray-900 mb-4">Add Points</h2>
         <AddPointsForm customerId={id} customerName={customer.username} />
       </Card>
 
+      {/* Reset Password */}
+      <Card>
+        <h2 className="font-semibold text-gray-900 mb-4">Reset Password</h2>
+        <ResetPasswordForm customerId={id} customerName={customer.username} />
+      </Card>
+
+      {/* Transaction History */}
       <Card className="p-0">
         <h2 className="font-semibold text-gray-900 px-4 pt-4 pb-2">Transaction History</h2>
         {transactions && transactions.length > 0 ? (
@@ -57,6 +68,16 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         ) : (
           <p className="text-sm text-gray-400 text-center py-8">No transactions yet.</p>
         )}
+      </Card>
+
+      {/* Danger zone */}
+      <Card>
+        <h2 className="font-semibold text-gray-900 mb-3">Danger Zone</h2>
+        <DeleteCustomerButton
+          customerId={id}
+          customerName={customer.username}
+          customerPhone={customer.phone}
+        />
       </Card>
     </div>
   )
