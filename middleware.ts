@@ -1,7 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// These paths skip the "must be logged in" admin guard
 const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
+// These paths additionally redirect logged-in users away to dashboard
+// (reset-password is excluded — user must be logged in to set a new password)
+const ADMIN_AUTH_ONLY_PATHS = ['/admin/login', '/admin/forgot-password']
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -31,9 +35,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isAdminPublicPath = ADMIN_PUBLIC_PATHS.some(p => pathname.startsWith(p))
+  const isAdminAuthOnlyPath = ADMIN_AUTH_ONLY_PATHS.some(p => pathname.startsWith(p))
 
-  // Redirect logged-in users away from auth pages
-  if (user && (pathname === '/login' || pathname === '/register' || isAdminPublicPath)) {
+  // Redirect logged-in users away from login/forgot-password (but not reset-password)
+  if (user && (pathname === '/login' || pathname === '/register' || isAdminAuthOnlyPath)) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
