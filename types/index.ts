@@ -1,5 +1,20 @@
 export type UserRole = 'customer' | 'admin'
 
+export type RedemptionStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+
+export interface RedemptionRequest {
+  id: string
+  customer_id: string
+  reward_id: string
+  status: RedemptionStatus
+  requested_at: string
+  resolved_at: string | null
+  resolved_by: string | null
+  notes: string | null
+  reward?: { name: string; points_cost: number }
+  customer?: { username: string; phone: string; total_points: number }
+}
+
 export interface Profile {
   id: string
   phone: string
@@ -34,4 +49,5 @@ export interface PointTransaction {
   created_at: string
   reward?: { name: string }
   creator?: { username: string }
+  customer?: { username: string; phone: string }
 }

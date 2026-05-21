@@ -9,20 +9,23 @@ import { useRouter } from 'next/navigation'
 interface RewardCardProps {
   reward: Reward
   userPoints: number
+  pendingRequestId?: string
 }
 
-export default function RewardCard({ reward, userPoints }: RewardCardProps) {
+export default function RewardCard({ reward, userPoints, pendingRequestId }: RewardCardProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const canAfford = userPoints >= reward.points_cost
   const outOfStock = reward.stock !== null && reward.stock <= 0
+  const isPending = !!pendingRequestId
 
-  async function handleRedeem() {
+  async function handleRequest() {
     setLoading(true)
     setError('')
-    const res = await fetch('/api/points/redeem', {
+    const res = await fetch('/api/redemptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reward_id: reward.id }),
@@ -30,11 +33,25 @@ export default function RewardCard({ reward, userPoints }: RewardCardProps) {
     const data = await res.json()
     setLoading(false)
     if (!res.ok) {
-      setError(data.error ?? 'Redemption failed.')
+      setError(data.error ?? 'Request failed.')
       return
     }
-    setOpen(false)
+    setConfirmOpen(false)
     router.refresh()
+  }
+
+  async function handleCancel() {
+    setLoading(true)
+    const res = await fetch(`/api/redemptions/${pendingRequestId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'cancel' }),
+    })
+    setLoading(false)
+    if (res.ok) {
+      setCancelOpen(false)
+      router.refresh()
+    }
   }
 
   return (
@@ -51,33 +68,61 @@ export default function RewardCard({ reward, userPoints }: RewardCardProps) {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-brand-600 font-bold text-lg">{reward.points_cost} pts</span>
-          <Button
-            size="sm"
-            variant={canAfford && !outOfStock ? 'primary' : 'secondary'}
-            disabled={!canAfford || outOfStock}
-            onClick={() => setOpen(true)}
-          >
-            {outOfStock ? 'Out of stock' : canAfford ? 'Redeem' : 'Not enough pts'}
-          </Button>
+          {isPending ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium">
+                Pending...
+              </span>
+              <Button size="sm" variant="secondary" onClick={() => setCancelOpen(true)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              size="sm"
+              variant={canAfford && !outOfStock ? 'primary' : 'secondary'}
+              disabled={!canAfford || outOfStock}
+              onClick={() => setConfirmOpen(true)}
+            >
+              {outOfStock ? 'Out of stock' : canAfford ? 'Request' : 'Not enough pts'}
+            </Button>
+          )}
         </div>
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Confirm Redemption">
+      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Request Redemption">
         <div className="space-y-4">
           <p className="text-gray-700 text-sm">
-            Redeem <strong>{reward.name}</strong> for{' '}
+            Request <strong>{reward.name}</strong> for{' '}
             <strong className="text-brand-600">{reward.points_cost} points</strong>?
           </p>
-          <p className="text-gray-500 text-sm">
-            Remaining after: <strong>{(userPoints - reward.points_cost).toLocaleString()} pts</strong>
+          <p className="text-gray-500 text-xs bg-gray-50 rounded-lg p-3">
+            Your points will only be deducted when an admin approves your request at the counter.
           </p>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex gap-3">
-            <Button variant="secondary" size="md" onClick={() => setOpen(false)} className="flex-1">
+            <Button variant="secondary" size="md" onClick={() => setConfirmOpen(false)} className="flex-1">
               Cancel
             </Button>
-            <Button size="md" loading={loading} onClick={handleRedeem} className="flex-1">
-              Confirm
+            <Button size="md" loading={loading} onClick={handleRequest} className="flex-1">
+              Send Request
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={cancelOpen} onClose={() => setCancelOpen(false)} title="Cancel Request">
+        <div className="space-y-4">
+          <p className="text-gray-700 text-sm">
+            Cancel your pending request for <strong>{reward.name}</strong>?
+          </p>
+          <p className="text-gray-500 text-xs">Your points have not been deducted.</p>
+          <div className="flex gap-3">
+            <Button variant="secondary" size="md" onClick={() => setCancelOpen(false)} className="flex-1">
+              Keep
+            </Button>
+            <Button size="md" loading={loading} onClick={handleCancel} className="flex-1">
+              Cancel Request
             </Button>
           </div>
         </div>

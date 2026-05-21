@@ -60,7 +60,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       <Card className="p-0">
         <h2 className="font-semibold text-gray-900 px-4 pt-4 pb-2">Transaction History</h2>
         {transactions && transactions.length > 0 ? (
-          <div className="px-4 divide-y divide-gray-100">
+          <div className="px-4 max-h-80 overflow-y-auto divide-y divide-gray-100">
             {transactions.map((tx) => (
               <TransactionItem key={tx.id} tx={tx as PointTransaction} />
             ))}

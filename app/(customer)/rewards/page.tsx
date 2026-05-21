@@ -9,11 +9,21 @@ export default async function RewardsPage() {
   if (!profile) redirect('/login')
 
   const supabase = await createClient()
-  const { data: rewards } = await supabase
-    .from('rewards')
-    .select('*')
-    .eq('is_active', true)
-    .order('points_cost', { ascending: true })
+  const [{ data: rewards }, { data: pendingRequests }] = await Promise.all([
+    supabase
+      .from('rewards')
+      .select('*')
+      .eq('is_active', true)
+      .order('points_cost', { ascending: true }),
+    supabase
+      .from('redemption_requests')
+      .select('id, reward_id')
+      .eq('customer_id', profile.id)
+      .eq('status', 'pending'),
+  ])
+
+  const pendingMap = new Map<string, string>()
+  pendingRequests?.forEach((r) => pendingMap.set(r.reward_id, r.id))
 
   return (
     <div className="px-4 py-6 space-y-4">
@@ -31,6 +41,7 @@ export default async function RewardsPage() {
               key={reward.id}
               reward={reward as Reward}
               userPoints={profile.total_points}
+              pendingRequestId={pendingMap.get(reward.id)}
             />
           ))}
         </div>
