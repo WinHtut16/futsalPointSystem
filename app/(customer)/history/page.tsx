@@ -2,8 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import TransactionItem from '@/components/customer/TransactionItem'
+import PendingRequestItem from '@/components/customer/PendingRequestItem'
 import Card from '@/components/ui/Card'
-import type { PointTransaction } from '@/types'
+import type { PointTransaction, RedemptionRequest } from '@/types'
 
 export default async function HistoryPage({
   searchParams,
@@ -20,14 +21,23 @@ export default async function HistoryPage({
   const to = from + pageSize - 1
 
   const supabase = await createClient()
-  const { data: transactions, count } = await supabase
-    .from('point_transactions')
-    .select('*, reward:rewards(name)', { count: 'exact' })
-    .eq('customer_id', profile.id)
-    .order('created_at', { ascending: false })
-    .range(from, to)
+  const [{ data: transactions, count }, { data: pendingRequests }] = await Promise.all([
+    supabase
+      .from('point_transactions')
+      .select('*, reward:rewards(name)', { count: 'exact' })
+      .eq('customer_id', profile.id)
+      .order('created_at', { ascending: false })
+      .range(from, to),
+    supabase
+      .from('redemption_requests')
+      .select('*, reward:rewards(name, points_cost)')
+      .eq('customer_id', profile.id)
+      .eq('status', 'pending')
+      .order('requested_at', { ascending: false }),
+  ])
 
   const totalPages = Math.ceil((count ?? 0) / pageSize)
+  const hasPending = pendingRequests && pendingRequests.length > 0
 
   return (
     <div className="px-4 py-6 space-y-4">
@@ -37,6 +47,22 @@ export default async function HistoryPage({
           {profile.total_points} pts
         </span>
       </div>
+
+      {hasPending && (
+        <Card className="p-0">
+          <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-gray-700">Pending Requests</h2>
+            <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+              {pendingRequests.length}
+            </span>
+          </div>
+          <div className="px-4">
+            {pendingRequests.map((req) => (
+              <PendingRequestItem key={req.id} request={req as RedemptionRequest} />
+            ))}
+          </div>
+        </Card>
+      )}
 
       <Card className="p-0">
         {transactions && transactions.length > 0 ? (
