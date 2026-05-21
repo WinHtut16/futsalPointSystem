@@ -22,15 +22,10 @@ export default function PointsCard({ initialPoints, username, phone, userId }: P
       .channel(`profile-points-${userId}`)
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`,
-        },
+        { event: 'UPDATE', schema: 'public', table: 'profiles' },
         (payload) => {
-          const updated = payload.new as { total_points: number }
-          setPoints(updated.total_points)
+          const updated = payload.new as { id: string; total_points: number }
+          if (updated.id === userId) setPoints(updated.total_points)
         }
       )
       .subscribe()
