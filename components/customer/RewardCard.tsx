@@ -5,6 +5,7 @@ import type { Reward } from '@/types'
 import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface RewardCardProps {
   reward: Reward
@@ -14,6 +15,7 @@ interface RewardCardProps {
 
 export default function RewardCard({ reward, userPoints, pendingRequestId }: RewardCardProps) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -63,18 +65,18 @@ export default function RewardCard({ reward, userPoints, pendingRequestId }: Rew
             <p className="text-xs text-gray-500 mt-0.5">{reward.description}</p>
           )}
           {reward.stock !== null && (
-            <p className="text-xs text-gray-400 mt-0.5">{reward.stock} left</p>
+            <p className="text-xs text-gray-400 mt-0.5">{reward.stock} {t('rewards.left')}</p>
           )}
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-brand-600 font-bold text-lg">{reward.points_cost} pts</span>
+          <span className="text-brand-600 font-bold text-lg">{reward.points_cost} {t('rewards.pts')}</span>
           {isPending ? (
             <div className="flex items-center gap-2">
               <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium">
-                Pending...
+                {t('rewards.pending')}
               </span>
               <Button size="sm" variant="secondary" onClick={() => setCancelOpen(true)}>
-                Cancel
+                {t('rewards.cancel')}
               </Button>
             </div>
           ) : (
@@ -84,45 +86,53 @@ export default function RewardCard({ reward, userPoints, pendingRequestId }: Rew
               disabled={!canAfford || outOfStock}
               onClick={() => setConfirmOpen(true)}
             >
-              {outOfStock ? 'Out of stock' : canAfford ? 'Request' : 'Not enough pts'}
+              {outOfStock
+                ? t('rewards.outOfStock')
+                : canAfford
+                ? t('rewards.request')
+                : t('rewards.notEnoughPts')}
             </Button>
           )}
         </div>
       </div>
 
-      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Request Redemption">
+      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title={t('rewards.requestRedemption')}>
         <div className="space-y-4">
           <p className="text-gray-700 text-sm">
-            Request <strong>{reward.name}</strong> for{' '}
-            <strong className="text-brand-600">{reward.points_cost} points</strong>?
+            {t('rewards.requestRedemption')} <strong>{reward.name}</strong>{' '}
+            <strong className="text-brand-600">{reward.points_cost} {t('rewards.pts')}</strong>?
           </p>
           <p className="text-gray-500 text-xs bg-gray-50 rounded-lg p-3">
-            Your points will only be deducted when an admin approves your request at the counter.
+            {t('rewards.adminApproveNote')}
+          </p>
+          <p className="text-xs text-gray-400">
+            {t('rewards.remainingAfter')}{' '}
+            <strong>{(userPoints - reward.points_cost).toLocaleString()} {t('rewards.pts')}</strong>
           </p>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex gap-3">
             <Button variant="secondary" size="md" onClick={() => setConfirmOpen(false)} className="flex-1">
-              Cancel
+              {t('rewards.cancel')}
             </Button>
             <Button size="md" loading={loading} onClick={handleRequest} className="flex-1">
-              Send Request
+              {t('rewards.sendRequest')}
             </Button>
           </div>
         </div>
       </Modal>
 
-      <Modal open={cancelOpen} onClose={() => setCancelOpen(false)} title="Cancel Request">
+      <Modal open={cancelOpen} onClose={() => setCancelOpen(false)} title={t('rewards.cancelRequest')}>
         <div className="space-y-4">
           <p className="text-gray-700 text-sm">
-            Cancel your pending request for <strong>{reward.name}</strong>?
+            {t('rewards.cancelRequest')} <strong>{reward.name}</strong>?
           </p>
-          <p className="text-gray-500 text-xs">Your points have not been deducted.</p>
+          <p className="text-gray-500 text-xs">{t('rewards.pointsNotDeducted')}</p>
           <div className="flex gap-3">
             <Button variant="secondary" size="md" onClick={() => setCancelOpen(false)} className="flex-1">
-              Keep
+              {t('rewards.keep')}
             </Button>
             <Button size="md" loading={loading} onClick={handleCancel} className="flex-1">
-              Cancel Request
+              {t('rewards.cancelRequest')}
             </Button>
           </div>
         </div>

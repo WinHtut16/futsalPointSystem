@@ -1,5 +1,8 @@
+'use client'
+
 import type { PointTransaction } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface TransactionItemProps {
   tx: PointTransaction
@@ -7,6 +10,7 @@ interface TransactionItemProps {
 }
 
 export default function TransactionItem({ tx, showCustomer }: TransactionItemProps) {
+  const { t } = useLanguage()
   const isEarn = tx.transaction_type === 'earn'
 
   return (
@@ -24,15 +28,15 @@ export default function TransactionItem({ tx, showCustomer }: TransactionItemPro
           )}
           <p className="text-sm font-medium text-gray-800 truncate">
             {isEarn
-              ? `Played ${tx.hours_played}h`
-              : (tx.reward?.name ?? 'Redemption')}
+              ? `${t('tx.played')} ${tx.hours_played}h`
+              : (tx.reward?.name ?? t('tx.redemption'))}
           </p>
           <p className="text-xs text-gray-400">{formatDate(tx.created_at)}</p>
           {tx.note && <p className="text-xs text-gray-400 italic truncate">{tx.note}</p>}
         </div>
       </div>
       <span className={`text-sm font-bold shrink-0 ml-2 ${isEarn ? 'text-green-600' : 'text-orange-500'}`}>
-        {isEarn ? '+' : ''}{tx.points_delta} pts
+        {isEarn ? '+' : ''}{tx.points_delta} {t('rewards.pts')}
       </span>
     </div>
   )

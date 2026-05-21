@@ -7,9 +7,11 @@ import { phoneToEmail, normalizePhone } from '@/lib/utils'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import PasswordStrengthMeter, { calcStrength } from '@/components/ui/PasswordStrengthMeter'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function RegisterForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [phone, setPhone] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -22,21 +24,20 @@ export default function RegisterForm() {
 
     const normalized = normalizePhone(phone)
     if (!/^09\d{7,9}$/.test(normalized)) {
-      setError('Enter a valid Myanmar phone number (e.g. 09XXXXXXXXX).')
+      setError(t('auth.invalidPhone'))
       return
     }
     if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
+      setError(t('auth.passwordTooShort'))
       return
     }
     if (calcStrength(password) < 2) {
-      setError('Password is too weak. Add numbers or uppercase letters.')
+      setError(t('auth.passwordWeak'))
       return
     }
 
     setLoading(true)
 
-    // Create account via server API (admin SDK — no email rate limits)
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -45,12 +46,11 @@ export default function RegisterForm() {
 
     const json = await res.json()
     if (!res.ok) {
-      setError(json.error ?? 'Registration failed. Please try again.')
+      setError(json.error ?? t('auth.registrationFailed'))
       setLoading(false)
       return
     }
 
-    // Sign in client-side to establish browser session
     const supabase = createClient()
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: phoneToEmail(normalized),
@@ -58,7 +58,7 @@ export default function RegisterForm() {
     })
 
     if (signInError) {
-      setError('Account created! Please go to the login page to sign in.')
+      setError(t('auth.accountCreated'))
       setLoading(false)
       return
     }
@@ -71,9 +71,9 @@ export default function RegisterForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         id="phone"
-        label="Phone Number"
+        label={t('auth.phone')}
         type="tel"
-        placeholder="09XXXXXXXXX"
+        placeholder={t('auth.phonePlaceholder')}
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         required
@@ -81,9 +81,9 @@ export default function RegisterForm() {
       />
       <Input
         id="username"
-        label="Username"
+        label={t('auth.username')}
         type="text"
-        placeholder="Your name or nickname"
+        placeholder={t('auth.usernamePlaceholder')}
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         required
@@ -94,9 +94,9 @@ export default function RegisterForm() {
       <div className="space-y-2">
         <Input
           id="password"
-          label="Password"
+          label={t('auth.password')}
           type="password"
-          placeholder="Min. 8 characters"
+          placeholder={t('auth.newPasswordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -109,7 +109,7 @@ export default function RegisterForm() {
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
       )}
       <Button type="submit" size="lg" loading={loading}>
-        Create Account
+        {t('auth.createAccount')}
       </Button>
     </form>
   )

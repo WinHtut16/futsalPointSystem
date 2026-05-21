@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { RedemptionRequest } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function PendingRequestItem({ request }: { request: RedemptionRequest }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [cancelled, setCancelled] = useState(false)
 
@@ -34,22 +36,22 @@ export default function PendingRequestItem({ request }: { request: RedemptionReq
         </div>
         <div className="min-w-0">
           <p className="text-sm font-medium text-gray-800 truncate">
-            {request.reward?.name ?? 'Reward'}
+            {request.reward?.name ?? t('tx.redemption')}
           </p>
-          <p className="text-xs text-yellow-600 font-medium">Pending approval</p>
+          <p className="text-xs text-yellow-600 font-medium">{t('history.pendingApproval')}</p>
           <p className="text-xs text-gray-400">{formatDate(request.requested_at)}</p>
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0 ml-2">
         <span className="text-sm font-bold text-gray-400">
-          -{request.reward?.points_cost} pts
+          -{request.reward?.points_cost} {t('rewards.pts')}
         </span>
         <button
           onClick={handleCancel}
           disabled={loading}
           className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 border border-red-200 rounded-lg px-2 py-1"
         >
-          {loading ? '...' : 'Cancel'}
+          {loading ? '...' : t('history.cancel')}
         </button>
       </div>
     </div>

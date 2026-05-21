@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import CustomerNav from '@/components/customer/CustomerNav'
 import LogoutButton from '@/components/customer/LogoutButton'
+import LanguageToggle from '@/components/ui/LanguageToggle'
 
 export default async function CustomerLayout({ children }: { children: React.ReactNode }) {
   const profile = await getCurrentUser()
@@ -11,7 +12,8 @@ export default async function CustomerLayout({ children }: { children: React.Rea
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-brand-600 text-white px-4 py-3 flex items-center justify-between shadow">
         <span className="font-bold text-lg">⚽ AkoATP Points</span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <LanguageToggle variant="light" />
           <span className="text-sm text-brand-200">{profile.username}</span>
           <LogoutButton />
         </div>

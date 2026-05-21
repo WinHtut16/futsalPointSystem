@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import TransactionItem from '@/components/customer/TransactionItem'
 import PendingRequestItem from '@/components/customer/PendingRequestItem'
 import Card from '@/components/ui/Card'
+import T from '@/components/ui/T'
 import type { PointTransaction, RedemptionRequest } from '@/types'
 
 export default async function HistoryPage({
@@ -42,16 +43,16 @@ export default async function HistoryPage({
   return (
     <div className="px-4 py-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Point History</h1>
+        <h1 className="text-xl font-bold text-gray-900"><T k="history.title" /></h1>
         <span className="text-sm text-gray-500 bg-white border border-gray-200 px-2 py-1 rounded-lg font-semibold text-brand-600">
-          {profile.total_points} pts
+          {profile.total_points} <T k="rewards.pts" />
         </span>
       </div>
 
       {hasPending && (
         <Card className="p-0">
           <div className="px-4 pt-3 pb-1 flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-gray-700">Pending Requests</h2>
+            <h2 className="text-sm font-semibold text-gray-700"><T k="history.pendingRequests" /></h2>
             <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-1.5 py-0.5 rounded-full">
               {pendingRequests.length}
             </span>
@@ -72,7 +73,7 @@ export default async function HistoryPage({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 text-center py-10">No transactions yet.</p>
+          <p className="text-sm text-gray-400 text-center py-10"><T k="history.noTransactions" /></p>
         )}
       </Card>
 
@@ -80,15 +81,15 @@ export default async function HistoryPage({
         <div className="flex justify-center gap-4 text-sm">
           {page > 0 && (
             <a href={`?page=${page - 1}`} className="text-brand-600 font-medium hover:underline">
-              Previous
+              <T k="history.previous" />
             </a>
           )}
           <span className="text-gray-400">
-            Page {page + 1} of {totalPages}
+            <T k="history.pageOf" vars={{ page: page + 1, total: totalPages }} />
           </span>
           {page < totalPages - 1 && (
             <a href={`?page=${page + 1}`} className="text-brand-600 font-medium hover:underline">
-              Next
+              <T k="history.next" />
             </a>
           )}
         </div>

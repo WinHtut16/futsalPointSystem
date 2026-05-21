@@ -7,9 +7,11 @@ import { createClient } from '@/lib/supabase/client'
 import { phoneToEmail } from '@/lib/utils'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function LoginForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -28,11 +30,11 @@ export default function LoginForm() {
 
     if (authError) {
       const msg = authError.message.toLowerCase()
-      if (msg.includes('rate limit') || msg.includes('too many')) {
-        setError('Too many attempts. Please wait a few minutes and try again.')
-      } else {
-        setError('Invalid phone number or password.')
-      }
+      setError(
+        msg.includes('rate limit') || msg.includes('too many')
+          ? t('auth.tooManyAttempts')
+          : t('auth.invalidCredentials')
+      )
       setLoading(false)
       return
     }
@@ -52,9 +54,9 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         id="phone"
-        label="Phone Number"
+        label={t('auth.phone')}
         type="tel"
-        placeholder="09XXXXXXXXX"
+        placeholder={t('auth.phonePlaceholder')}
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         required
@@ -62,9 +64,9 @@ export default function LoginForm() {
       />
       <Input
         id="password"
-        label="Password"
+        label={t('auth.password')}
         type="password"
-        placeholder="Enter password"
+        placeholder={t('auth.passwordPlaceholder')}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
@@ -74,12 +76,12 @@ export default function LoginForm() {
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
       )}
       <Button type="submit" size="lg" loading={loading}>
-        Sign In
+        {t('auth.signIn')}
       </Button>
       <p className="text-center text-sm text-gray-500">
-        No account?{' '}
+        {t('auth.noAccount')}{' '}
         <Link href="/register" className="text-brand-600 font-medium hover:underline">
-          Register
+          {t('auth.register')}
         </Link>
       </p>
     </form>
