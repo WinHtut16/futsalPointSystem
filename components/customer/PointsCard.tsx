@@ -1,15 +1,55 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface PointsCardProps {
-  points: number
+  initialPoints: number
   username: string
   phone: string
+  userId: string
 }
 
-export default function PointsCard({ points, username, phone }: PointsCardProps) {
+export default function PointsCard({ initialPoints, username, phone, userId }: PointsCardProps) {
   const { t } = useLanguage()
+  const [points, setPoints] = useState(initialPoints)
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    const channel = supabase
+      .channel(`profile-points-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`,
+        },
+        (payload) => {
+          const updated = payload.new as { total_points: number }
+          setPoints(updated.total_points)
+        }
+      )
+      .subscribe()
+
+    const timer = setInterval(async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('total_points')
+        .eq('id', userId)
+        .single()
+      if (data) setPoints(data.total_points)
+    }, 20_000)
+
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(timer)
+    }
+  }, [userId])
+
   return (
     <div className="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-6 text-white shadow-lg">
       <p className="text-brand-200 text-sm font-medium">{username}</p>

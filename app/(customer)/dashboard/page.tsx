@@ -23,9 +23,10 @@ export default async function DashboardPage() {
   return (
     <div className="px-4 py-6 space-y-5">
       <PointsCard
-        points={profile.total_points}
+        initialPoints={profile.total_points}
         username={profile.username}
         phone={profile.phone ?? ''}
+        userId={profile.id}
       />
 
       <Card>

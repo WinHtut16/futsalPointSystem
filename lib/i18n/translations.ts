@@ -53,6 +53,8 @@ export const en = {
   'history.previous': 'Previous',
   'history.next': 'Next',
   'history.pageOf': 'Page {page} of {total}',
+  'history.approved': 'Approved! Your points have been deducted.',
+  'history.rejected': 'Rejected. Your request was declined.',
 
   // Transactions
   'tx.played': 'Played',
@@ -133,6 +135,8 @@ export const my: typeof en = {
   'history.previous': 'နောက်သို့',
   'history.next': 'ရှေ့သို့',
   'history.pageOf': 'စာမျက်နှာ {page} / {total}',
+  'history.approved': 'အတည်ပြုပြီး! သင့်ပွိုင့်များ နုတ်ယူပြီးပါပြီ။',
+  'history.rejected': 'ငြင်းပယ်ခံရသည်။ သင့်တောင်းဆိုမှုကို ငြင်းပယ်ခဲ့သည်။',
 
   // Transactions
   'tx.played': 'ကစားခဲ့သည်',

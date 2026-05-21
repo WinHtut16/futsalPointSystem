@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import TransactionItem from '@/components/customer/TransactionItem'
-import PendingRequestItem from '@/components/customer/PendingRequestItem'
+import PendingRequestsList from '@/components/customer/PendingRequestsList'
 import Card from '@/components/ui/Card'
 import T from '@/components/ui/T'
 import type { PointTransaction, RedemptionRequest } from '@/types'
@@ -38,7 +38,6 @@ export default async function HistoryPage({
   ])
 
   const totalPages = Math.ceil((count ?? 0) / pageSize)
-  const hasPending = pendingRequests && pendingRequests.length > 0
 
   return (
     <div className="px-4 py-6 space-y-4">
@@ -49,21 +48,10 @@ export default async function HistoryPage({
         </span>
       </div>
 
-      {hasPending && (
-        <Card className="p-0">
-          <div className="px-4 pt-3 pb-1 flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-gray-700"><T k="history.pendingRequests" /></h2>
-            <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-1.5 py-0.5 rounded-full">
-              {pendingRequests.length}
-            </span>
-          </div>
-          <div className="px-4">
-            {pendingRequests.map((req) => (
-              <PendingRequestItem key={req.id} request={req as RedemptionRequest} />
-            ))}
-          </div>
-        </Card>
-      )}
+      <PendingRequestsList
+        initialRequests={(pendingRequests ?? []) as RedemptionRequest[]}
+        userId={profile.id}
+      />
 
       <Card className="p-0">
         {transactions && transactions.length > 0 ? (

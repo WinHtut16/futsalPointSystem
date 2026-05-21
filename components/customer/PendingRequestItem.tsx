@@ -1,16 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { RedemptionRequest } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
-export default function PendingRequestItem({ request }: { request: RedemptionRequest }) {
-  const router = useRouter()
+export default function PendingRequestItem({
+  request,
+  onResolved,
+}: {
+  request: RedemptionRequest
+  onResolved: (id: string) => void
+}) {
   const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
-  const [cancelled, setCancelled] = useState(false)
 
   async function handleCancel() {
     setLoading(true)
@@ -20,13 +23,8 @@ export default function PendingRequestItem({ request }: { request: RedemptionReq
       body: JSON.stringify({ action: 'cancel' }),
     })
     setLoading(false)
-    if (res.ok) {
-      setCancelled(true)
-      router.refresh()
-    }
+    if (res.ok) onResolved(request.id)
   }
-
-  if (cancelled) return null
 
   return (
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
