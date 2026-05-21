@@ -34,7 +34,10 @@ export default function AdminResetPasswordPage() {
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) { setError(updateError.message); setLoading(false); return }
     setSuccess(true)
-    setTimeout(() => router.push('/admin/login'), 2000)
+    setTimeout(async () => {
+      await supabase.auth.signOut()
+      router.push('/admin/login')
+    }, 2000)
   }
 
   return (
