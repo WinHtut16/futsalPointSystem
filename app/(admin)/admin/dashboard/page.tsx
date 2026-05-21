@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
 import TransactionItem from '@/components/customer/TransactionItem'
+import PendingRedemptionsBanner from '@/components/admin/PendingRedemptionsBanner'
 import type { PointTransaction } from '@/types'
-import Link from 'next/link'
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
@@ -43,19 +43,7 @@ export default async function AdminDashboardPage() {
         </Card>
       </div>
 
-      {(pendingCount ?? 0) > 0 && (
-        <Link href="/admin/redemptions">
-          <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
-            <div>
-              <p className="font-semibold text-yellow-800 text-sm">Pending Redemptions</p>
-              <p className="text-xs text-yellow-600">Tap to review and approve at the counter</p>
-            </div>
-            <span className="bg-yellow-400 text-yellow-900 font-bold text-sm px-2.5 py-0.5 rounded-full">
-              {pendingCount}
-            </span>
-          </div>
-        </Link>
-      )}
+      <PendingRedemptionsBanner initialCount={pendingCount ?? 0} />
 
       <Card className="p-0">
         <h2 className="font-semibold text-gray-900 px-4 pt-4 pb-2">Recent Transactions</h2>
