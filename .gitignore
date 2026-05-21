@@ -5,6 +5,12 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
+/e2e/.auth
+
+# E2E credentials — never commit
+.env.e2e
 
 # next.js
 /.next/
@@ -34,3 +40,6 @@ next-env.d.ts
 
 # Claude Code local settings
 .claude/
+
+# Playwright MCP tool logs
+.playwright-mcp/

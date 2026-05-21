@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser, requireSuperAdmin } from '@/lib/auth'
+import { RewardCreateSchema, badRequest, parseJson } from '@/lib/schemas'
 
 export async function GET() {
   try {
@@ -25,11 +26,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await requireSuperAdmin()
-    const { name, description, points_cost, stock } = await request.json()
 
-    if (!name || typeof points_cost !== 'number' || points_cost <= 0) {
-      return NextResponse.json({ error: 'Name and positive points_cost required.' }, { status: 400 })
-    }
+    const parsed = RewardCreateSchema.safeParse(await parseJson(request))
+    if (!parsed.success) return badRequest(parsed.error)
+    const { name, description, points_cost, stock } = parsed.data
 
     const supabase = await createServiceClient()
     const { data, error } = await supabase

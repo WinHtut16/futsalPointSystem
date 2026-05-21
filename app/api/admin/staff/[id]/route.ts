@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireSuperAdmin } from '@/lib/auth'
+import { IdParamSchema, StaffPasswordUpdateSchema, badRequest, parseJson } from '@/lib/schemas'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireSuperAdmin()
-    const { id } = await params
+
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
+
     const supabase = await createServiceClient()
     const { data, error } = await supabase
       .from('profiles')
@@ -23,22 +28,20 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const superadmin = await requireSuperAdmin()
-    const { id } = await params
+
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
 
     if (id === superadmin.id) {
       return NextResponse.json({ error: 'Cannot modify your own account here.' }, { status: 400 })
     }
 
-    const body = await request.json()
-    if (!body.password) {
-      return NextResponse.json({ error: 'No valid operation.' }, { status: 400 })
-    }
-    if (typeof body.password !== 'string' || body.password.length < 8) {
-      return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
-    }
+    const parsed = StaffPasswordUpdateSchema.safeParse(await parseJson(request))
+    if (!parsed.success) return badRequest(parsed.error)
 
     const supabase = await createServiceClient()
-    const { error } = await supabase.auth.admin.updateUserById(id, { password: body.password })
+    const { error } = await supabase.auth.admin.updateUserById(id, { password: parsed.data.password })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })
   } catch {
@@ -49,7 +52,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const superadmin = await requireSuperAdmin()
-    const { id } = await params
+
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
 
     if (id === superadmin.id) {
       return NextResponse.json({ error: 'Cannot delete your own account.' }, { status: 400 })

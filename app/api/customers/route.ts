@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
+import { CustomersQuerySchema, badRequest } from '@/lib/schemas'
 
 export async function GET(request: NextRequest) {
   try {
     await requireAnyAdmin()
+
     const { searchParams } = new URL(request.url)
-    const phone = searchParams.get('phone')
+    const phoneParam = searchParams.get('phone')
+    const parsed = CustomersQuerySchema.safeParse(
+      phoneParam === null ? {} : { phone: phoneParam }
+    )
+    if (!parsed.success) return badRequest(parsed.error)
+    const { phone } = parsed.data
 
     const supabase = await createServiceClient()
     let query = supabase

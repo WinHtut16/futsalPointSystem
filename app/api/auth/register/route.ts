@@ -1,32 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { phoneToEmail, normalizePhone } from '@/lib/utils'
+import { RegisterSchema, badRequest, parseJson } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
-  const { phone, username, password } = await request.json()
-
-  const normalized = normalizePhone(phone ?? '')
-
-  if (!/^09\d{7,9}$/.test(normalized)) {
-    return NextResponse.json(
-      { error: 'Enter a valid Myanmar phone number (e.g. 09XXXXXXXXX).' },
-      { status: 400 }
-    )
-  }
-  if (!username || username.trim().length < 2) {
-    return NextResponse.json({ error: 'Username must be at least 2 characters.' }, { status: 400 })
-  }
-  if (!password || password.length < 6) {
-    return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 })
-  }
+  const body = await parseJson(request)
+  const parsed = RegisterSchema.safeParse(
+    body && typeof body === 'object'
+      ? { ...body, phone: typeof (body as { phone?: unknown }).phone === 'string' ? normalizePhone((body as { phone: string }).phone) : (body as { phone?: unknown }).phone }
+      : body
+  )
+  if (!parsed.success) return badRequest(parsed.error)
+  const { phone, username, password } = parsed.data
 
   const supabase = await createServiceClient()
 
-  // Check if phone already registered
   const { data: existing } = await supabase
     .from('profiles')
     .select('id')
-    .eq('phone', normalized)
+    .eq('phone', phone)
     .maybeSingle()
 
   if (existing) {
@@ -36,12 +28,11 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Create auth user via admin API — bypasses email sending + rate limits entirely
   const { error } = await supabase.auth.admin.createUser({
-    email: phoneToEmail(normalized),
+    email: phoneToEmail(phone),
     password,
     email_confirm: true,
-    user_metadata: { phone: normalized, username: username.trim() },
+    user_metadata: { phone, username: username.trim() },
   })
 
   if (error) {

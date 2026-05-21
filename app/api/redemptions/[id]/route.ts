@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
+import { IdParamSchema, RedemptionActionSchema, badRequest, parseJson } from '@/lib/schemas'
 
 export async function PATCH(
   request: NextRequest,
@@ -10,29 +11,31 @@ export async function PATCH(
     const user = await getCurrentUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { action, notes } = await request.json()
-    const { id } = await params
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
+
+    const bodyParsed = RedemptionActionSchema.safeParse(await parseJson(request))
+    if (!bodyParsed.success) return badRequest(bodyParsed.error)
+    const { action, notes } = bodyParsed.data
+
     const supabase = await createServiceClient()
 
-    const { data: req } = await supabase
-      .from('redemption_requests')
-      .select('*, reward:rewards(*)')
-      .eq('id', id)
-      .single()
-
-    if (!req) return NextResponse.json({ error: 'Request not found.' }, { status: 404 })
-
-    if (req.status !== 'pending') {
-      return NextResponse.json({ error: 'Only pending requests can be actioned.' }, { status: 400 })
-    }
-
     if (user.role === 'customer') {
-      if (req.customer_id !== user.id) {
-        return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
-      }
-      if (action !== 'cancel') {
+      if (action !== 'cancel')
         return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
-      }
+
+      const { data: req } = await supabase
+        .from('redemption_requests')
+        .select('customer_id, status')
+        .eq('id', id)
+        .single()
+
+      if (!req) return NextResponse.json({ error: 'Request not found.' }, { status: 404 })
+      if (req.status !== 'pending')
+        return NextResponse.json({ error: 'Only pending requests can be actioned.' }, { status: 400 })
+      if (req.customer_id !== user.id)
+        return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
 
       await supabase
         .from('redemption_requests')
@@ -43,51 +46,46 @@ export async function PATCH(
     }
 
     if (user.role === 'admin' || user.role === 'superadmin') {
-      if (!['approve', 'reject'].includes(action)) {
+      if (action !== 'approve' && action !== 'reject')
         return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
-      }
 
       if (action === 'approve') {
-        const reward = req.reward
-
-        if (reward.stock !== null && reward.stock <= 0) {
-          return NextResponse.json({ error: 'Reward is now out of stock.' }, { status: 400 })
-        }
-
-        const { data: customer } = await supabase
-          .from('profiles')
-          .select('total_points')
-          .eq('id', req.customer_id)
-          .single()
-
-        if (!customer || customer.total_points < reward.points_cost) {
-          return NextResponse.json({ error: 'Customer no longer has enough points.' }, { status: 400 })
-        }
-
-        const { error: txError } = await supabase.rpc('add_points_transaction', {
-          p_customer_id: req.customer_id,
-          p_points_delta: -reward.points_cost,
-          p_transaction_type: 'redeem',
-          p_hours_played: null,
-          p_reward_id: req.reward_id,
-          p_note: notes ?? null,
-          p_created_by: user.id,
+        const { error: rpcError } = await supabase.rpc('approve_redemption', {
+          p_request_id: id,
+          p_approved_by: user.id,
+          p_notes: notes ?? null,
         })
 
-        if (txError) return NextResponse.json({ error: txError.message }, { status: 500 })
-
-        if (reward.stock !== null) {
-          await supabase
-            .from('rewards')
-            .update({ stock: reward.stock - 1 })
-            .eq('id', req.reward_id)
+        if (rpcError) {
+          if (rpcError.message === 'request_not_found')
+            return NextResponse.json({ error: 'Request not found.' }, { status: 404 })
+          if (rpcError.message === 'not_pending')
+            return NextResponse.json({ error: 'Only pending requests can be actioned.' }, { status: 400 })
+          if (rpcError.message === 'out_of_stock')
+            return NextResponse.json({ error: 'Reward is now out of stock.' }, { status: 400 })
+          if (rpcError.message === 'insufficient_points')
+            return NextResponse.json({ error: 'Customer no longer has enough points.' }, { status: 400 })
+          return NextResponse.json({ error: rpcError.message }, { status: 500 })
         }
+
+        return NextResponse.json({ success: true })
       }
+
+      // action === 'reject'
+      const { data: req } = await supabase
+        .from('redemption_requests')
+        .select('status')
+        .eq('id', id)
+        .single()
+
+      if (!req) return NextResponse.json({ error: 'Request not found.' }, { status: 404 })
+      if (req.status !== 'pending')
+        return NextResponse.json({ error: 'Only pending requests can be actioned.' }, { status: 400 })
 
       await supabase
         .from('redemption_requests')
         .update({
-          status: action === 'approve' ? 'approved' : 'rejected',
+          status: 'rejected',
           resolved_at: new Date().toISOString(),
           resolved_by: user.id,
           notes: notes ?? null,

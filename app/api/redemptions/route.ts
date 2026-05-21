@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser, requireRole } from '@/lib/auth'
+import { RedeemSchema, badRequest, parseJson } from '@/lib/schemas'
 
 export async function GET() {
   try {
@@ -36,11 +37,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const customer = await requireRole('customer')
-    const { reward_id } = await request.json()
 
-    if (!reward_id) {
-      return NextResponse.json({ error: 'reward_id required.' }, { status: 400 })
-    }
+    const parsed = RedeemSchema.safeParse(await parseJson(request))
+    if (!parsed.success) return badRequest(parsed.error)
+    const { reward_id } = parsed.data
 
     const supabase = await createServiceClient()
 
@@ -83,7 +83,14 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      if (error.code === '23505')
+        return NextResponse.json(
+          { error: 'You already have a pending request for this reward.' },
+          { status: 409 }
+        )
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     return NextResponse.json(data, { status: 201 })
   } catch {

@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
 import { calculatePoints } from '@/lib/points'
+import { AddPointsSchema, badRequest, parseJson } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   try {
     const admin = await requireAnyAdmin()
-    const { customer_id, hours_played, note } = await request.json()
 
-    if (!customer_id || typeof hours_played !== 'number' || hours_played <= 0) {
-      return NextResponse.json({ error: 'Invalid input.' }, { status: 400 })
-    }
+    const parsed = AddPointsSchema.safeParse(await parseJson(request))
+    if (!parsed.success) return badRequest(parsed.error)
+    const { customer_id, hours_played, note } = parsed.data
 
     const supabase = await createServiceClient()
 

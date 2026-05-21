@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireSuperAdmin } from '@/lib/auth'
+import { IdParamSchema, RewardUpdateSchema, badRequest, parseJson } from '@/lib/schemas'
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireSuperAdmin()
-    const { id } = await params
-    const body = await request.json()
-    const allowed = ['name', 'description', 'points_cost', 'stock', 'is_active']
-    const updates: Record<string, unknown> = Object.fromEntries(
-      Object.entries(body).filter(([k]) => allowed.includes(k))
-    )
-    updates.updated_at = new Date().toISOString()
+
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
+
+    const parsed = RewardUpdateSchema.safeParse(await parseJson(request))
+    if (!parsed.success) return badRequest(parsed.error)
+
+    const updates: Record<string, unknown> = {
+      ...parsed.data,
+      updated_at: new Date().toISOString(),
+    }
 
     const supabase = await createServiceClient()
     const { data, error } = await supabase
@@ -31,7 +37,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireSuperAdmin()
-    const { id } = await params
+
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
+
     const supabase = await createServiceClient()
     const { error } = await supabase.from('rewards').delete().eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

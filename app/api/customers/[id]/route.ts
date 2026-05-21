@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
+import {
+  IdParamSchema,
+  CustomerPasswordResetSchema,
+  CustomerProfileUpdateSchema,
+  badRequest,
+  parseJson,
+} from '@/lib/schemas'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAnyAdmin()
-    const { id } = await params
+
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
+
     const supabase = await createServiceClient()
     const { data, error } = await supabase
       .from('profiles')
@@ -23,30 +34,32 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAnyAdmin()
-    const { id } = await params
-    const body = await request.json()
+
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
+
+    const body = await parseJson(request)
+    const schema =
+      body && typeof body === 'object' && 'password' in (body as Record<string, unknown>)
+        ? CustomerPasswordResetSchema
+        : CustomerProfileUpdateSchema
+    const parsed = schema.safeParse(body)
+    if (!parsed.success) return badRequest(parsed.error)
+
     const supabase = await createServiceClient()
 
-    if (body.password) {
-      if (typeof body.password !== 'string' || body.password.length < 8) {
-        return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
-      }
-      const { error } = await supabase.auth.admin.updateUserById(id, { password: body.password })
+    if ('password' in parsed.data) {
+      const { error } = await supabase.auth.admin.updateUserById(id, {
+        password: parsed.data.password,
+      })
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true })
     }
 
-    const allowed = ['username', 'phone']
-    const updates = Object.fromEntries(
-      Object.entries(body).filter(([k]) => allowed.includes(k))
-    )
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json({ error: 'No valid fields.' }, { status: 400 })
-    }
-
     const { data, error } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(parsed.data)
       .eq('id', id)
       .select()
       .single()
@@ -61,7 +74,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAnyAdmin()
-    const { id } = await params
+
+    const idParsed = IdParamSchema.safeParse(await params)
+    if (!idParsed.success) return badRequest(idParsed.error)
+    const { id } = idParsed.data
+
     const supabase = await createServiceClient()
     const { error } = await supabase.auth.admin.deleteUser(id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

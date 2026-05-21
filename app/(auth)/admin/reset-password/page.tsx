@@ -33,11 +33,10 @@ export default function AdminResetPasswordPage() {
     const supabase = createClient()
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) { setError(updateError.message); setLoading(false); return }
+    // Revoke all sessions globally so the old session can't be reused
+    await supabase.auth.signOut({ scope: 'global' })
     setSuccess(true)
-    setTimeout(async () => {
-      await supabase.auth.signOut()
-      router.push('/admin/login')
-    }, 2000)
+    setTimeout(() => router.push('/admin/login'), 2000)
   }
 
   return (
