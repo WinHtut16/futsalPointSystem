@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import RewardCard from '@/components/customer/RewardCard'
+import RewardsGrid from '@/components/customer/RewardsGrid'
 import T from '@/components/ui/T'
 import type { Reward } from '@/types'
 
@@ -23,8 +23,8 @@ export default async function RewardsPage() {
       .eq('status', 'pending'),
   ])
 
-  const pendingMap = new Map<string, string>()
-  pendingRequests?.forEach((r) => pendingMap.set(r.reward_id, r.id))
+  const initialPendingMap: Record<string, string> = {}
+  pendingRequests?.forEach((r) => { initialPendingMap[r.reward_id] = r.id })
 
   return (
     <div className="px-4 py-6 space-y-4">
@@ -36,16 +36,12 @@ export default async function RewardsPage() {
       </div>
 
       {rewards && rewards.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3">
-          {rewards.map((reward) => (
-            <RewardCard
-              key={reward.id}
-              reward={reward as Reward}
-              userPoints={profile.total_points}
-              pendingRequestId={pendingMap.get(reward.id)}
-            />
-          ))}
-        </div>
+        <RewardsGrid
+          rewards={rewards as Reward[]}
+          userId={profile.id}
+          userPoints={profile.total_points}
+          initialPendingMap={initialPendingMap}
+        />
       ) : (
         <div className="text-center py-16 text-gray-400">
           <p className="text-4xl mb-3">🎁</p>

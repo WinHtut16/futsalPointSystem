@@ -4,17 +4,17 @@ import { useState } from 'react'
 import type { Reward } from '@/types'
 import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
-import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface RewardCardProps {
   reward: Reward
   userPoints: number
   pendingRequestId?: string
+  onRequested?: (rewardId: string, requestId: string) => void
+  onCancelled?: (rewardId: string) => void
 }
 
-export default function RewardCard({ reward, userPoints, pendingRequestId }: RewardCardProps) {
-  const router = useRouter()
+export default function RewardCard({ reward, userPoints, pendingRequestId, onRequested, onCancelled }: RewardCardProps) {
   const { t } = useLanguage()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
@@ -39,7 +39,7 @@ export default function RewardCard({ reward, userPoints, pendingRequestId }: Rew
       return
     }
     setConfirmOpen(false)
-    router.refresh()
+    onRequested?.(reward.id, data.id)
   }
 
   async function handleCancel() {
@@ -52,7 +52,7 @@ export default function RewardCard({ reward, userPoints, pendingRequestId }: Rew
     setLoading(false)
     if (res.ok) {
       setCancelOpen(false)
-      router.refresh()
+      onCancelled?.(reward.id)
     }
   }
 

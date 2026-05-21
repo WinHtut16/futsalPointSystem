@@ -83,11 +83,35 @@ All tables have Row-Level Security enforced. Key patterns:
 | `lib/supabase/client.ts` | Browser Supabase client (for client components) |
 | `lib/supabase/server.ts` | SSR Supabase client + `createServiceClient()` (raw `@supabase/supabase-js`, truly bypasses RLS) |
 
+### Real-Time Architecture
+
+Live UI updates use a two-tier pattern: Supabase Realtime `postgres_changes` subscription (instant when working) + 20s polling fallback (guaranteed).
+
+**SQL prerequisites** — run once per table in Supabase SQL editor:
+```sql
+ALTER TABLE <table> REPLICA IDENTITY FULL;
+ALTER PUBLICATION supabase_realtime ADD TABLE <table>;
+```
+Tables currently enabled: `redemption_requests`, `profiles`.
+
+**Column filter caveat:** `filter: id=eq.{uuid}` on `profiles` silently drops events. Subscribe unfiltered and check `payload.new.id === userId` client-side instead.
+
+**`onResolved(id)` pattern:** instead of `router.refresh()` after approve/reject/cancel, components call a callback that removes the item from local state immediately — no full server re-render needed.
+
+**Components with live subscriptions:**
+| Component | Table | Events | Used in |
+|-----------|-------|---------|---------|
+| `PendingRedemptionsBanner` | `redemption_requests` | INSERT, UPDATE | Admin dashboard |
+| `RedemptionsList` | `redemption_requests` | INSERT, UPDATE | Admin redemptions page |
+| `PendingRequestsList` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer history |
+| `RewardsGrid` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer rewards |
+| `PointsCard` | `profiles` | UPDATE (unfiltered, client-side id check) | Customer dashboard |
+
 ### Component Organization
 
 - `components/auth/` — LoginForm, RegisterForm, AdminLoginForm
-- `components/customer/` — PointsCard, RewardCard, TransactionItem, CustomerNav
-- `components/admin/` — AddPointsForm, CustomerSearch, RewardForm, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
+- `components/customer/` — PointsCard, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
+- `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, CustomerSearch, RewardForm, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
 - `components/ui/` — shared primitives: Button, Card, Input, Badge, Modal, PasswordStrengthMeter
 
 ### API Surface
@@ -98,7 +122,8 @@ All tables have Row-Level Security enforced. Key patterns:
 | `GET/POST /api/customers` | admin/superadmin | List / search customers |
 | `GET/PUT/DELETE /api/customers/[id]` | admin/superadmin | Customer detail, password reset, delete |
 | `POST /api/points/add` | admin/superadmin | Credit points to a customer |
-| `POST /api/points/redeem` | customer | Redeem a reward (deducts points, decrements stock) |
+| `GET/POST /api/redemptions` | customer (GET: admin) | List / create redemption requests |
+| `PATCH /api/redemptions/[id]` | customer/admin | Cancel (customer) or approve/reject (admin) |
 | `GET/POST /api/rewards` | superadmin (GET: any admin) | List / create rewards |
 | `GET/PUT/DELETE /api/rewards/[id]` | superadmin | Reward detail, update, delete |
 | `GET/POST /api/admin/staff` | superadmin | List / create staff admin accounts |
