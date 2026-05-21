@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { RedemptionRequest } from '@/types'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -16,10 +15,14 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(h / 24)}d ago`
 }
 
-export default function RedemptionRequestCard({ request }: { request: RedemptionRequest }) {
-  const router = useRouter()
+export default function RedemptionRequestCard({
+  request,
+  onResolved,
+}: {
+  request: RedemptionRequest
+  onResolved: (id: string) => void
+}) {
   const [loading, setLoading] = useState<'approve' | 'reject' | null>(null)
-  const [done, setDone] = useState(false)
   const [error, setError] = useState('')
 
   async function handleAction(action: 'approve' | 'reject') {
@@ -36,11 +39,8 @@ export default function RedemptionRequestCard({ request }: { request: Redemption
       setError(data.error ?? 'Action failed.')
       return
     }
-    setDone(true)
-    router.refresh()
+    onResolved(request.id)
   }
-
-  if (done) return null
 
   return (
     <Card>

@@ -16,16 +16,8 @@ export default async function AdminRedemptionsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Redemption Requests</h1>
-        {list.length > 0 && (
-          <span className="bg-yellow-100 text-yellow-700 text-sm font-semibold px-2.5 py-0.5 rounded-full">
-            {list.length} pending
-          </span>
-        )}
-      </div>
-
-      <RedemptionsList requests={list} />
+      <h1 className="text-xl font-bold text-gray-900">Redemption Requests</h1>
+      <RedemptionsList initialRequests={list} />
     </div>
   )
 }
