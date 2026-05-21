@@ -11,8 +11,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-gray-900 text-white px-4 py-3 flex items-center justify-between shadow">
-        <span className="font-bold">⚽ Admin Panel</span>
+      <header className="bg-gray-900 text-white px-4 py-2 flex items-center justify-between shadow">
+        <div className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo_black.jpg" alt="Mya Thida" className="h-10 w-10 rounded-lg object-contain" />
+          <span className="font-bold text-base leading-tight">Mya Thida<br /><span className="text-gray-400 text-xs font-normal">Admin Panel</span></span>
+        </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
             <p className="text-sm text-gray-200">{profile.username}</p>

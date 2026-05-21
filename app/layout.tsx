@@ -3,8 +3,8 @@ import './globals.css'
 import Providers from '@/components/Providers'
 
 export const metadata: Metadata = {
-  title: 'AkoATP Points',
-  description: 'Futsal loyalty points system',
+  title: 'Mya Thida Points',
+  description: 'Mya Thida Futsal loyalty points system',
 }
 
 export const viewport: Viewport = {

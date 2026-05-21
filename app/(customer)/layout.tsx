@@ -10,8 +10,12 @@ export default async function CustomerLayout({ children }: { children: React.Rea
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-brand-600 text-white px-4 py-3 flex items-center justify-between shadow">
-        <span className="font-bold text-lg">⚽ AkoATP Points</span>
+      <header className="bg-brand-600 text-white px-4 py-2 flex items-center justify-between shadow">
+        <div className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo_white.jpg" alt="Mya Thida" className="h-10 w-10 rounded-lg object-contain bg-white" />
+          <span className="font-bold text-base leading-tight">Mya Thida<br /><span className="text-brand-200 text-xs font-normal">Futsal Field</span></span>
+        </div>
         <div className="flex items-center gap-2">
           <LanguageToggle variant="light" />
           <span className="text-sm text-brand-200">{profile.username}</span>

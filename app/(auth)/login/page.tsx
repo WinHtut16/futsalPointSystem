@@ -10,10 +10,11 @@ export default function LoginPage() {
       </div>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-lg mb-4">
-            <span className="text-3xl">⚽</span>
+          <div className="inline-flex items-center justify-center mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo_black.jpg" alt="Mya Thida" className="w-28 h-28 rounded-2xl object-contain shadow-2xl" />
           </div>
-          <h1 className="text-2xl font-bold text-white">AkoATP Points</h1>
+          <h1 className="text-2xl font-bold text-white">Mya Thida</h1>
           <p className="text-brand-200 text-sm mt-1"><T k="auth.tagline" /></p>
         </div>
         <div className="bg-white rounded-2xl shadow-xl p-6">

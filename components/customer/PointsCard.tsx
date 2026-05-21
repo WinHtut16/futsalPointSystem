@@ -47,8 +47,14 @@ export default function PointsCard({ initialPoints, username, phone, userId }: P
 
   return (
     <div className="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-6 text-white shadow-lg">
-      <p className="text-brand-200 text-sm font-medium">{username}</p>
-      <p className="text-brand-300 text-xs mb-4">{phone}</p>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <p className="text-brand-200 text-sm font-medium">{username}</p>
+          <p className="text-brand-300 text-xs">{phone}</p>
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo_black.jpg" alt="Mya Thida" className="h-10 w-10 rounded-lg object-contain opacity-90" />
+      </div>
       <div className="text-center">
         <p className="text-brand-200 text-sm uppercase tracking-widest mb-1">{t('card.yourPoints')}</p>
         <p className="text-6xl font-bold tracking-tight">{points.toLocaleString()}</p>
