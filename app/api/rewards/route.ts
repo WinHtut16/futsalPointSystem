@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getCurrentUser, requireRole } from '@/lib/auth'
+import { getCurrentUser, requireSuperAdmin } from '@/lib/auth'
 
 export async function GET() {
   try {
@@ -24,7 +24,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireRole('admin')
+    await requireSuperAdmin()
     const { name, description, points_cost, stock } = await request.json()
 
     if (!name || typeof points_cost !== 'number' || points_cost <= 0) {

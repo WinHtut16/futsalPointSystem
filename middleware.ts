@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -28,15 +30,18 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
+  const isAdminPublicPath = ADMIN_PUBLIC_PATHS.some(p => pathname.startsWith(p))
+
   // Redirect logged-in users away from auth pages
-  if (user && (pathname === '/login' || pathname === '/register')) {
+  if (user && (pathname === '/login' || pathname === '/register' || isAdminPublicPath)) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
 
-    const destination = profile?.role === 'admin' ? '/admin/dashboard' : '/dashboard'
+    const isAdminRole = profile?.role === 'admin' || profile?.role === 'superadmin'
+    const destination = isAdminRole ? '/admin/dashboard' : '/dashboard'
     return NextResponse.redirect(new URL(destination, request.url))
   }
 
@@ -56,18 +61,25 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect admin routes
-  if (pathname.startsWith('/admin')) {
+  // Protect admin routes (excluding public admin auth pages)
+  if (pathname.startsWith('/admin') && !isAdminPublicPath) {
     if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
+      return NextResponse.redirect(new URL('/admin/login', request.url))
     }
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
-    if (profile?.role !== 'admin') {
+
+    const isAdminRole = profile?.role === 'admin' || profile?.role === 'superadmin'
+    if (!isAdminRole) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    // Staff management is superadmin-only
+    if (pathname.startsWith('/admin/staff') && profile?.role !== 'superadmin') {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     }
   }
 

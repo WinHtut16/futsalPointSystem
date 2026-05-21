@@ -12,56 +12,91 @@ const supabase = createClient(supabaseUrl, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-const ADMIN_PHONE = '09777219771'
-const ADMIN_EMAIL = `${ADMIN_PHONE}@akoatp.com`
-const ADMIN_PASSWORD = 'Admin@123456'
+// ── Superadmin account config ──────────────────────────────────────────────
+// Set these to the owner's real email and desired username/password.
+const SUPERADMIN_EMAIL    = process.env.SUPERADMIN_EMAIL    || 'winhtutcentury@gmail.com'
+const SUPERADMIN_USERNAME = process.env.SUPERADMIN_USERNAME || 'Owner'
+const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'WinHtutNaingAIT1673@'
+const SUPERADMIN_PHONE    = process.env.SUPERADMIN_PHONE    || '09777219771'
 
-// ── 1. Create or find admin auth user ──────────────────────────────────────
-console.log('Setting up admin account...')
+// ── 1. Create or find superadmin auth user ─────────────────────────────────
+console.log('Setting up superadmin account...')
 const { data: existingUsers } = await supabase.auth.admin.listUsers()
-let adminUser = existingUsers?.users?.find(u => u.email === ADMIN_EMAIL)
+let adminUser = existingUsers?.users?.find(u => u.email === SUPERADMIN_EMAIL)
+
+// Also look for the old phone-based email in case migrating from previous setup
+const OLD_ADMIN_EMAIL = existingUsers?.users?.find(
+  u => u.email?.endsWith('@akoatp.com') && u.email !== SUPERADMIN_EMAIL
+)
+
+if (!adminUser && OLD_ADMIN_EMAIL) {
+  console.log(`Migrating existing admin from ${OLD_ADMIN_EMAIL.email} → ${SUPERADMIN_EMAIL}`)
+  const { error } = await supabase.auth.admin.updateUserById(OLD_ADMIN_EMAIL.id, {
+    email: SUPERADMIN_EMAIL,
+    password: SUPERADMIN_PASSWORD,
+  })
+  if (error) { console.error('Migration error:', error.message); process.exit(1) }
+  adminUser = OLD_ADMIN_EMAIL
+  console.log('✅ Superadmin email updated')
+}
 
 if (!adminUser) {
   const { data, error } = await supabase.auth.admin.createUser({
-    email: ADMIN_EMAIL,
-    password: ADMIN_PASSWORD,
+    email: SUPERADMIN_EMAIL,
+    password: SUPERADMIN_PASSWORD,
     email_confirm: true,
-    user_metadata: { phone: ADMIN_PHONE, username: 'Admin' },
+    user_metadata: { phone: SUPERADMIN_PHONE, username: SUPERADMIN_USERNAME },
   })
-  if (error) { console.error('Create admin error:', error.message); process.exit(1) }
+  if (error) { console.error('Create superadmin error:', error.message); process.exit(1) }
   adminUser = data.user
-  console.log('✅ Admin auth user created:', adminUser.id)
+  console.log('✅ Superadmin auth user created:', adminUser.id)
 } else {
-  console.log('✅ Admin auth user already exists:', adminUser.id)
-  // Update password to ensure known
-  await supabase.auth.admin.updateUserById(adminUser.id, { password: ADMIN_PASSWORD })
+  console.log('✅ Superadmin auth user found:', adminUser.id)
+  await supabase.auth.admin.updateUserById(adminUser.id, { password: SUPERADMIN_PASSWORD })
 }
 
-// ── 2. Upsert admin profile with role = admin ─────────────────────────────
-const { error: profileError } = await supabase
+// ── 2. Upsert superadmin profile with role = superadmin ────────────────────
+// Check if profile already exists; if so, only update role/username (not phone)
+const { data: existingProfile } = await supabase
   .from('profiles')
-  .upsert({
-    id: adminUser.id,
-    phone: ADMIN_PHONE,
-    username: 'Admin',
-    role: 'admin',
-    total_points: 0,
-  }, { onConflict: 'id' })
+  .select('id')
+  .eq('id', adminUser.id)
+  .maybeSingle()
+
+let profileError
+if (existingProfile) {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ username: SUPERADMIN_USERNAME, role: 'superadmin' })
+    .eq('id', adminUser.id)
+  profileError = error
+} else {
+  const { error } = await supabase
+    .from('profiles')
+    .insert({
+      id: adminUser.id,
+      phone: SUPERADMIN_PHONE,
+      username: SUPERADMIN_USERNAME,
+      role: 'superadmin',
+      total_points: 0,
+    })
+  profileError = error
+}
 
 if (profileError) {
   console.error('Profile upsert error:', profileError.message)
 } else {
-  console.log('✅ Admin profile set (role = admin)')
+  console.log('✅ Superadmin profile set (role = superadmin)')
 }
 
-// ── 3. Seed initial rewards ───────────────────────────────────────────────
+// ── 3. Seed initial rewards ────────────────────────────────────────────────
 console.log('\nSeeding rewards...')
 const rewards = [
-  { name: '1 Bottle Water',       description: 'Free 600ml water bottle', points_cost: 30,  stock: null },
-  { name: '1 Can Juice',          description: 'Choice of juice can',      points_cost: 50,  stock: null },
-  { name: '1 Energy Drink',       description: '325ml energy drink',       points_cost: 80,  stock: null },
-  { name: '30 Min Free Play',     description: 'Half hour of free court time', points_cost: 150, stock: null },
-  { name: '1 Hour Free Play',     description: 'One full hour of free court time', points_cost: 250, stock: null },
+  { name: '1 Bottle Water',       description: 'Free 600ml water bottle',           points_cost: 30,  stock: null },
+  { name: '1 Can Juice',          description: 'Choice of juice can',                points_cost: 50,  stock: null },
+  { name: '1 Energy Drink',       description: '325ml energy drink',                 points_cost: 80,  stock: null },
+  { name: '30 Min Free Play',     description: 'Half hour of free court time',       points_cost: 150, stock: null },
+  { name: '1 Hour Free Play',     description: 'One full hour of free court time',   points_cost: 250, stock: null },
   { name: 'Team Discount 20%',    description: '20% off next booking for your team', points_cost: 400, stock: null },
 ]
 
@@ -82,9 +117,9 @@ console.log(`
 ════════════════════════════════════════
 ✅ Setup complete!
 
-Admin login:
-  Phone:    ${ADMIN_PHONE}
-  Password: ${ADMIN_PASSWORD}
+Superadmin login:
+  Email:    ${SUPERADMIN_EMAIL}
+  Password: ${SUPERADMIN_PASSWORD}
 
-Go to http://localhost:3000/login
+Go to http://localhost:3000/admin/login
 ════════════════════════════════════════`)

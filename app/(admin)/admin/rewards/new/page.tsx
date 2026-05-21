@@ -1,7 +1,12 @@
+import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/auth'
 import RewardForm from '@/components/admin/RewardForm'
 import Link from 'next/link'
 
-export default function NewRewardPage() {
+export default async function NewRewardPage() {
+  const profile = await getCurrentUser()
+  if (profile?.role !== 'superadmin') redirect('/admin/rewards')
+
   return (
     <div className="space-y-5">
       <div>

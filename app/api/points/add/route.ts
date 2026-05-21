@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireRole } from '@/lib/auth'
+import { requireAnyAdmin } from '@/lib/auth'
 import { calculatePoints } from '@/lib/points'
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = await requireRole('admin')
+    const admin = await requireAnyAdmin()
     const { customer_id, hours_played, note } = await request.json()
 
     if (!customer_id || typeof hours_played !== 'number' || hours_played <= 0) {
@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createServiceClient()
 
-    // Verify target is a customer
     const { data: customer } = await supabase
       .from('profiles')
       .select('id, role')
@@ -37,9 +36,7 @@ export async function POST(request: NextRequest) {
       p_created_by: admin.id,
     })
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     const { data: updated } = await supabase
       .from('profiles')
@@ -48,7 +45,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     return NextResponse.json({ points_added, total_points: updated?.total_points })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 }

@@ -90,14 +90,14 @@ export const my: typeof en = {
   'auth.noAccount': 'အကောင့်မရှိဘူးလား?',
   'auth.register': 'မှတ်ပုံတင်ရန်',
   'auth.invalidCredentials': 'ဖုန်းနံပါတ် သို့မဟုတ် စကားဝှက် မှားနေသည်။',
-  'auth.tooManyAttempts': 'ကြိမ်ရေပိုများနေသည်။ မိနစ်အနည်းငယ်ကြာ၍ ထပ်ကြိုးစားပါ။',
+  'auth.tooManyAttempts': 'ကြိမ်ရေပိုများနေသည်။ မိနစ်အနည်းငယ်စောင့်၍ ထပ်ကြိုးစားပါ။',
 
   // Auth – register
   'auth.createHeading': 'အကောင့်ဖွင့်ရန်',
   'auth.createTagline': 'AkoATP Points တွင် ယနေ့ ပါဝင်ပါ',
   'auth.username': 'အမည်',
-  'auth.usernamePlaceholder': 'သင့်နာမည် သို့မဟုတ် နာမည်ဟောင်း',
-  'auth.newPasswordPlaceholder': 'အနည်းဆုံး ၈ လုံး',
+  'auth.usernamePlaceholder': 'သင့်နာမည် သို့မဟုတ် အမည်ပြောင်',
+  'auth.newPasswordPlaceholder': 'အနည်းဆုံး ၈ လုံးရိုက်နှိပ်ပါ',
   'auth.createAccount': 'အကောင့်ဖွင့်ရန်',
   'auth.creating': 'ဖွင့်နေသည်...',
   'auth.haveAccount': 'အကောင့်ရှိပြီးသားလား?',
@@ -109,23 +109,23 @@ export const my: typeof en = {
   'auth.accountCreated': 'အကောင့်ဖွင့်ပြီးပါပြီ! ဝင်ရောက်ရန် စာမျက်နှာသို့ သွားပါ။',
 
   // Navigation
-  'nav.home': 'ပင်မ',
+  'nav.home': 'ပင်မစာမျက်နှာ',
   'nav.history': 'မှတ်တမ်း',
   'nav.rewards': 'ဆုလာဘ်',
   'nav.logout': 'ထွက်ရန်',
 
   // Points card
-  'card.yourPoints': 'သင့်မှတ်နှောင်းများ',
+  'card.yourPoints': 'သင့်လက်ရှိ ပွိုင့်များ',
 
   // Dashboard
-  'dashboard.recentActivity': 'မကြာသေးမီ လှုပ်ရှားမှုများ',
+  'dashboard.recentActivity': 'မကြာသေးမှီ လှုပ်ရှားမှုများ',
   'dashboard.viewAll': 'အားလုံးကြည့်ရန်',
-  'dashboard.noActivity': 'မှတ်တမ်းမရှိသေးပါ။ ကစားပြီး မှတ်နှောင်းများ ရယူပါ!',
-  'dashboard.spendPoints': 'မှတ်နှောင်းများ သုံးရန် အဆင်သင့်ဖြစ်ပြီလား?',
+  'dashboard.noActivity': 'မှတ်တမ်းမရှိသေးပါ။ ကစားပြီး ပွိုင့်များ ရယူပါ!',
+  'dashboard.spendPoints': 'ပွိုင့်များ သုံးရန် အဆင်သင့်ဖြစ်ပြီလား?',
   'dashboard.viewRewards': '🎁 ဆုလာဘ်များ ကြည့်ရန်',
 
   // History
-  'history.title': 'မှတ်နှောင်း မှတ်တမ်း',
+  'history.title': 'ပွိုင့်မှတ်တမ်း',
   'history.pendingRequests': 'ဆောင်ရွက်ဆဲ တောင်းဆိုမှုများ',
   'history.pendingApproval': 'အတည်ပြုချက် စောင့်ဆိုင်းနေသည်',
   'history.cancel': 'ပယ်ဖျက်ရန်',
@@ -144,18 +144,18 @@ export const my: typeof en = {
   'rewards.pts': 'မှတ်',
   'rewards.request': 'တောင်းဆိုရန်',
   'rewards.outOfStock': 'ပစ္စည်းကုန်နေသည်',
-  'rewards.notEnoughPts': 'မှတ်မလုံလောက်ပါ',
+  'rewards.notEnoughPts': 'အမှတ်မလုံလောက်ပါ',
   'rewards.pending': 'စောင့်ဆိုင်းနေသည်...',
   'rewards.cancel': 'ပယ်ဖျက်ရန်',
   'rewards.keep': 'ဆက်ထားရန်',
   'rewards.requestRedemption': 'ဆုလာဘ် တောင်းဆိုရန်',
   'rewards.sendRequest': 'တောင်းဆိုမှု ပို့ရန်',
   'rewards.cancelRequest': 'တောင်းဆိုမှု ပယ်ဖျက်ရန်',
-  'rewards.adminApproveNote': 'ကောင်တာတွင် ဝန်ထမ်းမှ အတည်ပြုမှသာ သင့်မှတ်နှောင်းများ နုတ်ယူမည်ဖြစ်သည်။',
-  'rewards.pointsNotDeducted': 'သင့်မှတ်နှောင်းများ မနုတ်ယူရသေးပါ။',
+  'rewards.adminApproveNote': 'ကောင်တာတွင် ဝန်ထမ်းမှ အတည်ပြုမှသာ သင့်ပွိုင့်များ နုတ်ယူမည်ဖြစ်သည်။',
+  'rewards.pointsNotDeducted': 'သင့်ပွိုင့်များ မနုတ်ယူရသေးပါ။',
   'rewards.noRewards': 'ဆုလာဘ်များ မရှိသေးပါ။',
   'rewards.checkBack': 'နောက်မှ ထပ်စစ်ဆေးပါ!',
-  'rewards.remainingAfter': 'ကျန်မည့်မှတ်:',
+  'rewards.remainingAfter': 'ကျန်မည့်ပွိုင့်:',
 }
 
 export type TranslationKey = keyof typeof en

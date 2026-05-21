@@ -9,7 +9,7 @@ export async function GET() {
 
     const supabase = await createServiceClient()
 
-    if (user.role === 'admin') {
+    if (user.role === 'admin' || user.role === 'superadmin') {
       const { data, error } = await supabase
         .from('redemption_requests')
         .select('*, reward:rewards(name, points_cost), customer:profiles!customer_id(username, phone, total_points)')

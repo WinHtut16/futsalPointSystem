@@ -25,7 +25,7 @@ export default async function DashboardPage() {
       <PointsCard
         points={profile.total_points}
         username={profile.username}
-        phone={profile.phone}
+        phone={profile.phone ?? ''}
       />
 
       <Card>

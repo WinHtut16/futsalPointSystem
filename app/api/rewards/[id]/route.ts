@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireRole } from '@/lib/auth'
+import { requireSuperAdmin } from '@/lib/auth'
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireRole('admin')
+    await requireSuperAdmin()
     const { id } = await params
     const body = await request.json()
     const allowed = ['name', 'description', 'points_cost', 'stock', 'is_active']
@@ -30,7 +30,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireRole('admin')
+    await requireSuperAdmin()
     const { id } = await params
     const supabase = await createServiceClient()
     const { error } = await supabase.from('rewards').delete().eq('id', id)

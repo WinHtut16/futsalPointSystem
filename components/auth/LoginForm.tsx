@@ -46,7 +46,8 @@ export default function LoginForm() {
       .eq('id', user!.id)
       .single()
 
-    router.push(profile?.role === 'admin' ? '/admin/dashboard' : '/dashboard')
+    const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
+    router.push(isAdmin ? '/admin/dashboard' : '/dashboard')
     router.refresh()
   }
 

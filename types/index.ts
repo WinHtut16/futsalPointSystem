@@ -1,4 +1,4 @@
-export type UserRole = 'customer' | 'admin'
+export type UserRole = 'customer' | 'admin' | 'superadmin'
 
 export type RedemptionStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
 
@@ -17,7 +17,7 @@ export interface RedemptionRequest {
 
 export interface Profile {
   id: string
-  phone: string
+  phone: string | null
   username: string
   role: UserRole
   total_points: number

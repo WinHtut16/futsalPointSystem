@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireRole } from '@/lib/auth'
+import { requireAnyAdmin } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    await requireRole('admin')
+    await requireAnyAdmin()
     const { searchParams } = new URL(request.url)
     const phone = searchParams.get('phone')
 

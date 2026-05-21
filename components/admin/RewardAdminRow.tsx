@@ -8,9 +8,10 @@ import Button from '@/components/ui/Button'
 
 interface RewardAdminRowProps {
   reward: Reward
+  canManage: boolean
 }
 
-export default function RewardAdminRow({ reward }: RewardAdminRowProps) {
+export default function RewardAdminRow({ reward, canManage }: RewardAdminRowProps) {
   const router = useRouter()
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -47,24 +48,16 @@ export default function RewardAdminRow({ reward }: RewardAdminRowProps) {
         {reward.description && <p className="text-xs text-gray-400 truncate">{reward.description}</p>}
         {reward.stock !== null && <p className="text-xs text-gray-400">{reward.stock} in stock</p>}
       </div>
-      <div className="flex gap-1.5 shrink-0">
-        <Button
-          variant="secondary"
-          size="sm"
-          loading={toggling}
-          onClick={toggleActive}
-        >
-          {reward.is_active ? 'Deactivate' : 'Activate'}
-        </Button>
-        <Button
-          variant="danger"
-          size="sm"
-          loading={deleting}
-          onClick={handleDelete}
-        >
-          Delete
-        </Button>
-      </div>
+      {canManage && (
+        <div className="flex gap-1.5 shrink-0">
+          <Button variant="secondary" size="sm" loading={toggling} onClick={toggleActive}>
+            {reward.is_active ? 'Deactivate' : 'Activate'}
+          </Button>
+          <Button variant="danger" size="sm" loading={deleting} onClick={handleDelete}>
+            Delete
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

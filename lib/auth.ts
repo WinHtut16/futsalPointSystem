@@ -15,10 +15,19 @@ export async function getCurrentUser(): Promise<Profile | null> {
   return data
 }
 
-export async function requireRole(role: UserRole): Promise<Profile> {
+export async function requireRole(role: UserRole | UserRole[]): Promise<Profile> {
   const profile = await getCurrentUser()
-  if (!profile || profile.role !== role) {
+  const roles = Array.isArray(role) ? role : [role]
+  if (!profile || !roles.includes(profile.role)) {
     throw new Error('Unauthorized')
   }
   return profile
+}
+
+export async function requireAnyAdmin(): Promise<Profile> {
+  return requireRole(['admin', 'superadmin'])
+}
+
+export async function requireSuperAdmin(): Promise<Profile> {
+  return requireRole('superadmin')
 }

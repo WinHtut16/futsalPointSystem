@@ -27,3 +27,7 @@ export function normalizePhone(phone: string): string {
 export function phoneToEmail(phone: string): string {
   return `${normalizePhone(phone)}@akoatp.com`
 }
+
+export function usernameToAdminEmail(username: string): string {
+  return `${username.toLowerCase().trim()}@akoatp-staff.com`
+}

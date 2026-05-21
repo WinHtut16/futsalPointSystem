@@ -3,16 +3,26 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import type { UserRole } from '@/types'
 
-const links = [
+const BASE_LINKS = [
   { href: '/admin/dashboard', label: 'Dashboard' },
   { href: '/admin/customers', label: 'Customers' },
   { href: '/admin/redemptions', label: 'Requests' },
   { href: '/admin/rewards', label: 'Rewards' },
 ]
 
-export default function AdminNav() {
+const SUPERADMIN_LINKS = [
+  { href: '/admin/staff', label: 'Staff' },
+]
+
+interface Props {
+  role: UserRole
+}
+
+export default function AdminNav({ role }: Props) {
   const pathname = usePathname()
+  const links = role === 'superadmin' ? [...BASE_LINKS, ...SUPERADMIN_LINKS] : BASE_LINKS
 
   return (
     <nav className="bg-gray-800 text-sm flex">

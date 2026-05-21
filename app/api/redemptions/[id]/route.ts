@@ -42,7 +42,7 @@ export async function PATCH(
       return NextResponse.json({ success: true })
     }
 
-    if (user.role === 'admin') {
+    if (user.role === 'admin' || user.role === 'superadmin') {
       if (!['approve', 'reject'].includes(action)) {
         return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
       }
