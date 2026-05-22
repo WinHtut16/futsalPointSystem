@@ -6,6 +6,7 @@ import type { Reward } from '@/types'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { getLocalizedText } from '@/lib/i18n/utils'
 
 interface RewardAdminRowProps {
   reward: Reward
@@ -14,7 +15,8 @@ interface RewardAdminRowProps {
 
 export default function RewardAdminRow({ reward, canManage }: RewardAdminRowProps) {
   const router = useRouter()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const displayName = getLocalizedText(reward.name, reward.name_my, lang)
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -41,7 +43,7 @@ export default function RewardAdminRow({ reward, canManage }: RewardAdminRowProp
     <div className="flex items-start justify-between px-4 py-3 gap-2">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-gray-900 truncate">{reward.name}</p>
+          <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
           <Badge variant={reward.is_active ? 'green' : 'gray'}>
             {reward.is_active ? t('admin.active') : t('admin.inactive')}
           </Badge>

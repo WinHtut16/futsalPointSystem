@@ -14,7 +14,9 @@ export default function RewardForm() {
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     name: '',
+    name_my: '',
     description: '',
+    description_my: '',
     points_cost: '',
     stock: '',
   })
@@ -40,7 +42,9 @@ export default function RewardForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: form.name.trim(),
+        name_my: form.name_my.trim() || null,
         description: form.description.trim() || null,
+        description_my: form.description_my.trim() || null,
         points_cost: cost,
         stock: form.stock ? parseInt(form.stock) : null,
       }),
@@ -49,7 +53,7 @@ export default function RewardForm() {
 
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Failed to create reward.')
+      setError(data.error ?? t('admin.rewardValidationError'))
       return
     }
 
@@ -70,12 +74,28 @@ export default function RewardForm() {
           maxLength={100}
         />
         <Input
+          id="name_my"
+          label={t('admin.rewardNameMYLabel')}
+          placeholder={t('admin.rewardNameMYPlaceholder')}
+          value={form.name_my}
+          onChange={set('name_my')}
+          maxLength={100}
+        />
+        <Input
           id="description"
           label={t('admin.rewardDescLabel')}
           placeholder={t('admin.rewardDescPlaceholder')}
           value={form.description}
           onChange={set('description')}
-          maxLength={200}
+          maxLength={1000}
+        />
+        <Input
+          id="description_my"
+          label={t('admin.rewardDescMYLabel')}
+          placeholder={t('admin.rewardDescMYPlaceholder')}
+          value={form.description_my}
+          onChange={set('description_my')}
+          maxLength={1000}
         />
         <Input
           id="points_cost"
