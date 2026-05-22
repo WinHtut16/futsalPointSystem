@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { en, my, type Language, type TranslationKey } from './translations'
+import { en, my, type Language, type TranslationKey } from './index'
 
 const map = { en, my }
 
