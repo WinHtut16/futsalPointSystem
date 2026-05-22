@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import TransactionItem from '@/components/customer/TransactionItem'
 import PendingRequestsList from '@/components/customer/PendingRequestsList'
 import Card from '@/components/ui/Card'
@@ -68,17 +69,17 @@ export default async function HistoryPage({
       {totalPages > 1 && (
         <div className="flex justify-center gap-4 text-sm">
           {page > 0 && (
-            <a href={`?page=${page - 1}`} className="text-brand-600 font-medium hover:underline">
+            <Link href={`?page=${page - 1}`} className="text-brand-600 font-medium hover:underline">
               <T k="history.previous" />
-            </a>
+            </Link>
           )}
           <span className="text-gray-400">
             <T k="history.pageOf" vars={{ page: page + 1, total: totalPages }} />
           </span>
           {page < totalPages - 1 && (
-            <a href={`?page=${page + 1}`} className="text-brand-600 font-medium hover:underline">
+            <Link href={`?page=${page + 1}`} className="text-brand-600 font-medium hover:underline">
               <T k="history.next" />
-            </a>
+            </Link>
           )}
         </div>
       )}

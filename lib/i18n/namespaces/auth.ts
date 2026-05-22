@@ -26,7 +26,7 @@ export const authEN = {
   'auth.accountCreated': 'Account created! Please go to the login page to sign in.',
 } as const
 
-export const authMY: typeof authEN = {
+export const authMY: { [K in keyof typeof authEN]: string } = {
   'auth.tagline': 'သင့်အကောင့်သို့ ဝင်ရောက်ပါ',
   'auth.phone': 'ဖုန်းနံပါတ်',
   'auth.phonePlaceholder': '09XXXXXXXXX',

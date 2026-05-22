@@ -15,7 +15,7 @@ export const my = {
   ...customerMY,
   ...commonMY,
   ...adminMY,
-} satisfies typeof en
+} satisfies { [K in keyof typeof en]: string }
 
 export type TranslationKey = keyof typeof en
 export type Language = 'en' | 'my'

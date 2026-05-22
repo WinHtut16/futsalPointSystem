@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
+import { getActiveRewards } from '@/lib/cached-queries'
 import { redirect } from 'next/navigation'
 import RewardsGrid from '@/components/customer/RewardsGrid'
 import T from '@/components/ui/T'
@@ -10,12 +11,8 @@ export default async function RewardsPage() {
   if (!profile) redirect('/login')
 
   const supabase = await createClient()
-  const [{ data: rewards }, { data: pendingRequests }] = await Promise.all([
-    supabase
-      .from('rewards')
-      .select('*')
-      .eq('is_active', true)
-      .order('points_cost', { ascending: true }),
+  const [rewards, { data: pendingRequests }] = await Promise.all([
+    getActiveRewards(),
     supabase
       .from('redemption_requests')
       .select('id, reward_id')
@@ -35,9 +32,9 @@ export default async function RewardsPage() {
         </span>
       </div>
 
-      {rewards && rewards.length > 0 ? (
+      {rewards.length > 0 ? (
         <RewardsGrid
-          rewards={rewards as Reward[]}
+          rewards={rewards}
           userId={profile.id}
           userPoints={profile.total_points}
           initialPendingMap={initialPendingMap}

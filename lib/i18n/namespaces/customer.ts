@@ -46,7 +46,7 @@ export const customerEN = {
   'rewards.remainingAfter': 'Remaining after:',
 } as const
 
-export const customerMY: typeof customerEN = {
+export const customerMY: { [K in keyof typeof customerEN]: string } = {
   'nav.home': 'ပင်မစာမျက်နှာ',
   'nav.history': 'မှတ်တမ်း',
   'nav.rewards': 'ဆုလာဘ်',

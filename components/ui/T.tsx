@@ -1,7 +1,7 @@
 'use client'
 
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import type { TranslationKey } from '@/lib/i18n/translations'
+import type { TranslationKey } from '@/lib/i18n'
 
 export default function T({
   k,

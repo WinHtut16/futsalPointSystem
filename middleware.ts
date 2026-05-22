@@ -50,19 +50,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(destination, request.url))
   }
 
-  // Protect customer routes
+  // Protect customer routes — role check delegated to layout (saves 1 DB round trip per request)
   const customerRoutes = ['/dashboard', '/history', '/rewards']
   if (customerRoutes.some((r) => pathname.startsWith(r))) {
     if (!user) {
       return NextResponse.redirect(new URL('/login', request.url))
-    }
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    if (profile?.role !== 'customer') {
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     }
   }
 

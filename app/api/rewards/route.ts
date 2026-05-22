@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser, requireSuperAdmin } from '@/lib/auth'
 import { RewardCreateSchema, badRequest, parseJson } from '@/lib/schemas'
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    revalidateTag('rewards', 'default')
     return NextResponse.json(data, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

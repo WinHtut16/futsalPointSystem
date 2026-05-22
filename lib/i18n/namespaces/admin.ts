@@ -42,7 +42,7 @@ export const adminEN = {
   'admin.rewardValidationError': 'Name and a positive points cost are required.',
 } as const
 
-export const adminMY: typeof adminEN = {
+export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.navDashboard': 'ဒက်ရှ်ဘုတ်',
   'admin.navCustomers': 'ဖောက်သည်များ',
   'admin.navRequests': 'တောင်းဆိုမှုများ',

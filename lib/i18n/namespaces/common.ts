@@ -11,7 +11,7 @@ export const commonEN = {
   'common.optional': 'optional',
 } as const
 
-export const commonMY: typeof commonEN = {
+export const commonMY: { [K in keyof typeof commonEN]: string } = {
   'common.loading': 'ခဏစောင့်ပါ...',
   'common.error': 'တစ်ခုခု မှားနေသည်။',
   'common.save': 'သိမ်းဆည်းရန်',
