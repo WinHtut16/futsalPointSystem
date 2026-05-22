@@ -5,6 +5,7 @@ import type { Reward } from '@/types'
 import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { getLocalizedText } from '@/lib/i18n/utils'
 
 interface RewardCardProps {
   reward: Reward
@@ -15,7 +16,11 @@ interface RewardCardProps {
 }
 
 export default function RewardCard({ reward, userPoints, pendingRequestId, onRequested, onCancelled }: RewardCardProps) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const displayName = getLocalizedText(reward.name, reward.name_my, lang)
+  const displayDesc = reward.description
+    ? getLocalizedText(reward.description, reward.description_my, lang)
+    : null
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -60,9 +65,9 @@ export default function RewardCard({ reward, userPoints, pendingRequestId, onReq
     <>
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
         <div>
-          <p className="font-semibold text-gray-900">{reward.name}</p>
-          {reward.description && (
-            <p className="text-xs text-gray-500 mt-0.5">{reward.description}</p>
+          <p className="font-semibold text-gray-900">{displayName}</p>
+          {displayDesc && (
+            <p className="text-xs text-gray-500 mt-0.5">{displayDesc}</p>
           )}
           {reward.stock !== null && (
             <p className="text-xs text-gray-400 mt-0.5">{reward.stock} {t('rewards.left')}</p>
@@ -99,7 +104,7 @@ export default function RewardCard({ reward, userPoints, pendingRequestId, onReq
       <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title={t('rewards.requestRedemption')}>
         <div className="space-y-4">
           <p className="text-gray-700 text-sm">
-            {t('rewards.requestRedemption')} <strong>{reward.name}</strong>{' '}
+            {t('rewards.requestRedemption')} <strong>{displayName}</strong>{' '}
             <strong className="text-brand-600">{reward.points_cost} {t('rewards.pts')}</strong>?
           </p>
           <p className="text-gray-500 text-xs bg-gray-50 rounded-lg p-3">
@@ -124,7 +129,7 @@ export default function RewardCard({ reward, userPoints, pendingRequestId, onReq
       <Modal open={cancelOpen} onClose={() => setCancelOpen(false)} title={t('rewards.cancelRequest')}>
         <div className="space-y-4">
           <p className="text-gray-700 text-sm">
-            {t('rewards.cancelRequest')} <strong>{reward.name}</strong>?
+            {t('rewards.cancelRequest')} <strong>{displayName}</strong>?
           </p>
           <p className="text-gray-500 text-xs">{t('rewards.pointsNotDeducted')}</p>
           <div className="flex gap-3">
