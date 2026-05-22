@@ -1,0 +1,78 @@
+export const adminEN = {
+  // Navigation
+  'admin.navDashboard': 'Dashboard',
+  'admin.navCustomers': 'Customers',
+  'admin.navRequests': 'Requests',
+  'admin.navRewards': 'Rewards',
+  'admin.navStaff': 'Staff',
+  'admin.logout': 'Logout',
+
+  // Pending redemptions banner
+  'admin.pendingRedemptions': 'Pending Redemptions',
+  'admin.tapToReview': 'Tap to review and approve at the counter',
+
+  // Redemption request card
+  'admin.ptsAvailable': 'pts available',
+  'admin.approve': 'Approve',
+  'admin.reject': 'Reject',
+
+  // Reward admin row
+  'admin.active': 'Active',
+  'admin.inactive': 'Inactive',
+  'admin.inStock': 'in stock',
+  'admin.activate': 'Activate',
+  'admin.deactivate': 'Deactivate',
+  'admin.deleteReward': 'Delete',
+  'admin.confirmDelete': 'Delete "{name}"? This cannot be undone.',
+
+  // Reward form (create/edit)
+  'admin.rewardNameLabel': 'Reward Name (English)',
+  'admin.rewardNamePlaceholder': 'e.g. 1 Bottle Water, 1 Hr Free Play',
+  'admin.rewardNameMYLabel': 'Reward Name (Burmese, optional)',
+  'admin.rewardNameMYPlaceholder': 'မြန်မာဘာသာ',
+  'admin.rewardDescLabel': 'Description (optional)',
+  'admin.rewardDescPlaceholder': 'Additional details',
+  'admin.rewardDescMYLabel': 'Description in Burmese (optional)',
+  'admin.rewardDescMYPlaceholder': 'မြန်မာဘာသာ အသေးစိတ်',
+  'admin.rewardPointsLabel': 'Points Required',
+  'admin.rewardPointsPlaceholder': 'e.g. 50',
+  'admin.rewardStockLabel': 'Stock (leave blank for unlimited)',
+  'admin.rewardStockPlaceholder': 'e.g. 10',
+  'admin.createReward': 'Create Reward',
+  'admin.rewardValidationError': 'Name and a positive points cost are required.',
+} as const
+
+export const adminMY = {
+  'admin.navDashboard': 'ဒက်ရှ်ဘုတ်',
+  'admin.navCustomers': 'ဖောက်သည်များ',
+  'admin.navRequests': 'တောင်းဆိုမှုများ',
+  'admin.navRewards': 'ဆုလာဘ်များ',
+  'admin.navStaff': 'ဝန်ထမ်းများ',
+  'admin.logout': 'ထွက်ရန်',
+  'admin.pendingRedemptions': 'ဆောင်ရွက်ဆဲ ဆုလာဘ်တောင်းဆိုမှုများ',
+  'admin.tapToReview': 'ကောင်တာတွင် စစ်ဆေးအတည်ပြုရန် တို့ပါ',
+  'admin.ptsAvailable': 'မှတ် ရှိသည်',
+  'admin.approve': 'အတည်ပြုရန်',
+  'admin.reject': 'ငြင်းပယ်ရန်',
+  'admin.active': 'အသုံးပြုနေသည်',
+  'admin.inactive': 'ရပ်ဆိုင်းထားသည်',
+  'admin.inStock': 'ကျန်',
+  'admin.activate': 'ဖွင့်ရန်',
+  'admin.deactivate': 'ပိတ်ရန်',
+  'admin.deleteReward': 'ဖျက်ရန်',
+  'admin.confirmDelete': '"{name}" ဖျက်မည်လား? ပြန်မရနိုင်ပါ။',
+  'admin.rewardNameLabel': 'ဆုလာဘ်နာမည် (အင်္ဂလိပ်)',
+  'admin.rewardNamePlaceholder': 'e.g. 1 Bottle Water, 1 Hr Free Play',
+  'admin.rewardNameMYLabel': 'ဆုလာဘ်နာမည် (မြန်မာ၊ ရွေးချယ်နိုင်)',
+  'admin.rewardNameMYPlaceholder': 'မြန်မာဘာသာ',
+  'admin.rewardDescLabel': 'အသေးစိတ် (ရွေးချယ်နိုင်)',
+  'admin.rewardDescPlaceholder': 'နောက်ထပ် အချက်အလက်များ',
+  'admin.rewardDescMYLabel': 'မြန်မာဘာသာ အသေးစိတ် (ရွေးချယ်နိုင်)',
+  'admin.rewardDescMYPlaceholder': 'မြန်မာဘာသာ အသေးစိတ်',
+  'admin.rewardPointsLabel': 'လိုအပ်သော ပွိုင့်',
+  'admin.rewardPointsPlaceholder': 'e.g. 50',
+  'admin.rewardStockLabel': 'စတော့ (ထားခဲ့ပါက အကန့်အသတ်မရှိ)',
+  'admin.rewardStockPlaceholder': 'e.g. 10',
+  'admin.createReward': 'ဆုလာဘ် ဖန်တီးရန်',
+  'admin.rewardValidationError': 'နာမည်နှင့် ပွိုင့် လိုအပ်သည်။',
+}
