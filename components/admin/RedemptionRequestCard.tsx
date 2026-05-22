@@ -56,7 +56,7 @@ export default function RedemptionRequestCard({
         </div>
         <div className="text-right shrink-0">
           <p className="font-medium text-gray-800">{request.reward?.name}</p>
-          <p className="text-brand-600 font-bold text-sm">{request.reward?.points_cost} pts</p>
+          <p className="text-brand-600 font-bold text-sm">{request.reward?.points_cost} {t('common.pts')}</p>
           <p className="text-xs text-gray-400 mt-0.5">{timeAgo(request.requested_at)}</p>
         </div>
       </div>

@@ -102,6 +102,7 @@ export default function RegisterForm() {
           required
           autoComplete="new-password"
           minLength={8}
+          showPasswordToggle
         />
         <PasswordStrengthMeter password={password} />
       </div>

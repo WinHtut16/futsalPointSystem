@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
 import TransactionItem from '@/components/customer/TransactionItem'
 import PendingRedemptionsBanner from '@/components/admin/PendingRedemptionsBanner'
+import T from '@/components/ui/T'
 import type { PointTransaction } from '@/types'
 
 export default async function AdminDashboardPage() {
@@ -30,23 +31,23 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+      <h1 className="text-xl font-bold text-gray-900"><T k="admin.pageHeadingDashboard" /></h1>
 
       <div className="grid grid-cols-2 gap-3">
         <Card className="text-center">
           <p className="text-3xl font-bold text-brand-600">{customerCount ?? 0}</p>
-          <p className="text-xs text-gray-500 mt-1">Total Customers</p>
+          <p className="text-xs text-gray-500 mt-1"><T k="admin.totalCustomers" /></p>
         </Card>
         <Card className="text-center">
           <p className="text-3xl font-bold text-brand-600">{totalPointsIssued.toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-1">Points Issued</p>
+          <p className="text-xs text-gray-500 mt-1"><T k="admin.pointsIssued" /></p>
         </Card>
       </div>
 
       <PendingRedemptionsBanner initialCount={pendingCount ?? 0} />
 
       <Card className="p-0">
-        <h2 className="font-semibold text-gray-900 px-4 pt-4 pb-2">Recent Transactions</h2>
+        <h2 className="font-semibold text-gray-900 px-4 pt-4 pb-2"><T k="admin.recentTransactions" /></h2>
         {recentTx && recentTx.length > 0 ? (
           <div className="px-4 max-h-96 overflow-y-auto divide-y divide-gray-100">
             {recentTx.map((tx) => (
@@ -54,7 +55,7 @@ export default async function AdminDashboardPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 text-center py-6 pb-4">No transactions yet.</p>
+          <p className="text-sm text-gray-400 text-center py-6 pb-4"><T k="admin.noTransactions" /></p>
         )}
       </Card>
     </div>

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import RedemptionsList from '@/components/admin/RedemptionsList'
+import T from '@/components/ui/T'
 import type { RedemptionRequest } from '@/types'
 
 export default async function AdminRedemptionsPage() {
@@ -16,7 +17,7 @@ export default async function AdminRedemptionsPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-bold text-gray-900">Redemption Requests</h1>
+      <h1 className="text-xl font-bold text-gray-900"><T k="admin.pageHeadingRedemptions" /></h1>
       <RedemptionsList initialRequests={list} />
     </div>
   )

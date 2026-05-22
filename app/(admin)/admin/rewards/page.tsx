@@ -4,6 +4,7 @@ import Card from '@/components/ui/Card'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import RewardAdminRow from '@/components/admin/RewardAdminRow'
+import T from '@/components/ui/T'
 import type { Reward } from '@/types'
 
 export default async function AdminRewardsPage() {
@@ -18,10 +19,10 @@ export default async function AdminRewardsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Rewards</h1>
+        <h1 className="text-xl font-bold text-gray-900"><T k="admin.pageHeadingRewards" /></h1>
         {canManage && (
           <Link href="/admin/rewards/new">
-            <Button size="sm">+ New Reward</Button>
+            <Button size="sm"><T k="admin.newReward" /></Button>
           </Link>
         )}
       </div>
@@ -35,10 +36,10 @@ export default async function AdminRewardsPage() {
           </div>
         ) : (
           <p className="text-sm text-gray-400 text-center py-10">
-            No rewards yet.{' '}
+            <T k="admin.noRewards" />{' '}
             {canManage && (
               <Link href="/admin/rewards/new" className="text-brand-600 hover:underline">
-                Create one
+                <T k="admin.createOne" />
               </Link>
             )}
           </p>

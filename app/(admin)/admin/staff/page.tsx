@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import T from '@/components/ui/T'
 import { formatDate } from '@/lib/utils'
 
 export default async function StaffPage() {
@@ -15,9 +16,9 @@ export default async function StaffPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Staff Admins</h1>
+        <h1 className="text-xl font-bold text-gray-900"><T k="admin.pageHeadingStaff" /></h1>
         <Link href="/admin/staff/new">
-          <Button size="sm">+ New Admin</Button>
+          <Button size="sm"><T k="admin.newAdmin" /></Button>
         </Link>
       </div>
 
@@ -32,19 +33,19 @@ export default async function StaffPage() {
               >
                 <div>
                   <p className="text-sm font-medium text-gray-900">{s.username}</p>
-                  <p className="text-xs text-gray-400">Added {formatDate(s.created_at)}</p>
+                  <p className="text-xs text-gray-400"><T k="admin.staffAdded" vars={{ date: formatDate(s.created_at) }} /></p>
                 </div>
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                  Admin
+                  <T k="admin.staffRoleLabel" />
                 </span>
               </Link>
             ))}
           </div>
         ) : (
           <p className="text-sm text-gray-400 text-center py-10">
-            No staff admins yet.{' '}
+            <T k="admin.noStaff" />{' '}
             <Link href="/admin/staff/new" className="text-brand-600 hover:underline">
-              Create one
+              <T k="admin.createOne" />
             </Link>
           </p>
         )}

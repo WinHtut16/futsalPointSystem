@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { POINTS_PER_HOUR, calculatePoints } from '@/lib/points'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface AddPointsFormProps {
   customerId: string
@@ -13,6 +14,7 @@ interface AddPointsFormProps {
 
 export default function AddPointsForm({ customerId, customerName }: AddPointsFormProps) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [hours, setHours] = useState('')
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,7 +30,7 @@ export default function AddPointsForm({ customerId, customerName }: AddPointsFor
     setSuccess('')
 
     if (hoursNum <= 0 || hoursNum > 24) {
-      setError('Enter valid hours (0.5 – 24).')
+      setError(t('admin.invalidHours'))
       return
     }
 
@@ -42,11 +44,11 @@ export default function AddPointsForm({ customerId, customerName }: AddPointsFor
     setLoading(false)
 
     if (!res.ok) {
-      setError(data.error ?? 'Failed to add points.')
+      setError(data.error ?? t('admin.addPointsFailed'))
       return
     }
 
-    setSuccess(`Added ${data.points_added} points to ${customerName}.`)
+    setSuccess(t('admin.pointsAddedSuccess', { points: data.points_added, name: customerName }))
     setHours('')
     setNote('')
     router.refresh()
@@ -56,26 +58,26 @@ export default function AddPointsForm({ customerId, customerName }: AddPointsFor
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         id="hours"
-        label={`Hours Played (${POINTS_PER_HOUR} pts/hr)`}
+        label={t('admin.hoursPlayedLabel', { rate: POINTS_PER_HOUR })}
         type="number"
         step="0.5"
         min="0.5"
         max="24"
-        placeholder="e.g. 1.5"
+        placeholder={t('admin.hoursPlayedPlaceholder')}
         value={hours}
         onChange={(e) => setHours(e.target.value)}
         required
       />
       {preview > 0 && (
         <p className="text-sm text-brand-600 font-medium bg-brand-50 px-3 py-2 rounded-lg">
-          Will add <strong>{preview} points</strong> for {hoursNum}h of play
+          {t('admin.hoursPlayedPreview', { points: preview, hours: hoursNum })}
         </p>
       )}
       <Input
         id="note"
-        label="Note (optional)"
+        label={t('admin.noteLabel')}
         type="text"
-        placeholder="e.g. Weekend session"
+        placeholder={t('admin.notePlaceholder')}
         value={note}
         onChange={(e) => setNote(e.target.value)}
         maxLength={100}
@@ -83,7 +85,7 @@ export default function AddPointsForm({ customerId, customerName }: AddPointsFor
       {error && <p className="text-sm text-red-500">{error}</p>}
       {success && <p className="text-sm text-green-600 font-medium">{success}</p>}
       <Button type="submit" size="lg" loading={loading}>
-        Add Points
+        {t('admin.addPointsButton')}
       </Button>
     </form>
   )

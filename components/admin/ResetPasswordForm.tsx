@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import PasswordStrengthMeter, { calcStrength } from '@/components/ui/PasswordStrengthMeter'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface Props {
   customerId: string
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function ResetPasswordForm({ customerId, customerName }: Props) {
+  const { t } = useLanguage()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -21,17 +23,17 @@ export default function ResetPasswordForm({ customerId, customerName }: Props) {
     setMessage('')
 
     if (password.length < 8) {
-      setMessage('Password must be at least 8 characters.')
+      setMessage(t('auth.passwordTooShort'))
       setStatus('error')
       return
     }
     if (calcStrength(password) < 2) {
-      setMessage('Password is too weak. Add numbers or uppercase letters.')
+      setMessage(t('auth.passwordWeak'))
       setStatus('error')
       return
     }
     if (password !== confirm) {
-      setMessage('Passwords do not match.')
+      setMessage(t('admin.passwordsMismatch'))
       setStatus('error')
       return
     }
@@ -45,13 +47,13 @@ export default function ResetPasswordForm({ customerId, customerName }: Props) {
 
     if (res.ok) {
       setStatus('success')
-      setMessage(`Password for ${customerName} has been reset.`)
+      setMessage(t('admin.customerPasswordResetSuccess', { name: customerName }))
       setPassword('')
       setConfirm('')
     } else {
       const json = await res.json()
       setStatus('error')
-      setMessage(json.error ?? 'Failed to reset password.')
+      setMessage(json.error ?? t('admin.passwordResetFailed'))
     }
   }
 
@@ -60,9 +62,9 @@ export default function ResetPasswordForm({ customerId, customerName }: Props) {
       <div className="space-y-2">
         <Input
           id="new-password"
-          label="New Password"
+          label={t('admin.newPasswordLabel')}
           type="password"
-          placeholder="Min. 8 characters"
+          placeholder={t('auth.newPasswordPlaceholder')}
           value={password}
           onChange={(e) => { setPassword(e.target.value); setStatus('idle'); setMessage('') }}
           autoComplete="new-password"
@@ -71,9 +73,9 @@ export default function ResetPasswordForm({ customerId, customerName }: Props) {
       </div>
       <Input
         id="confirm-password"
-        label="Confirm Password"
+        label={t('admin.confirmPasswordLabel')}
         type="password"
-        placeholder="Re-enter new password"
+        placeholder={t('admin.confirmPasswordPlaceholder')}
         value={confirm}
         onChange={(e) => { setConfirm(e.target.value); setStatus('idle'); setMessage('') }}
         autoComplete="new-password"
@@ -88,7 +90,7 @@ export default function ResetPasswordForm({ customerId, customerName }: Props) {
         </p>
       )}
       <Button type="submit" loading={status === 'loading'} className="w-full">
-        Reset Password
+        {t('admin.resetPasswordButton')}
       </Button>
     </form>
   )

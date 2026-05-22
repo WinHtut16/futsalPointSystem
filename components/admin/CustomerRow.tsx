@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Profile } from '@/types'
+import T from '@/components/ui/T'
 
 interface CustomerRowProps {
   customer: Profile
@@ -16,7 +17,7 @@ export default function CustomerRow({ customer }: CustomerRowProps) {
         <p className="text-xs text-gray-500">{customer.phone}</p>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-sm font-bold text-brand-600">{customer.total_points} pts</span>
+        <span className="text-sm font-bold text-brand-600">{customer.total_points} <T k="common.pts" /></span>
         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>

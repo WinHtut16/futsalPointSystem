@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface Props {
   customerId: string
@@ -12,6 +13,7 @@ interface Props {
 
 export default function DeleteCustomerButton({ customerId, customerName, customerPhone }: Props) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [step, setStep] = useState<'idle' | 'confirm' | 'deleting'>('idle')
   const [error, setError] = useState('')
 
@@ -26,7 +28,7 @@ export default function DeleteCustomerButton({ customerId, customerName, custome
       router.refresh()
     } else {
       const json = await res.json()
-      setError(json.error ?? 'Failed to delete customer.')
+      setError(json.error ?? t('admin.deleteCustomerFailed'))
       setStep('confirm')
     }
   }
@@ -37,7 +39,7 @@ export default function DeleteCustomerButton({ customerId, customerName, custome
         onClick={() => setStep('confirm')}
         className="text-sm text-red-500 hover:text-red-700 hover:underline transition-colors"
       >
-        Delete this customer
+        {t('admin.deleteCustomerLink')}
       </button>
     )
   }
@@ -45,9 +47,9 @@ export default function DeleteCustomerButton({ customerId, customerName, custome
   return (
     <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
       <div>
-        <p className="font-semibold text-red-700">Delete Customer Account</p>
+        <p className="font-semibold text-red-700">{t('admin.deleteCustomerTitle')}</p>
         <p className="text-sm text-red-600 mt-1">
-          This will permanently delete <span className="font-bold">{customerName}</span> ({customerPhone}) and all their transaction history. This action cannot be undone.
+          {t('admin.deleteCustomerWarning', { name: customerName, phone: customerPhone })}
         </p>
       </div>
       {error && (
@@ -61,7 +63,7 @@ export default function DeleteCustomerButton({ customerId, customerName, custome
           disabled={step === 'deleting'}
           className="flex-1 text-sm py-2 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
-          Cancel
+          {t('common.cancel')}
         </button>
         <Button
           onClick={handleDelete}
@@ -69,7 +71,7 @@ export default function DeleteCustomerButton({ customerId, customerName, custome
           variant="danger"
           className="flex-1"
         >
-          Yes, Delete Permanently
+          {t('admin.deleteCustomerConfirm')}
         </Button>
       </div>
     </div>

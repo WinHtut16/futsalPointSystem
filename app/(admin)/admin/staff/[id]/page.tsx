@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import StaffResetPasswordForm from '@/components/admin/StaffResetPasswordForm'
 import DeleteStaffButton from '@/components/admin/DeleteStaffButton'
+import T from '@/components/ui/T'
 import { formatDate } from '@/lib/utils'
 
 export default async function StaffDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,22 +24,22 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ id
     <div className="space-y-5">
       <div className="flex items-center gap-2">
         <Link href="/admin/staff" className="text-sm text-brand-600 hover:underline">
-          ← Staff
+          <T k="admin.backToStaff" />
         </Link>
       </div>
 
       <Card>
         <p className="text-xl font-bold text-gray-900">{staff.username}</p>
-        <p className="text-sm text-gray-400 mt-1">Admin · Added {formatDate(staff.created_at)}</p>
+        <p className="text-sm text-gray-400 mt-1"><T k="admin.staffRoleAdded" vars={{ date: formatDate(staff.created_at) }} /></p>
       </Card>
 
       <Card>
-        <h2 className="font-semibold text-gray-900 mb-4">Reset Password</h2>
+        <h2 className="font-semibold text-gray-900 mb-4"><T k="admin.resetPasswordSection" /></h2>
         <StaffResetPasswordForm staffId={id} staffUsername={staff.username} />
       </Card>
 
       <Card>
-        <h2 className="font-semibold text-gray-900 mb-3">Danger Zone</h2>
+        <h2 className="font-semibold text-gray-900 mb-3"><T k="admin.dangerZone" /></h2>
         <DeleteStaffButton staffId={id} staffUsername={staff.username} />
       </Card>
     </div>

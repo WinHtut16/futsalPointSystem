@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import PasswordStrengthMeter from '@/components/ui/PasswordStrengthMeter'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function CreateAdminForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -26,7 +28,7 @@ export default function CreateAdminForm() {
     const data = await res.json()
 
     if (!res.ok) {
-      setError(data.error ?? 'Failed to create admin.')
+      setError(data.error ?? t('admin.createAdminFailed'))
       setLoading(false)
       return
     }
@@ -39,7 +41,7 @@ export default function CreateAdminForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         id="username"
-        label="Username"
+        label={t('admin.usernameLabel')}
         type="text"
         placeholder="e.g. manager, john.doe"
         value={username}
@@ -47,13 +49,13 @@ export default function CreateAdminForm() {
         required
       />
       <p className="text-xs text-gray-400 -mt-2">
-        3–30 characters. Letters, numbers, dots, underscores only.
+        {t('admin.usernameHint')}
       </p>
       <Input
         id="password"
-        label="Password"
+        label={t('admin.passwordLabel')}
         type="password"
-        placeholder="Min. 8 characters"
+        placeholder={t('auth.newPasswordPlaceholder')}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
@@ -62,7 +64,7 @@ export default function CreateAdminForm() {
       {error && (
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
       )}
-      <Button type="submit" loading={loading}>Create Admin Account</Button>
+      <Button type="submit" loading={loading}>{t('admin.createAdminButton')}</Button>
     </form>
   )
 }

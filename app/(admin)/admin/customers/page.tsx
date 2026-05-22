@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
 import CustomerSearch from '@/components/admin/CustomerSearch'
 import CustomerRow from '@/components/admin/CustomerRow'
+import T from '@/components/ui/T'
 import type { Profile } from '@/types'
 
 export default async function CustomersPage({
@@ -27,7 +28,7 @@ export default async function CustomersPage({
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-bold text-gray-900">Customers</h1>
+      <h1 className="text-xl font-bold text-gray-900"><T k="admin.pageHeadingCustomers" /></h1>
       <CustomerSearch defaultValue={query} />
 
       <Card className="p-0">
@@ -39,7 +40,7 @@ export default async function CustomersPage({
           </div>
         ) : (
           <p className="text-sm text-gray-400 text-center py-10">
-            {query ? 'No customers found for that search.' : 'No customers yet.'}
+            {query ? <T k="admin.noCustomersSearch" /> : <T k="admin.noCustomers" />}
           </p>
         )}
       </Card>

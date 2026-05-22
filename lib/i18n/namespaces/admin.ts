@@ -7,6 +7,9 @@ export const adminEN = {
   'admin.navStaff': 'Staff',
   'admin.logout': 'Logout',
 
+  // Layout
+  'admin.panelSubtitle': 'Admin Panel',
+
   // Pending redemptions banner
   'admin.pendingRedemptions': 'Pending Redemptions',
   'admin.tapToReview': 'Tap to review and approve at the counter',
@@ -40,6 +43,100 @@ export const adminEN = {
   'admin.rewardStockPlaceholder': 'e.g. 10',
   'admin.createReward': 'Create Reward',
   'admin.rewardValidationError': 'Name and a positive points cost are required.',
+
+  // CustomerSearch
+  'admin.searchByPhone': 'Search by phone number...',
+  'admin.searchButton': 'Search',
+
+  // AddPointsForm
+  'admin.hoursPlayedLabel': 'Hours Played ({rate} pts/hr)',
+  'admin.hoursPlayedPlaceholder': 'e.g. 1.5',
+  'admin.hoursPlayedPreview': 'Will add {points} points for {hours}h of play',
+  'admin.noteLabel': 'Note (optional)',
+  'admin.notePlaceholder': 'e.g. Weekend session',
+  'admin.invalidHours': 'Enter valid hours (0.5 – 24).',
+  'admin.pointsAddedSuccess': 'Added {points} points to {name}.',
+  'admin.addPointsFailed': 'Failed to add points.',
+  'admin.addPointsButton': 'Add Points',
+
+  // ResetPasswordForm
+  'admin.newPasswordLabel': 'New Password',
+  'admin.confirmPasswordLabel': 'Confirm Password',
+  'admin.confirmPasswordPlaceholder': 'Re-enter new password',
+  'admin.passwordsMismatch': 'Passwords do not match.',
+  'admin.customerPasswordResetSuccess': 'Password for {name} has been reset.',
+  'admin.passwordResetFailed': 'Failed to reset password.',
+  'admin.resetPasswordButton': 'Reset Password',
+
+  // DeleteCustomerButton
+  'admin.deleteCustomerLink': 'Delete this customer',
+  'admin.deleteCustomerTitle': 'Delete Customer Account',
+  'admin.deleteCustomerWarning': 'This will permanently delete {name} ({phone}) and all their transaction history. This action cannot be undone.',
+  'admin.deleteCustomerConfirm': 'Yes, Delete Permanently',
+  'admin.deleteCustomerFailed': 'Failed to delete customer.',
+
+  // CreateAdminForm
+  'admin.usernameLabel': 'Username',
+  'admin.usernameHint': '3–30 characters. Letters, numbers, dots, underscores only.',
+  'admin.passwordLabel': 'Password',
+  'admin.createAdminFailed': 'Failed to create admin.',
+  'admin.createAdminButton': 'Create Admin Account',
+
+  // StaffResetPasswordForm
+  'admin.staffPasswordNote': 'Set a new password for {name}.',
+  'admin.staffPasswordResetSuccess': 'Password reset successfully.',
+
+  // DeleteStaffButton
+  'admin.deleteAdminNote': 'Permanently remove this admin account. They will lose access immediately.',
+  'admin.deleteAdminConfirm': 'Delete admin account "{name}"? This cannot be undone.',
+  'admin.deleteAdminFailed': 'Failed to delete admin.',
+  'admin.deleteAdminButton': 'Delete Admin Account',
+
+  // RedemptionsList
+  'admin.pendingCount': '{count} pending',
+  'admin.searchRedemptions': 'Search by name, phone, or reward...',
+  'admin.noRedemptionsSearch': 'No requests match your search.',
+  'admin.noPendingRedemptions': 'No pending redemption requests.',
+
+  // Dashboard page
+  'admin.pageHeadingDashboard': 'Dashboard',
+  'admin.totalCustomers': 'Total Customers',
+  'admin.pointsIssued': 'Points Issued',
+  'admin.recentTransactions': 'Recent Transactions',
+  'admin.noTransactions': 'No transactions yet.',
+
+  // Customers page
+  'admin.pageHeadingCustomers': 'Customers',
+  'admin.noCustomersSearch': 'No customers found for that search.',
+  'admin.noCustomers': 'No customers yet.',
+
+  // Customer detail page
+  'admin.backToCustomers': '← Customers',
+  'admin.addPointsSection': 'Add Points',
+  'admin.resetPasswordSection': 'Reset Password',
+  'admin.transactionHistory': 'Transaction History',
+  'admin.dangerZone': 'Danger Zone',
+
+  // Redemptions page
+  'admin.pageHeadingRedemptions': 'Redemption Requests',
+
+  // Rewards page
+  'admin.pageHeadingRewards': 'Rewards',
+  'admin.newReward': '+ New Reward',
+  'admin.noRewards': 'No rewards yet.',
+  'admin.createOne': 'Create one',
+  'admin.backToRewards': '← Rewards',
+  'admin.newRewardTitle': 'New Reward',
+
+  // Staff pages
+  'admin.pageHeadingStaff': 'Staff Admins',
+  'admin.newAdmin': '+ New Admin',
+  'admin.noStaff': 'No staff admins yet.',
+  'admin.staffRoleLabel': 'Admin',
+  'admin.staffAdded': 'Added {date}',
+  'admin.backToStaff': '← Staff',
+  'admin.newAdminTitle': 'New Admin Account',
+  'admin.staffRoleAdded': 'Admin · Added {date}',
 } as const
 
 export const adminMY: { [K in keyof typeof adminEN]: string } = {
@@ -49,6 +146,7 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.navRewards': 'ဆုလာဘ်များ',
   'admin.navStaff': 'ဝန်ထမ်းများ',
   'admin.logout': 'ထွက်ရန်',
+  'admin.panelSubtitle': 'အက်မင် ပြားဘုတ်',
   'admin.pendingRedemptions': 'ဆောင်ရွက်ဆဲ ဆုလာဘ်တောင်းဆိုမှုများ',
   'admin.tapToReview': 'ကောင်တာတွင် စစ်ဆေးအတည်ပြုရန် တို့ပါ',
   'admin.ptsAvailable': 'မှတ် ရှိသည်',
@@ -75,4 +173,70 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.rewardStockPlaceholder': 'e.g. 10',
   'admin.createReward': 'ဆုလာဘ် ဖန်တီးရန်',
   'admin.rewardValidationError': 'နာမည်နှင့် ပွိုင့် လိုအပ်သည်။',
+  'admin.searchByPhone': 'ဖုန်းနံပါတ်ဖြင့် ရှာဖွေပါ...',
+  'admin.searchButton': 'ရှာဖွေရန်',
+  'admin.hoursPlayedLabel': 'ကစားသောအချိန် ({rate} မှတ်/နာရီ)',
+  'admin.hoursPlayedPlaceholder': 'e.g. 1.5',
+  'admin.hoursPlayedPreview': '{hours} နာရီ ကစားမှုအတွက် {points} မှတ် ထည့်မည်',
+  'admin.noteLabel': 'မှတ်ချက် (ရွေးချယ်နိုင်)',
+  'admin.notePlaceholder': 'e.g. Weekend session',
+  'admin.invalidHours': 'အချိန် မှန်ကန်စွာ ထည့်ပါ (0.5 – 24)။',
+  'admin.pointsAddedSuccess': '{name} သို့ {points} မှတ် ထည့်ပြီးပါပြီ။',
+  'admin.addPointsFailed': 'မှတ်ထည့်ခြင်း မအောင်မြင်ပါ။',
+  'admin.addPointsButton': 'မှတ်ထည့်ရန်',
+  'admin.newPasswordLabel': 'စကားဝှက်အသစ်',
+  'admin.confirmPasswordLabel': 'စကားဝှက် အတည်ပြုရန်',
+  'admin.confirmPasswordPlaceholder': 'စကားဝှက်အသစ် ထပ်ရိုက်ပါ',
+  'admin.passwordsMismatch': 'စကားဝှက်များ မတူညီပါ။',
+  'admin.customerPasswordResetSuccess': '{name} ၏ စကားဝှက် ပြောင်းလဲပြီးပါပြီ။',
+  'admin.passwordResetFailed': 'စကားဝှက် ပြောင်းလဲခြင်း မအောင်မြင်ပါ။',
+  'admin.resetPasswordButton': 'စကားဝှက် ပြောင်းလဲရန်',
+  'admin.deleteCustomerLink': 'ဖောက်သည် ဖျက်ရန်',
+  'admin.deleteCustomerTitle': 'ဖောက်သည် အကောင့် ဖျက်ရန်',
+  'admin.deleteCustomerWarning': '{name} ({phone}) နှင့် ၎င်း၏ မှတ်တမ်းများ အားလုံး အမြဲတမ်း ဖျက်ပစ်မည်။ ပြန်မရနိုင်ပါ။',
+  'admin.deleteCustomerConfirm': 'ဟုတ်ကဲ့၊ အပြီးအပိုင် ဖျက်ရန်',
+  'admin.deleteCustomerFailed': 'ဖောက်သည် ဖျက်ခြင်း မအောင်မြင်ပါ။',
+  'admin.usernameLabel': 'အသုံးပြုသူနာမည်',
+  'admin.usernameHint': '၃–၃၀ လုံး။ အင်္ဂလိပ်စာ၊ ဂဏန်း၊ နှစ်ထပ်ကန့်သတ်၊ မျဉ်းသားများသာ။',
+  'admin.passwordLabel': 'စကားဝှက်',
+  'admin.createAdminFailed': 'အက်မင် ဖန်တီးခြင်း မအောင်မြင်ပါ။',
+  'admin.createAdminButton': 'အက်မင် အကောင့် ဖန်တီးရန်',
+  'admin.staffPasswordNote': '{name} အတွက် စကားဝှက်အသစ် သတ်မှတ်ပါ။',
+  'admin.staffPasswordResetSuccess': 'စကားဝှက် ပြောင်းလဲပြီးပါပြီ။',
+  'admin.deleteAdminNote': 'ဤ အက်မင် အကောင့်ကို အမြဲတမ်း ဖယ်ရှားမည်။ ချက်ချင်း ဝင်ရောက်ခွင့် ဆုံးမည်။',
+  'admin.deleteAdminConfirm': 'အက်မင် အကောင့် "{name}" ဖျက်မည်လား? ပြန်မရနိုင်ပါ။',
+  'admin.deleteAdminFailed': 'အက်မင် ဖျက်ခြင်း မအောင်မြင်ပါ။',
+  'admin.deleteAdminButton': 'အက်မင် အကောင့် ဖျက်ရန်',
+  'admin.pendingCount': '{count} ဆောင်ရွက်ဆဲ',
+  'admin.searchRedemptions': 'နာမည်၊ ဖုန်း သို့မဟုတ် ဆုလာဘ်ဖြင့် ရှာဖွေပါ...',
+  'admin.noRedemptionsSearch': 'ရှာဖွေမှုနှင့် ကိုက်ညီသည့် တောင်းဆိုမှု မရှိပါ။',
+  'admin.noPendingRedemptions': 'ဆောင်ရွက်ဆဲ ဆုလာဘ်တောင်းဆိုမှုများ မရှိပါ။',
+  'admin.pageHeadingDashboard': 'ဒက်ရှ်ဘုတ်',
+  'admin.totalCustomers': 'စုစုပေါင်း ဖောက်သည်',
+  'admin.pointsIssued': 'ထုတ်ပေးသော မှတ်',
+  'admin.recentTransactions': 'မကြာသေးမှီ မှတ်တမ်းများ',
+  'admin.noTransactions': 'မှတ်တမ်းများ မရှိသေးပါ။',
+  'admin.pageHeadingCustomers': 'ဖောက်သည်များ',
+  'admin.noCustomersSearch': 'ရှာဖွေမှုနှင့် ကိုက်ညီသည့် ဖောက်သည် မရှိပါ။',
+  'admin.noCustomers': 'ဖောက်သည်များ မရှိသေးပါ။',
+  'admin.backToCustomers': '← ဖောက်သည်များ',
+  'admin.addPointsSection': 'မှတ်ထည့်ရန်',
+  'admin.resetPasswordSection': 'စကားဝှက် ပြောင်းလဲရန်',
+  'admin.transactionHistory': 'မှတ်တမ်း',
+  'admin.dangerZone': 'အန္တရာယ်ဇုန်',
+  'admin.pageHeadingRedemptions': 'ဆုလာဘ် တောင်းဆိုမှုများ',
+  'admin.pageHeadingRewards': 'ဆုလာဘ်များ',
+  'admin.newReward': '+ ဆုလာဘ်အသစ်',
+  'admin.noRewards': 'ဆုလာဘ်များ မရှိသေးပါ။',
+  'admin.createOne': 'ဖန်တီးရန်',
+  'admin.backToRewards': '← ဆုလာဘ်များ',
+  'admin.newRewardTitle': 'ဆုလာဘ်အသစ်',
+  'admin.pageHeadingStaff': 'ဝန်ထမ်း အက်မင်များ',
+  'admin.newAdmin': '+ အက်မင်အသစ်',
+  'admin.noStaff': 'ဝန်ထမ်း အက်မင်များ မရှိသေးပါ။',
+  'admin.staffRoleLabel': 'အက်မင်',
+  'admin.staffAdded': 'ထည့်သွင်းသည် {date}',
+  'admin.backToStaff': '← ဝန်ထမ်းများ',
+  'admin.newAdminTitle': 'အက်မင် အကောင့်အသစ်',
+  'admin.staffRoleAdded': 'အက်မင် · ထည့်သွင်းသည် {date}',
 }

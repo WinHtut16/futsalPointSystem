@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { RedemptionRequest } from '@/types'
 import RedemptionRequestCard from './RedemptionRequestCard'
 import { createClient } from '@/lib/supabase/client'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 const POLL_MS = 20_000
 const SELECT_QUERY =
@@ -12,6 +13,7 @@ const SELECT_QUERY =
 export default function RedemptionsList({ initialRequests }: { initialRequests: RedemptionRequest[] }) {
   const [requests, setRequests] = useState<RedemptionRequest[]>(initialRequests)
   const [query, setQuery] = useState('')
+  const { t } = useLanguage()
 
   const fetchAll = useCallback(async () => {
     const supabase = createClient()
@@ -80,13 +82,13 @@ export default function RedemptionsList({ initialRequests }: { initialRequests: 
     <div className="space-y-4">
       {requests.length > 0 && (
         <span className="inline-block bg-yellow-100 text-yellow-700 text-sm font-semibold px-2.5 py-0.5 rounded-full">
-          {requests.length} pending
+          {t('admin.pendingCount', { count: requests.length })}
         </span>
       )}
 
       <input
         type="search"
-        placeholder="Search by name, phone, or reward..."
+        placeholder={t('admin.searchRedemptions')}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
@@ -102,7 +104,7 @@ export default function RedemptionsList({ initialRequests }: { initialRequests: 
         <div className="text-center py-12 text-gray-400">
           <p className="text-4xl mb-3">✓</p>
           <p className="text-sm">
-            {query ? 'No requests match your search.' : 'No pending redemption requests.'}
+            {query ? t('admin.noRedemptionsSearch') : t('admin.noPendingRedemptions')}
           </p>
         </div>
       )}
