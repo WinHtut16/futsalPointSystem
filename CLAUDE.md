@@ -9,7 +9,7 @@ npm run dev           # Start dev server at localhost:3000
 npm run build         # Production build
 npm run start         # Start production server
 npm run lint          # Run ESLint
-npm test              # Vitest unit tests (158 tests, no DB required)
+npm test              # Vitest unit tests (167 tests, no DB required)
 npm run test:e2e      # Playwright E2E tests (requires .env.e2e + running server)
 npm run test:e2e:ui   # Playwright with interactive UI
 npm run test:e2e:debug  # Playwright with step-by-step debugger
@@ -21,7 +21,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
    `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → **`supabase-rls-security-fix.sql`**
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards
 
-**Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) export in `lib/i18n/translations.ts` from the English source, preserving structure.
+**Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
 
 **E2E test setup:** Copy `.env.e2e.example` → `.env.e2e` and fill in real Supabase credentials plus test-account details. The Playwright config auto-starts the dev server; `globalSetup` seeds test data via the Supabase service-role key before the suite runs.
 
@@ -55,7 +55,7 @@ Three roles stored in `profiles.role`: `customer`, `admin`, `superadmin`.
 | Role | Capabilities |
 |------|-------------|
 | `customer` | View points/history, redeem rewards |
-| `admin` | Add points, manage customers (incl. delete), view rewards |
+| `admin` | Add points, manage customers (incl. delete), view all rewards, toggle rewards active/inactive |
 | `superadmin` | All admin capabilities + rewards CRUD + staff admin CRUD + forgot-password via email |
 
 Server-side guards in `lib/auth.ts`:
@@ -120,17 +120,20 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 ### Internationalization
 
 `lib/i18n/` holds a client-side i18n layer (no Next.js routing involvement):
-- `translations.ts` exports parallel `en` and `my` (Myanmar/Burmese) string maps with shared `TranslationKey` type.
+- Strings split into namespace files: `lib/i18n/namespaces/{auth,customer,common,admin}.ts`. Each exports `*EN` and `*MY` objects. `lib/i18n/index.ts` merges all into flat `en`/`my` maps and exports `TranslationKey`.
 - `LanguageContext.tsx` exposes `useLanguage()` → `{ lang, setLang, t }`. Language persists to `localStorage.lang`; falls back to English for missing keys; `t(key, vars)` does `{var}` substitution.
 - Provider mounted globally in `components/Providers.tsx`.
-- When adding UI strings, add the key to **both** `en` and `my` in `translations.ts` (or only `en` and regenerate via `scripts/translate.mjs`).
+- **Client components:** import `useLanguage` and call `t('key')` / `t('key', { var: value })`.
+- **Server components:** use `<T k="key" />` or `<T k="key" vars={{ var: value }} />` — it's a `'use client'` leaf component in `components/ui/T.tsx`.
+- `LanguageToggle` in `components/ui/LanguageToggle.tsx` accepts `variant="light"` (customer header) or `variant="dark"` (admin header).
+- When adding UI strings, add the key to **both** `*EN` and `*MY` in the relevant namespace file (or only `*EN` and regenerate via `scripts/translate.mjs`).
 
 ### Component Organization
 
 - `components/auth/` — LoginForm, RegisterForm, AdminLoginForm
 - `components/customer/` — PointsCard, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
 - `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, CustomerSearch, RewardForm, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
-- `components/ui/` — shared primitives: Button, Card, Input, Badge, Modal, PasswordStrengthMeter
+- `components/ui/` — shared primitives: Button, Card, Input (`showPasswordToggle` prop renders eye toggle), Badge, Modal, PasswordStrengthMeter, T (i18n leaf for server components), LanguageToggle
 
 ### API Surface
 
@@ -143,7 +146,10 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 | `GET/POST /api/redemptions` | customer (GET: admin) | List / create redemption requests |
 | `PATCH /api/redemptions/[id]` | customer/admin | Cancel (customer) or approve/reject (admin) |
 | `GET/POST /api/rewards` | superadmin (GET: any authenticated user) | List / create rewards |
-| `GET/PUT/DELETE /api/rewards/[id]` | superadmin | Reward detail, update, delete |
+| `GET /api/rewards/[id]` | any authenticated user | Reward detail |
+| `PUT /api/rewards/[id]` (toggle only: `{ is_active }`) | admin/superadmin | Toggle active/inactive |
+| `PUT /api/rewards/[id]` (full update) | superadmin | Update reward fields |
+| `DELETE /api/rewards/[id]` | superadmin | Delete reward |
 | `GET/POST /api/admin/staff` | superadmin | List / create staff admin accounts |
 | `GET/PUT/DELETE /api/admin/staff/[id]` | superadmin | Staff detail, reset password, delete |
 

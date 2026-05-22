@@ -77,6 +77,10 @@ export const RewardCreateSchema = z.object({
   stock: stockAmount.nullish(),
 })
 
+export const RewardToggleSchema = z
+  .object({ is_active: z.boolean({ message: 'is_active must be a boolean.' }) })
+  .strict()
+
 export const RewardUpdateSchema = z
   .object({
     name: safeText(100).min(1).optional(),

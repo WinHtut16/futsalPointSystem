@@ -1,23 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireSuperAdmin } from '@/lib/auth'
-import { IdParamSchema, RewardUpdateSchema, badRequest, parseJson } from '@/lib/schemas'
+import { requireAnyAdmin, requireSuperAdmin } from '@/lib/auth'
+import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, parseJson } from '@/lib/schemas'
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireSuperAdmin()
-
     const idParsed = IdParamSchema.safeParse(await params)
     if (!idParsed.success) return badRequest(idParsed.error)
     const { id } = idParsed.data
 
-    const parsed = RewardUpdateSchema.safeParse(await parseJson(request))
-    if (!parsed.success) return badRequest(parsed.error)
+    const body = await parseJson(request)
+    const toggleParsed = RewardToggleSchema.safeParse(body)
 
-    const updates: Record<string, unknown> = {
-      ...parsed.data,
-      updated_at: new Date().toISOString(),
+    let updates: Record<string, unknown>
+
+    if (toggleParsed.success) {
+      // Toggle-only: admin or superadmin
+      await requireAnyAdmin()
+      updates = { is_active: toggleParsed.data.is_active, updated_at: new Date().toISOString() }
+    } else {
+      // Full update: superadmin only
+      await requireSuperAdmin()
+      const parsed = RewardUpdateSchema.safeParse(body)
+      if (!parsed.success) return badRequest(parsed.error)
+      updates = { ...parsed.data, updated_at: new Date().toISOString() }
     }
 
     const supabase = await createServiceClient()

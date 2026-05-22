@@ -15,6 +15,7 @@ export default async function AdminRewardsPage() {
     .order('points_cost', { ascending: true })
 
   const canManage = profile?.role === 'superadmin'
+  const canToggle = profile?.role === 'admin' || profile?.role === 'superadmin'
 
   return (
     <div className="space-y-5">
@@ -31,7 +32,7 @@ export default async function AdminRewardsPage() {
         {rewards && rewards.length > 0 ? (
           <div className="divide-y divide-gray-100">
             {rewards.map((r) => (
-              <RewardAdminRow key={r.id} reward={r as Reward} canManage={canManage} />
+              <RewardAdminRow key={r.id} reward={r as Reward} canToggle={canToggle} canManage={canManage} />
             ))}
           </div>
         ) : (

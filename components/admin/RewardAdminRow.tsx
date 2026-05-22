@@ -10,10 +10,11 @@ import { getLocalizedText } from '@/lib/i18n/utils'
 
 interface RewardAdminRowProps {
   reward: Reward
+  canToggle: boolean
   canManage: boolean
 }
 
-export default function RewardAdminRow({ reward, canManage }: RewardAdminRowProps) {
+export default function RewardAdminRow({ reward, canToggle, canManage }: RewardAdminRowProps) {
   const router = useRouter()
   const { t, lang } = useLanguage()
   const displayName = getLocalizedText(reward.name, reward.name_my, lang)
@@ -52,14 +53,18 @@ export default function RewardAdminRow({ reward, canManage }: RewardAdminRowProp
         {reward.description && <p className="text-xs text-gray-400 truncate">{reward.description}</p>}
         {reward.stock !== null && <p className="text-xs text-gray-400">{reward.stock} {t('admin.inStock')}</p>}
       </div>
-      {canManage && (
+      {(canToggle || canManage) && (
         <div className="flex gap-1.5 shrink-0">
-          <Button variant="secondary" size="sm" loading={toggling} onClick={toggleActive}>
-            {reward.is_active ? t('admin.deactivate') : t('admin.activate')}
-          </Button>
-          <Button variant="danger" size="sm" loading={deleting} onClick={handleDelete}>
-            {t('admin.deleteReward')}
-          </Button>
+          {canToggle && (
+            <Button variant="secondary" size="sm" loading={toggling} onClick={toggleActive}>
+              {reward.is_active ? t('admin.deactivate') : t('admin.activate')}
+            </Button>
+          )}
+          {canManage && (
+            <Button variant="danger" size="sm" loading={deleting} onClick={handleDelete}>
+              {t('admin.deleteReward')}
+            </Button>
+          )}
         </div>
       )}
     </div>
