@@ -28,6 +28,8 @@ export interface Reward {
   id: string
   name: string
   description: string | null
+  name_my: string | null
+  description_my: string | null
   points_cost: number
   stock: number | null
   is_active: boolean

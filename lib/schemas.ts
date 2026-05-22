@@ -70,7 +70,9 @@ export const RedemptionActionSchema = z.object({
 
 export const RewardCreateSchema = z.object({
   name: safeText(100).min(1, 'Name is required.'),
+  name_my: safeText(100).nullish(),
   description: safeText(1000).nullish(),
+  description_my: safeText(1000).nullish(),
   points_cost: pointsAmount,
   stock: stockAmount.nullish(),
 })
@@ -78,7 +80,9 @@ export const RewardCreateSchema = z.object({
 export const RewardUpdateSchema = z
   .object({
     name: safeText(100).min(1).optional(),
+    name_my: safeText(100).nullish(),
     description: safeText(1000).nullish(),
+    description_my: safeText(1000).nullish(),
     points_cost: pointsAmount.optional(),
     stock: stockAmount.nullish(),
     is_active: z.boolean({ message: 'is_active must be a boolean.' }).optional(),
