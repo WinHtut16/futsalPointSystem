@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function RewardForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
@@ -28,7 +30,7 @@ export default function RewardForm() {
 
     const cost = parseInt(form.points_cost)
     if (!form.name.trim() || cost <= 0) {
-      setError('Name and a positive points cost are required.')
+      setError(t('admin.rewardValidationError'))
       return
     }
 
@@ -60,8 +62,8 @@ export default function RewardForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="name"
-          label="Reward Name"
-          placeholder="e.g. 1 Bottle Water, 1 Hr Free Play"
+          label={t('admin.rewardNameLabel')}
+          placeholder={t('admin.rewardNamePlaceholder')}
           value={form.name}
           onChange={set('name')}
           required
@@ -69,28 +71,28 @@ export default function RewardForm() {
         />
         <Input
           id="description"
-          label="Description (optional)"
-          placeholder="Additional details"
+          label={t('admin.rewardDescLabel')}
+          placeholder={t('admin.rewardDescPlaceholder')}
           value={form.description}
           onChange={set('description')}
           maxLength={200}
         />
         <Input
           id="points_cost"
-          label="Points Required"
+          label={t('admin.rewardPointsLabel')}
           type="number"
           min="1"
-          placeholder="e.g. 50"
+          placeholder={t('admin.rewardPointsPlaceholder')}
           value={form.points_cost}
           onChange={set('points_cost')}
           required
         />
         <Input
           id="stock"
-          label="Stock (leave blank for unlimited)"
+          label={t('admin.rewardStockLabel')}
           type="number"
           min="0"
-          placeholder="e.g. 10"
+          placeholder={t('admin.rewardStockPlaceholder')}
           value={form.stock}
           onChange={set('stock')}
         />
@@ -103,10 +105,10 @@ export default function RewardForm() {
             className="flex-1"
             onClick={() => router.back()}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" size="md" loading={loading} className="flex-1">
-            Create Reward
+            {t('admin.createReward')}
           </Button>
         </div>
       </form>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Reward } from '@/types'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface RewardAdminRowProps {
   reward: Reward
@@ -13,6 +14,7 @@ interface RewardAdminRowProps {
 
 export default function RewardAdminRow({ reward, canManage }: RewardAdminRowProps) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -28,7 +30,7 @@ export default function RewardAdminRow({ reward, canManage }: RewardAdminRowProp
   }
 
   async function handleDelete() {
-    if (!confirm(`Delete "${reward.name}"? This cannot be undone.`)) return
+    if (!confirm(t('admin.confirmDelete').replace('{name}', reward.name))) return
     setDeleting(true)
     await fetch(`/api/rewards/${reward.id}`, { method: 'DELETE' })
     setDeleting(false)
@@ -41,20 +43,20 @@ export default function RewardAdminRow({ reward, canManage }: RewardAdminRowProp
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-gray-900 truncate">{reward.name}</p>
           <Badge variant={reward.is_active ? 'green' : 'gray'}>
-            {reward.is_active ? 'Active' : 'Inactive'}
+            {reward.is_active ? t('admin.active') : t('admin.inactive')}
           </Badge>
         </div>
-        <p className="text-xs text-brand-600 font-semibold mt-0.5">{reward.points_cost} pts</p>
+        <p className="text-xs text-brand-600 font-semibold mt-0.5">{reward.points_cost} {t('common.pts')}</p>
         {reward.description && <p className="text-xs text-gray-400 truncate">{reward.description}</p>}
-        {reward.stock !== null && <p className="text-xs text-gray-400">{reward.stock} in stock</p>}
+        {reward.stock !== null && <p className="text-xs text-gray-400">{reward.stock} {t('admin.inStock')}</p>}
       </div>
       {canManage && (
         <div className="flex gap-1.5 shrink-0">
           <Button variant="secondary" size="sm" loading={toggling} onClick={toggleActive}>
-            {reward.is_active ? 'Deactivate' : 'Activate'}
+            {reward.is_active ? t('admin.deactivate') : t('admin.activate')}
           </Button>
           <Button variant="danger" size="sm" loading={deleting} onClick={handleDelete}>
-            Delete
+            {t('admin.deleteReward')}
           </Button>
         </div>
       )}

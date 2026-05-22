@@ -4,25 +4,22 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import type { UserRole } from '@/types'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
-const BASE_LINKS = [
-  { href: '/admin/dashboard', label: 'Dashboard' },
-  { href: '/admin/customers', label: 'Customers' },
-  { href: '/admin/redemptions', label: 'Requests' },
-  { href: '/admin/rewards', label: 'Rewards' },
-]
-
-const SUPERADMIN_LINKS = [
-  { href: '/admin/staff', label: 'Staff' },
-]
-
-interface Props {
-  role: UserRole
-}
+interface Props { role: UserRole }
 
 export default function AdminNav({ role }: Props) {
   const pathname = usePathname()
-  const links = role === 'superadmin' ? [...BASE_LINKS, ...SUPERADMIN_LINKS] : BASE_LINKS
+  const { t } = useLanguage()
+
+  const baseLinks = [
+    { href: '/admin/dashboard', label: t('admin.navDashboard') },
+    { href: '/admin/customers', label: t('admin.navCustomers') },
+    { href: '/admin/redemptions', label: t('admin.navRequests') },
+    { href: '/admin/rewards', label: t('admin.navRewards') },
+  ]
+  const superadminLinks = [{ href: '/admin/staff', label: t('admin.navStaff') }]
+  const links = role === 'superadmin' ? [...baseLinks, ...superadminLinks] : baseLinks
 
   return (
     <nav className="bg-gray-800 text-sm flex">

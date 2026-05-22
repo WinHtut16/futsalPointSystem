@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { RedemptionRequest } from '@/types'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -24,6 +25,7 @@ export default function RedemptionRequestCard({
 }) {
   const [loading, setLoading] = useState<'approve' | 'reject' | null>(null)
   const [error, setError] = useState('')
+  const { t } = useLanguage()
 
   async function handleAction(action: 'approve' | 'reject') {
     setLoading(action)
@@ -49,7 +51,7 @@ export default function RedemptionRequestCard({
           <p className="font-semibold text-gray-900 truncate">{request.customer?.username}</p>
           <p className="text-xs text-gray-500">{request.customer?.phone}</p>
           <p className="text-xs text-gray-400 mt-0.5">
-            {request.customer?.total_points?.toLocaleString()} pts available
+            {request.customer?.total_points?.toLocaleString()} {t('admin.ptsAvailable')}
           </p>
         </div>
         <div className="text-right shrink-0">
@@ -68,7 +70,7 @@ export default function RedemptionRequestCard({
           disabled={!!loading}
           onClick={() => handleAction('reject')}
         >
-          Reject
+          {t('admin.reject')}
         </Button>
         <Button
           size="sm"
@@ -77,7 +79,7 @@ export default function RedemptionRequestCard({
           disabled={!!loading}
           onClick={() => handleAction('approve')}
         >
-          Approve
+          {t('admin.approve')}
         </Button>
       </div>
     </Card>

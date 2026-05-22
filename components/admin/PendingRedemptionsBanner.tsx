@@ -3,11 +3,13 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 const POLL_INTERVAL_MS = 20_000
 
 export default function PendingRedemptionsBanner({ initialCount }: { initialCount: number }) {
   const [count, setCount] = useState(initialCount)
+  const { t } = useLanguage()
 
   const fetchCount = useCallback(async () => {
     const supabase = createClient()
@@ -61,8 +63,8 @@ export default function PendingRedemptionsBanner({ initialCount }: { initialCoun
     <Link href="/admin/redemptions">
       <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
         <div>
-          <p className="font-semibold text-yellow-800 text-sm">Pending Redemptions</p>
-          <p className="text-xs text-yellow-600">Tap to review and approve at the counter</p>
+          <p className="font-semibold text-yellow-800 text-sm">{t('admin.pendingRedemptions')}</p>
+          <p className="text-xs text-yellow-600">{t('admin.tapToReview')}</p>
         </div>
         <span className="bg-yellow-400 text-yellow-900 font-bold text-sm px-2.5 py-0.5 rounded-full">
           {count}
