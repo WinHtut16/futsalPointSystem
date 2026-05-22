@@ -29,12 +29,19 @@ export async function POST(request: NextRequest) {
 
     const parsed = RewardCreateSchema.safeParse(await parseJson(request))
     if (!parsed.success) return badRequest(parsed.error)
-    const { name, description, points_cost, stock } = parsed.data
+    const { name, name_my, description, description_my, points_cost, stock } = parsed.data
 
     const supabase = await createServiceClient()
     const { data, error } = await supabase
       .from('rewards')
-      .insert({ name, description: description ?? null, points_cost, stock: stock ?? null })
+      .insert({
+        name,
+        name_my: name_my ?? null,
+        description: description ?? null,
+        description_my: description_my ?? null,
+        points_cost,
+        stock: stock ?? null,
+      })
       .select()
       .single()
 
