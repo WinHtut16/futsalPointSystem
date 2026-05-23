@@ -28,7 +28,7 @@ test.describe('Journey 1: Customer', () => {
 
     // The PointsCard renders the balance in a large text element; new accounts start at 0
     await expect(page.locator('.text-6xl')).toHaveText('0')
-    await expect(page.getByText('Your Points')).toBeVisible()
+    await expect(page.getByText('Your Points', { exact: true })).toBeVisible()
   })
 
   // ── Part B: View points ────────────────────────────────────────────────────
@@ -38,9 +38,9 @@ test.describe('Journey 1: Customer', () => {
 
     // PointsCard shows the balance seeded by global-setup
     await expect(page.locator('.text-6xl')).toHaveText(SEED_POINTS.toLocaleString('en'))
-    await expect(page.getByText('Your Points')).toBeVisible()
-    // Username and phone are shown above the balance
-    await expect(page.getByText(process.env.E2E_CUSTOMER_USERNAME!)).toBeVisible()
+    await expect(page.getByText('Your Points', { exact: true })).toBeVisible()
+    // Username is shown above the balance (also appears in nav, so scope to main)
+    await expect(page.getByRole('main').getByText(process.env.E2E_CUSTOMER_USERNAME!, { exact: true })).toBeVisible()
   })
 
   // ── Part C: Redeem a reward ────────────────────────────────────────────────

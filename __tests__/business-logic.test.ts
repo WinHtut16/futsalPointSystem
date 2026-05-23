@@ -19,6 +19,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
+import { calculatePoints, POINTS_PER_HOUR } from '@/lib/points'
 
 // ---------------------------------------------------------------------------
 // Auth state — mutated per-test via as.*() helpers
@@ -487,5 +488,159 @@ describe('(5) Concurrent redemption invariants', () => {
 
     const statuses = [r1.status, r2.status].sort((a, b) => a - b)
     expect(statuses).toEqual([201, 409])
+  })
+})
+
+// ============================================================================
+// calculatePoints (lib/points.ts) — pure function, no mocks needed
+// ============================================================================
+describe('calculatePoints (lib/points.ts)', () => {
+  it('returns 0 for 0 hours', () => {
+    expect(calculatePoints(0)).toBe(0)
+  })
+
+  it('returns POINTS_PER_HOUR for 1 hour', () => {
+    expect(calculatePoints(1)).toBe(POINTS_PER_HOUR)
+  })
+
+  it('returns 100 for 10 hours', () => {
+    expect(calculatePoints(10)).toBe(100)
+  })
+
+  it('rounds correctly for fractional hours (1.5h → 15 pts)', () => {
+    expect(calculatePoints(1.5)).toBe(15)
+  })
+
+  it('handles fractional result via Math.round (0.33h)', () => {
+    expect(calculatePoints(0.33)).toBe(Math.round(0.33 * POINTS_PER_HOUR))
+  })
+})
+
+// ============================================================================
+// POST /api/points/add — success path
+//
+// DB call order:
+//   1. from('profiles').select('id, role').eq('id').single()  → customer lookup
+//   2. rpc('add_points_transaction', ...)                     → atomic increment
+//   3. from('profiles').select('total_points').eq('id').single() → updated balance
+// ============================================================================
+describe('POST /api/points/add — success path', () => {
+  const url = 'http://t/api/points/add'
+
+  it('returns points_added and updated total_points', async () => {
+    asAdmin()
+    mockQuery(
+      { data: { id: CUSTOMER_ID, role: 'customer' } },  // customer lookup
+      { data: { total_points: 520 } },                   // updated balance
+    )
+    mockRpcOnce({ data: null, error: null })
+
+    const { POST } = await import('@/app/api/points/add/route')
+    const res = await POST(jsonReq(url, 'POST', { customer_id: CUSTOMER_ID, hours_played: 2 }))
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.points_added).toBe(20)       // 2h × 10 pts/hr
+    expect(body.total_points).toBe(520)
+  })
+
+  it('returns 404 when customer not found', async () => {
+    asAdmin()
+    mockQuery({ data: null })                // customer lookup returns null
+
+    const { POST } = await import('@/app/api/points/add/route')
+    const res = await POST(jsonReq(url, 'POST', { customer_id: CUSTOMER_ID, hours_played: 1 }))
+
+    expect(res.status).toBe(404)
+    expect((await res.json()).error).toBe('Customer not found.')
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+})
+
+// ============================================================================
+// PATCH /api/redemptions/[id] — reject branch
+//
+// The reject path does NOT call the approve_redemption RPC; it reads the row
+// directly, checks status, then fires a fire-and-forget update.
+//
+// DB call order:
+//   1. from('redemption_requests').select('status').eq('id').single() → req fetch
+//   2. from('redemption_requests').update(...).eq('id')               → fire-and-forget
+// ============================================================================
+describe('PATCH /api/redemptions/[id] — reject', () => {
+  const url  = 'http://t/api/redemptions/x'
+  const body = { action: 'reject' }
+
+  it('(1) returns 200 and does NOT call RPC for a pending request', async () => {
+    asAdmin()
+    mockQuery({ data: { status: 'pending' } })
+
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
+
+    expect(res.status).toBe(200)
+    expect((await res.json()).success).toBe(true)
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+
+  it('(2) returns 404 when request not found', async () => {
+    asAdmin()
+    mockQuery({ data: null })
+
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
+
+    expect(res.status).toBe(404)
+    expect((await res.json()).error).toBe('Request not found.')
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+
+  it('(3) returns 400 when request is already actioned (not pending)', async () => {
+    asAdmin()
+    mockQuery({ data: { status: 'approved' } })
+
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
+
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('Only pending requests can be actioned.')
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+
+  it('(4) optional notes are accepted', async () => {
+    asAdmin()
+    mockQuery({ data: { status: 'pending' } })
+
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const res = await PATCH(
+      jsonReq(url, 'PATCH', { action: 'reject', notes: 'Out of stock' }),
+      routeParams(REQUEST_ID),
+    )
+
+    expect(res.status).toBe(200)
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+})
+
+// ============================================================================
+// POST /api/redemptions — soft-deleted reward
+//
+// The route returns 404 when reward.is_active is falsy, which covers both
+// manually deactivated and soft-deleted (is_deleted=true) rewards.
+// ============================================================================
+describe('POST /api/redemptions — soft-deleted reward', () => {
+  const url  = 'http://t/api/redemptions'
+  const body = { reward_id: REWARD_ID }
+
+  it('returns 404 when reward is soft-deleted (is_active=false, is_deleted=true)', async () => {
+    asCustomer(100)
+    mockQuery({
+      data: { id: REWARD_ID, name: 'Prize', points_cost: 50, stock: 5, is_active: false, is_deleted: true },
+    })
+
+    const { POST } = await import('@/app/api/redemptions/route')
+    const res = await POST(jsonReq(url, 'POST', body))
+
+    expect(res.status).toBe(404)
   })
 })

@@ -28,6 +28,10 @@ export default async function globalSetup() {
     { auth: { autoRefreshToken: false, persistSession: false } }
   )
 
+  // Fixed UUIDs ensure the unstable_cache (30s TTL) always references valid rows even
+  // when stale data from a previous run is served on the first navigation of a new run.
+  const E2E_REWARD_UUID = '00000000-e2e1-4000-a000-000000000001'
+
   const customerPhone    = process.env.E2E_CUSTOMER_PHONE!
   const customerPassword = process.env.E2E_CUSTOMER_PASSWORD!
   const customerUsername = process.env.E2E_CUSTOMER_USERNAME!
@@ -57,8 +61,12 @@ export default async function globalSetup() {
     .eq('phone', customerPhone)
   if (ptErr) throw new Error(`[E2E setup] Failed to set test customer points: ${ptErr.message}`)
 
-  // 5. Ensure the test reward exists and is active
-  await upsertReward(db, rewardName, rewardPoints)
+  // 5. Ensure the test reward exists and is active (fixed UUID keeps cache coherent across runs)
+  await upsertReward(db, E2E_REWARD_UUID, rewardName, rewardPoints)
+
+  // 5b. Purge the rewards unstable_cache so test pages see the freshly seeded data
+  const baseUrl = process.env.E2E_BASE_URL ?? 'http://localhost:3000'
+  await fetch(`${baseUrl}/api/test/revalidate-rewards`, { method: 'POST' }).catch(() => {/* server may not be up yet — tests will do their own reload */})
 
   // 6. Cancel any open pending redemption requests the test customer may have left
   await db
@@ -106,16 +114,14 @@ async function upsertCustomer(db: Db, phone: string, password: string, username:
   }
 }
 
-async function upsertReward(db: Db, name: string, pointsCost: number) {
-  const { data: existing } = await db.from('rewards').select('id').eq('name', name).maybeSingle()
-
-  if (existing) {
-    await db.from('rewards').update({ is_active: true, points_cost: pointsCost }).eq('id', existing.id)
-    return
-  }
-
-  const { error } = await db.from('rewards').insert({ name, points_cost: pointsCost, is_active: true })
-  if (error) throw new Error(`[E2E setup] Could not create test reward: ${error.message}`)
+async function upsertReward(db: Db, id: string, name: string, pointsCost: number) {
+  const { error } = await db
+    .from('rewards')
+    .upsert(
+      { id, name, points_cost: pointsCost, is_active: true, is_deleted: false },
+      { onConflict: 'id' }
+    )
+  if (error) throw new Error(`[E2E setup] Could not upsert test reward: ${error.message}`)
 }
 
 async function deleteProfileByPhone(db: Db, phone: string) {

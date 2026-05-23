@@ -124,8 +124,8 @@ describe('customer cannot mutate rewards', () => {
     asCustomer()
     const { PUT } = await import('@/app/api/rewards/[id]/route')
     const res = await PUT(
-      jsonReq('http://t/api/rewards/r1', 'PUT', { name: 'evil' }),
-      params('r1')
+      jsonReq('http://t/api/rewards/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'PUT', { name: 'evil' }),
+      params('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
     )
     ok(res.status)
   })
@@ -292,8 +292,8 @@ describe('unauthenticated callers are rejected from every protected route', () =
   it('PUT /api/rewards/[id]', async () => {
     const { PUT } = await import('@/app/api/rewards/[id]/route')
     const res = await PUT(
-      jsonReq('http://t/api/rewards/r1', 'PUT', { name: 'x' }),
-      params('r1')
+      jsonReq('http://t/api/rewards/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'PUT', { name: 'x' }),
+      params('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
     )
     ok(res.status)
   })

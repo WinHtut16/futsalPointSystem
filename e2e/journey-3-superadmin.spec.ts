@@ -86,7 +86,7 @@ test.describe('Journey 3: Superadmin manages staff and rewards', () => {
     await page.getByText(STAFF_USERNAME).click()
 
     await page.waitForURL(/\/admin\/staff\/[0-9a-f-]+/)
-    await expect(page.getByText(STAFF_USERNAME)).toBeVisible()
+    await expect(page.getByText(STAFF_USERNAME, { exact: true })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Danger Zone' })).toBeVisible()
   })
 

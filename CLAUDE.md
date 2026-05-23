@@ -9,7 +9,7 @@ npm run dev           # Start dev server at localhost:3000
 npm run build         # Production build
 npm run start         # Start production server
 npm run lint          # Run ESLint
-npm test              # Vitest unit tests (167 tests, no DB required)
+npm test              # Vitest unit tests (192 tests, no DB required)
 npm run test:e2e      # Playwright E2E tests (requires .env.e2e + running server)
 npm run test:e2e:ui   # Playwright with interactive UI
 npm run test:e2e:debug  # Playwright with step-by-step debugger
@@ -195,10 +195,16 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 **Unit tests** (`__tests__/`, run with `npm test`, no DB required):
 - `api-privilege-escalation.test.ts` — every protected route returns 401/403 for under-privileged callers; asserts no DB call is made when the guard fires
 - `api-validation.test.ts` — every route returns 400 for malformed input; asserts no DB call is made when validation fires
-- `business-logic.test.ts` — points/redemption logic with a controlled Supabase mock; covers concurrent race conditions
+- `business-logic.test.ts` — points/redemption logic with a controlled Supabase mock; covers concurrent race conditions, `calculatePoints`, points/add success path, redemption reject branch, and soft-deleted reward handling
+- `middleware.test.ts` — route-guard redirect logic for all role combinations (unauthenticated, customer, admin, superadmin)
+- `rewards-visibility.test.ts` — GET /api/rewards applies `is_active=true` filter for customers but not admins; PUT toggle-only vs full-update authorization
 
 **E2E tests** (`e2e/`, run with `npm run test:e2e`, requires real Supabase + `.env.e2e`):
 - `journey-1-customer.spec.ts` — register, view points, request and cancel a reward
 - `journey-2-admin.spec.ts` — search customer, add points
 - `journey-3-superadmin.spec.ts` — create staff admin, create reward, delete both
-- `global-setup.ts` seeds deterministic test data; `global-teardown.ts` cleans it up
+- `journey-4-auth.spec.ts` — login redirects for customer and admin; unauthenticated access to protected routes
+- `journey-5-negative.spec.ts` — insufficient balance blocks redemption; admin reject leaves customer points unchanged
+- `global-setup.ts` seeds deterministic test data (fixed UUIDs + cache revalidation via `/api/test/revalidate-rewards`); `global-teardown.ts` cleans it up
+
+**Cache revalidation endpoint:** `app/api/test/revalidate-rewards/route.ts` — POST endpoint (dev/test only, returns 403 in production) that calls `revalidateTag('rewards')` so E2E test setup can bust the `unstable_cache` immediately after seeding reward data.

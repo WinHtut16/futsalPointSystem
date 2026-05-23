@@ -20,9 +20,9 @@ export default async function globalTeardown() {
   const testPhone = process.env.E2E_CUSTOMER_PHONE
   if (testPhone) await deleteProfileByPhone(db, testPhone)
 
-  // Delete the Journey 1 test reward
-  const rewardName = process.env.E2E_REWARD_NAME ?? 'E2E Test Reward'
-  await db.from('rewards').delete().eq('name', rewardName)
+  // Delete the Journey 1 test reward (fixed UUID, same as global-setup)
+  const E2E_REWARD_UUID = '00000000-e2e1-4000-a000-000000000001'
+  await db.from('rewards').delete().eq('id', E2E_REWARD_UUID)
 
   // Journey 3 data is created and deleted within the tests themselves;
   // global-setup handles any leftovers on the next run.
