@@ -7,6 +7,6 @@ export async function POST() {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
-  revalidateTag('rewards')
+  revalidateTag('rewards', 'default')
   return NextResponse.json({ ok: true })
 }
