@@ -61,6 +61,11 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
             </Button>
           )}
           {canManage && (
+            <Button variant="secondary" size="sm" onClick={() => router.push(`/admin/rewards/${reward.id}/edit`)}>
+              {t('admin.editReward')}
+            </Button>
+          )}
+          {canManage && (
             <Button variant="danger" size="sm" loading={deleting} onClick={handleDelete}>
               {t('admin.deleteReward')}
             </Button>

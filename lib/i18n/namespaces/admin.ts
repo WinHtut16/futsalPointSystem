@@ -42,6 +42,9 @@ export const adminEN = {
   'admin.rewardStockLabel': 'Stock (leave blank for unlimited)',
   'admin.rewardStockPlaceholder': 'e.g. 10',
   'admin.createReward': 'Create Reward',
+  'admin.editReward': 'Edit',
+  'admin.editRewardTitle': 'Edit Reward',
+  'admin.saveChanges': 'Save Changes',
   'admin.rewardValidationError': 'Name and a positive points cost are required.',
 
   // CustomerSearch
@@ -172,6 +175,9 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.rewardStockLabel': 'စတော့ (ထားခဲ့ပါက အကန့်အသတ်မရှိ)',
   'admin.rewardStockPlaceholder': 'e.g. 10',
   'admin.createReward': 'ဆုလာဘ် ဖန်တီးရန်',
+  'admin.editReward': 'ပြင်ဆင်ရန်',
+  'admin.editRewardTitle': 'ဆုလာဘ် ပြင်ဆင်ရန်',
+  'admin.saveChanges': 'သိမ်းဆည်းရန်',
   'admin.rewardValidationError': 'နာမည်နှင့် ပွိုင့် လိုအပ်သည်။',
   'admin.searchByPhone': 'ဖုန်းနံပါတ်ဖြင့် ရှာဖွေပါ...',
   'admin.searchButton': 'ရှာဖွေရန်',

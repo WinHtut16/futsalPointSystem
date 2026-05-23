@@ -6,19 +6,25 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import type { Reward } from '@/types'
 
-export default function RewardForm() {
+interface RewardFormProps {
+  reward?: Reward
+  mode?: 'create' | 'edit'
+}
+
+export default function RewardForm({ reward, mode = 'create' }: RewardFormProps) {
   const router = useRouter()
   const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
-    name: '',
-    name_my: '',
-    description: '',
-    description_my: '',
-    points_cost: '',
-    stock: '',
+    name: reward?.name ?? '',
+    name_my: reward?.name_my ?? '',
+    description: reward?.description ?? '',
+    description_my: reward?.description_my ?? '',
+    points_cost: reward?.points_cost?.toString() ?? '',
+    stock: reward?.stock?.toString() ?? '',
   })
 
   function set(field: keyof typeof form) {
@@ -37,8 +43,10 @@ export default function RewardForm() {
     }
 
     setLoading(true)
-    const res = await fetch('/api/rewards', {
-      method: 'POST',
+    const url = mode === 'edit' ? `/api/rewards/${reward!.id}` : '/api/rewards'
+    const method = mode === 'edit' ? 'PUT' : 'POST'
+    const res = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: form.name.trim(),
@@ -128,7 +136,7 @@ export default function RewardForm() {
             {t('common.cancel')}
           </Button>
           <Button type="submit" size="md" loading={loading} className="flex-1">
-            {t('admin.createReward')}
+            {mode === 'edit' ? t('admin.saveChanges') : t('admin.createReward')}
           </Button>
         </div>
       </form>
