@@ -5,6 +5,7 @@ import Providers from '@/components/Providers'
 export const metadata: Metadata = {
   title: 'Mya Thida Points',
   description: 'Mya Thida Futsal loyalty points system',
+  icons: { icon: '/logo_black.jpg' },
 }
 
 export const viewport: Viewport = {
