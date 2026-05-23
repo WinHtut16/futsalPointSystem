@@ -38,6 +38,20 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 
 `middleware.ts` handles route protection and role-based redirects before any page renders.
 
+### Loading Skeletons
+
+Both route groups use Next.js `loading.tsx` files (co-located with each page) to show animated placeholder content during server-side data fetching.
+
+**Pattern:** `animate-pulse` on each card; `bg-gray-200` for prominent elements, `bg-gray-100` for secondary; `rounded-2xl shadow-sm bg-white` for card blocks; `divide-y divide-gray-100` for list cards. No spinner — every skeleton mirrors the real page layout.
+
+**Customer pages** (`app/(customer)/`) — `loading.tsx` adds `px-4 py-6` itself because the customer layout's `<main>` has no padding.
+
+**Admin pages** (`app/(admin)/`) — `loading.tsx` starts with `<div className="space-y-5">` only, because the admin layout's `<main>` already applies `px-4 py-6 max-w-2xl mx-auto`. Skeleton colors use neutral grays (no green) to match the admin theme.
+
+Admin pages with skeletons: `dashboard`, `customers`, `customers/[id]`, `redemptions`, `rewards`, `staff`, `staff/[id]`.
+
+Form-only pages (`rewards/new`, `staff/new`) have no `loading.tsx` — they render immediately with no async DB fetch before display.
+
 ### Auth Flow
 
 **Customers:** Supabase Auth with email derived from phone number (`{phone}@akoatp.com`). Registration goes through `/api/auth/register` which uses the service role client to bypass email confirmation.
