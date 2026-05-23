@@ -27,7 +27,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 
 ## Architecture
 
-**Stack:** Next.js 16 App Router, TypeScript, Supabase (auth + DB), Tailwind CSS
+**Stack:** Next.js 16 App Router, TypeScript, Supabase (auth + DB), Tailwind CSS, Recharts (charts)
 
 ### Route Groups
 
@@ -56,7 +56,7 @@ Three roles stored in `profiles.role`: `customer`, `admin`, `superadmin`.
 |------|-------------|
 | `customer` | View points/history, redeem rewards |
 | `admin` | Add points, manage customers (incl. delete), view all rewards, toggle rewards active/inactive |
-| `superadmin` | All admin capabilities + rewards CRUD + staff admin CRUD + forgot-password via email |
+| `superadmin` | All admin capabilities + rewards CRUD + staff admin CRUD + forgot-password via email + full analytics dashboard |
 
 Server-side guards in `lib/auth.ts`:
 - `requireRole(role)` — exact role match
@@ -134,7 +134,10 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 - `components/auth/` — LoginForm, RegisterForm, AdminLoginForm
 - `components/customer/` — PointsCard, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
 - `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
+- `components/admin/analytics/` — superadmin-only chart components (all `'use client'`): `ChartsSection` (dynamic-imports charts with `ssr:false`, renders chart cards), `PointsBarChart` (points issued vs redeemed last 30 days), `StatusDonut` (redemption status breakdown), `TopRewardsBar` (top 5 rewards by approvals), `TopCustomersBar` (top 5 customers by points). All use Recharts + `useLanguage()` for i18n.
 - `components/ui/` — shared primitives: Button, Card, Input (`showPasswordToggle` prop renders eye toggle), Badge, Modal, PasswordStrengthMeter, T (i18n leaf for server components), LanguageToggle
+
+**Charts:** Recharts is installed for the superadmin analytics dashboard. `ssr:false` dynamic imports must live in a `'use client'` component (Next.js 16 forbids `ssr:false` in Server Components). Pass serializable data from the server page to the `ChartsSection` client wrapper, which handles all dynamic imports internally.
 
 **Icons:** No external icon library is installed. All icons are inline SVGs using `fill="none" stroke="currentColor" viewBox="0 0 24 24"` with `strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}`. Do not add an icon library; write inline SVGs instead.
 
