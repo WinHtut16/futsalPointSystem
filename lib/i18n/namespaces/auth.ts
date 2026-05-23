@@ -24,6 +24,23 @@ export const authEN = {
   'auth.passwordWeak': 'Password is too weak. Add numbers or uppercase letters.',
   'auth.registrationFailed': 'Registration failed. Please try again.',
   'auth.accountCreated': 'Account created! Please go to the login page to sign in.',
+  // Admin login
+  'auth.adminPortalTagline': 'Staff portal',
+  'auth.adminUsernameLabel': 'Username or Email',
+  'auth.adminUsernamePlaceholder': 'Enter username or email',
+  'auth.adminInvalidCredentials': 'Invalid credentials.',
+  'auth.adminAccessDenied': 'Access denied. This login is for staff only.',
+  'auth.adminAuthFailed': 'Authentication failed.',
+  'auth.forgotPassword': 'Forgot password?',
+  // Admin reset password
+  'auth.adminResetPasswordTitle': 'New Password',
+  'auth.repeatPasswordPlaceholder': 'Repeat new password',
+  'auth.invalidResetLink': 'Invalid or expired reset link. Please request a new one.',
+  'auth.requestNewLink': 'Request a new link',
+  'auth.verifyingLink': 'Verifying link...',
+  'auth.passwordUpdated': 'Password updated!',
+  'auth.redirectingToLogin': 'Redirecting to login...',
+  'auth.setNewPassword': 'Set New Password',
 } as const
 
 export const authMY: { [K in keyof typeof authEN]: string } = {
@@ -52,4 +69,21 @@ export const authMY: { [K in keyof typeof authEN]: string } = {
   'auth.passwordWeak': 'စကားဝှက် အားနည်းနေသည်။ ဂဏန်းများ သို့မဟုတ် စာလုံးကြီးများ ထည့်ပါ။',
   'auth.registrationFailed': 'မှတ်ပုံတင်ခြင်း မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။',
   'auth.accountCreated': 'အကောင့်ဖွင့်ပြီးပါပြီ! ဝင်ရောက်ရန် စာမျက်နှာသို့ သွားပါ။',
+  // Admin login
+  'auth.adminPortalTagline': 'ဝန်ထမ်းဝင်ပေါက်',
+  'auth.adminUsernameLabel': 'အမည် သို့မဟုတ် အီးမေးလ်',
+  'auth.adminUsernamePlaceholder': 'အမည် သို့မဟုတ် အီးမေးလ် ထည့်ပါ',
+  'auth.adminInvalidCredentials': 'အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မှားနေသည်။',
+  'auth.adminAccessDenied': 'ဝင်ခွင့်ပိတ်ထားသည်။ ဤဝင်ပေါက်သည် ဝန်ထမ်းများသာ အသုံးပြုနိုင်သည်။',
+  'auth.adminAuthFailed': 'အထောက်အထားစိစစ်မှု မအောင်မြင်ပါ။',
+  'auth.forgotPassword': 'စကားဝှက် မေ့သွားသလား?',
+  // Admin reset password
+  'auth.adminResetPasswordTitle': 'စကားဝှက်အသစ်',
+  'auth.repeatPasswordPlaceholder': 'စကားဝှက်အသစ် ထပ်ရိုက်ပါ',
+  'auth.invalidResetLink': 'ပြန်လည်သတ်မှတ်ရန် လင့်က မမှန်ကန်သော သို့မဟုတ် သက်တမ်းကုန်သွားသည်။ လင့်အသစ် တောင်းဆိုပါ။',
+  'auth.requestNewLink': 'လင့်အသစ် တောင်းဆိုရန်',
+  'auth.verifyingLink': 'လင့် စစ်ဆေးနေသည်...',
+  'auth.passwordUpdated': 'စကားဝှက် ပြောင်းပြီးပါပြီ!',
+  'auth.redirectingToLogin': 'ဝင်ရောက်ရန် စာမျက်နှာသို့ ပြန်ညွှန်းနေသည်...',
+  'auth.setNewPassword': 'စကားဝှက်အသစ် သတ်မှတ်ရန်',
 }

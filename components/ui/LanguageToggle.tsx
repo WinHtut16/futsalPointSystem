@@ -8,15 +8,15 @@ export default function LanguageToggle({ variant = 'light' }: { variant?: 'light
   const base = 'flex items-center rounded-full text-xs font-semibold overflow-hidden border transition-colors'
   const styles = {
     light: 'border-white/30',
-    dark: 'border-gray-300',
+    dark: 'border-white/20',
   }
   const activeStyle = {
     light: 'bg-white text-brand-700',
-    dark: 'bg-brand-600 text-white',
+    dark: 'bg-white text-gray-900',
   }
   const inactiveStyle = {
     light: 'text-white/80 hover:text-white',
-    dark: 'text-gray-500 hover:text-gray-700',
+    dark: 'text-white/60 hover:text-white',
   }
 
   return (

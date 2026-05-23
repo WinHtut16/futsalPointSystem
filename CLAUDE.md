@@ -126,7 +126,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 - Provider mounted globally in `components/Providers.tsx`.
 - **Client components:** import `useLanguage` and call `t('key')` / `t('key', { var: value })`.
 - **Server components:** use `<T k="key" />` or `<T k="key" vars={{ var: value }} />` — it's a `'use client'` leaf component in `components/ui/T.tsx`.
-- `LanguageToggle` in `components/ui/LanguageToggle.tsx` accepts `variant="light"` (customer header) or `variant="dark"` (admin header).
+- `LanguageToggle` in `components/ui/LanguageToggle.tsx` accepts `variant="light"` (customer header, green active bg) or `variant="dark"` (admin auth pages — login and reset-password — placed `absolute top-4 right-4`, white active bg on dark background). Do NOT use `variant="light"` styling on admin pages — the dark variant uses `bg-white text-gray-900` for active, `text-white/60` for inactive; the light variant uses `bg-white text-brand-700` / `text-white/80`.
 - When adding UI strings, add the key to **both** `*EN` and `*MY` in the relevant namespace file (or only `*EN` and regenerate via `scripts/translate.mjs`).
 
 ### Component Organization

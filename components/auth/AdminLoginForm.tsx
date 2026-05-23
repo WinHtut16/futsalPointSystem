@@ -5,16 +5,18 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { usernameToAdminEmail } from '@/lib/utils'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 
 export default function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(
-    searchParams.get('error') === 'invalid_link' ? 'Invalid or expired reset link.' : ''
+    searchParams.get('error') === 'invalid_link' ? t('auth.invalidResetLink') : ''
   )
   const [loading, setLoading] = useState(false)
 
@@ -28,13 +30,13 @@ export default function AdminLoginForm() {
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (authError) {
-      setError('Invalid credentials.')
+      setError(t('auth.adminInvalidCredentials'))
       setLoading(false)
       return
     }
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setError('Authentication failed.'); setLoading(false); return }
+    if (!user) { setError(t('auth.adminAuthFailed')); setLoading(false); return }
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -44,7 +46,7 @@ export default function AdminLoginForm() {
 
     if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
       await supabase.auth.signOut()
-      setError('Access denied. This login is for staff only.')
+      setError(t('auth.adminAccessDenied'))
       setLoading(false)
       return
     }
@@ -57,9 +59,9 @@ export default function AdminLoginForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         id="identifier"
-        label="Username or Email"
+        label={t('auth.adminUsernameLabel')}
         type="text"
-        placeholder="Enter username or email"
+        placeholder={t('auth.adminUsernamePlaceholder')}
         value={identifier}
         onChange={(e) => setIdentifier(e.target.value)}
         required
@@ -67,9 +69,9 @@ export default function AdminLoginForm() {
       />
       <Input
         id="password"
-        label="Password"
+        label={t('auth.password')}
         type="password"
-        placeholder="Enter password"
+        placeholder={t('auth.passwordPlaceholder')}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
@@ -80,11 +82,11 @@ export default function AdminLoginForm() {
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
       )}
       <Button type="submit" size="lg" loading={loading}>
-        Sign In
+        {t('auth.signIn')}
       </Button>
       <p className="text-center text-sm text-gray-500">
         <Link href="/admin/forgot-password" className="text-brand-600 font-medium hover:underline">
-          Forgot password?
+          {t('auth.forgotPassword')}
         </Link>
       </p>
     </form>
