@@ -67,7 +67,7 @@ Server-side guards in `lib/auth.ts`:
 
 1. Superadmin visits `/admin/forgot-password` → enters real email
 2. Supabase sends reset email with link to `/auth/callback?next=/admin/reset-password`
-3. `/auth/callback/route.ts` exchanges PKCE code for session, redirects to `/admin/reset-password`
+3. `/auth/callback/route.ts` handles two Supabase email-link formats: `?code=` (PKCE, legacy) via `exchangeCodeForSession`, and `?token_hash=&type=` (OTP, supabase-js 2.x default) via `verifyOtp`. Either path establishes a session and redirects to `/admin/reset-password`.
 4. User sets new password → signs out → redirected to `/admin/login`
 
 `ADMIN_PUBLIC_PATHS` bypasses the "must be logged in" guard; `ADMIN_AUTH_ONLY_PATHS` is a subset that also redirects already-logged-in users away. `/admin/reset-password` is in `PUBLIC` but NOT in `AUTH_ONLY` — user must be logged in to set a password.
