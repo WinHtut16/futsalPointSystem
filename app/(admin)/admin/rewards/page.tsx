@@ -12,6 +12,7 @@ export default async function AdminRewardsPage() {
   const { data: rewards } = await supabase
     .from('rewards')
     .select('*')
+    .eq('is_deleted', false)
     .order('points_cost', { ascending: true })
 
   const canManage = profile?.role === 'superadmin'

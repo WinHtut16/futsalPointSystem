@@ -52,7 +52,10 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     const { id } = idParsed.data
 
     const supabase = await createServiceClient()
-    const { error } = await supabase.from('rewards').delete().eq('id', id)
+    const { error } = await supabase
+      .from('rewards')
+      .update({ is_deleted: true, is_active: false, updated_at: new Date().toISOString() })
+      .eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     revalidateTag('rewards', 'default')
     return NextResponse.json({ success: true })

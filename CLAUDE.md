@@ -18,7 +18,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 **First-time setup:**
 1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → **`supabase-rls-security-fix.sql`**
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → **`soft-delete-rewards-migration.sql`**
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -92,7 +92,7 @@ All tables have Row-Level Security enforced. Key patterns:
 | `lib/utils.ts` | `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email |
 | `lib/supabase/client.ts` | Browser Supabase client (for client components) |
 | `lib/supabase/server.ts` | SSR Supabase client + `createServiceClient()` (raw `@supabase/supabase-js`, truly bypasses RLS) |
-| `lib/cached-queries.ts` | `getActiveRewards()` — `unstable_cache` wrapper (tag: `'rewards'`, revalidate: 30s) for the customer-facing rewards list. Any API route that mutates the `rewards` table **must** call `revalidateTag('rewards', 'default')` (Next.js 16 requires the cacheLife profile as second arg) or customers will see stale data for up to 30 s. |
+| `lib/cached-queries.ts` | `getActiveRewards()` — `unstable_cache` wrapper (tag: `'rewards'`, revalidate: 30s) for the customer-facing rewards list. Filters `is_active=true` AND `is_deleted=false`. Any API route that mutates the `rewards` table **must** call `revalidateTag('rewards', 'default')` (Next.js 16 requires the cacheLife profile as second arg) or customers will see stale data for up to 30 s. |
 
 ### Real-Time Architecture
 
@@ -152,7 +152,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 | `GET /api/rewards/[id]` | any authenticated user | Reward detail |
 | `PUT /api/rewards/[id]` (toggle only: `{ is_active }`) | admin/superadmin | Toggle active/inactive |
 | `PUT /api/rewards/[id]` (full update) | superadmin | Update reward fields |
-| `DELETE /api/rewards/[id]` | superadmin | Delete reward |
+| `DELETE /api/rewards/[id]` | superadmin | Soft-delete reward (sets `is_deleted=true`, `is_active=false`) — row preserved so transaction history retains reward name |
 | `GET/POST /api/admin/staff` | superadmin | List / create staff admin accounts |
 | `GET/PUT/DELETE /api/admin/staff/[id]` | superadmin | Staff detail, reset password, delete |
 

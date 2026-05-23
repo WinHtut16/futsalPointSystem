@@ -9,6 +9,7 @@ export const getActiveRewards = unstable_cache(
       .from('rewards')
       .select('*')
       .eq('is_active', true)
+      .eq('is_deleted', false)
       .order('points_cost', { ascending: true })
     return (data ?? []) as Reward[]
   },

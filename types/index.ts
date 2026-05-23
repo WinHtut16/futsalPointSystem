@@ -33,6 +33,7 @@ export interface Reward {
   points_cost: number
   stock: number | null
   is_active: boolean
+  is_deleted: boolean
   created_at: string
   updated_at: string
 }
