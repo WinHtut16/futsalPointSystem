@@ -93,8 +93,13 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
   async function handleDelete() {
     if (!confirm(t('admin.confirmDelete').replace('{name}', reward.name))) return
     setDeleting(true)
-    await fetch(`/api/rewards/${reward.id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/rewards/${reward.id}`, { method: 'DELETE' })
     setDeleting(false)
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error ?? 'Failed to delete reward')
+      return
+    }
     router.refresh()
   }
 
