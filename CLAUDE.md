@@ -92,6 +92,7 @@ All tables have Row-Level Security enforced. Key patterns:
 | `lib/utils.ts` | `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email |
 | `lib/supabase/client.ts` | Browser Supabase client (for client components) |
 | `lib/supabase/server.ts` | SSR Supabase client + `createServiceClient()` (raw `@supabase/supabase-js`, truly bypasses RLS) |
+| `lib/cached-queries.ts` | `getActiveRewards()` — `unstable_cache` wrapper (tag: `'rewards'`, revalidate: 30s) for the customer-facing rewards list. Any API route that mutates the `rewards` table **must** call `revalidateTag('rewards')` or customers will see stale data for up to 30 s. |
 
 ### Real-Time Architecture
 
@@ -132,8 +133,10 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 
 - `components/auth/` — LoginForm, RegisterForm, AdminLoginForm
 - `components/customer/` — PointsCard, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
-- `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, CustomerSearch, RewardForm, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
+- `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
 - `components/ui/` — shared primitives: Button, Card, Input (`showPasswordToggle` prop renders eye toggle), Badge, Modal, PasswordStrengthMeter, T (i18n leaf for server components), LanguageToggle
+
+**Icons:** No external icon library is installed. All icons are inline SVGs using `fill="none" stroke="currentColor" viewBox="0 0 24 24"` with `strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}`. Do not add an icon library; write inline SVGs instead.
 
 ### API Surface
 
