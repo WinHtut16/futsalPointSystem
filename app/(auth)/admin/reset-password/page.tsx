@@ -20,6 +20,14 @@ export default function AdminResetPasswordPage() {
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
+    // /auth/callback redirects here with ?error=link_expired when the token exchange
+    // fails (cross-device click, expired PKCE code, email prefetch consuming the token).
+    // Reading via window.location avoids adding useSearchParams + a Suspense boundary.
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('error') === 'link_expired') {
+      setError(t('auth.invalidResetLink'))
+      return
+    }
     const supabase = createClient()
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true)

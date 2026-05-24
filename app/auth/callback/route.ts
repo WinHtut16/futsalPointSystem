@@ -51,5 +51,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL('/admin/login?error=invalid_link', origin))
+  // Redirect to the reset-password page (a PUBLIC path, never AUTH_ONLY) so that
+  // logged-in users are not silently bounced to the dashboard by middleware — they
+  // see the same "invalid link" error and "request new link" option as anyone else.
+  return NextResponse.redirect(new URL('/admin/reset-password?error=link_expired', origin))
 }

@@ -86,11 +86,24 @@ Server-side guards in `lib/auth.ts`:
 ### Admin Forgot Password Flow
 
 1. Superadmin visits `/admin/forgot-password` → enters real email
-2. Supabase sends reset email with link to `/auth/callback?next=/admin/reset-password`
-3. `/auth/callback/route.ts` handles two Supabase email-link formats: `?code=` (PKCE, legacy) via `exchangeCodeForSession`, and `?token_hash=&type=` (OTP, supabase-js 2.x default) via `verifyOtp`. Either path establishes a session and redirects to `/admin/reset-password`. **Important:** the callback creates an inline `createServerClient` (from `@supabase/ssr`, NOT `createClient()` from `lib/supabase/server.ts`) that sets session cookies directly on the `NextResponse.redirect()` response object. Using `lib/supabase/server.ts` here would silently drop the session tokens — its `setAll` writes to the `cookies()` store from `next/headers`, which has no connection to the redirect response returned by the Route Handler.
-4. User sets new password → signs out → redirected to `/admin/login`
+2. `forgot-password/page.tsx` calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: ... })` using the browser client
+3. Supabase sends a recovery email. **The email template must use `{{ .TokenHash }}`** (see Supabase dashboard note below) — this makes the link go directly to our callback with `?token_hash=XXX&type=recovery` instead of routing through Supabase's verify endpoint with a PKCE `?code=`. The token-hash approach requires no stored verifier and works on any device.
+4. User clicks the link → browser goes directly to `https://[site]/auth/callback?token_hash=XXX&type=recovery&next=/admin/reset-password`
+5. `/auth/callback/route.ts` calls `verifyOtp({ token_hash, type })` → Supabase validates → session cookies written directly onto the `NextResponse.redirect()` response (inline `createServerClient`, NOT `lib/supabase/server.ts` — see below) → redirect to `/admin/reset-password`
+6. User sets new password → signs out globally → redirected to `/admin/login`
 
-`ADMIN_PUBLIC_PATHS` bypasses the "must be logged in" guard; `ADMIN_AUTH_ONLY_PATHS` is a subset that also redirects already-logged-in users away. `/admin/reset-password` is in `PUBLIC` but NOT in `AUTH_ONLY` — user must be logged in to set a password.
+**If token exchange fails** (expired, already used, etc.): callback redirects to `/admin/reset-password?error=link_expired`. The reset-password page reads this via `window.location.search` in its `useEffect` and shows the error + "request new link" without requiring a session. This avoids the alternative path (`/admin/login`) which is `ADMIN_AUTH_ONLY` — middleware would silently redirect logged-in users to the dashboard and swallow the error.
+
+**Supabase dashboard — required email template change:**
+Authentication → Email Templates → Recovery. Replace `{{ .ConfirmationURL }}` with:
+```
+{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/admin/reset-password
+```
+`{{ .SiteURL }}` resolves to the Site URL set in Authentication → URL Configuration (must be `https://myathida-futsal.vercel.app`).
+
+**`/auth/callback` inline client note:** the callback creates a `createServerClient` inline (from `@supabase/ssr`, NOT `createClient()` from `lib/supabase/server.ts`). The inline client's `setAll` writes session cookies directly onto the `NextResponse.redirect()` response object. Using `lib/supabase/server.ts` here silently drops tokens — its `setAll` writes to `cookies()` from `next/headers`, which has no connection to the redirect response returned by the Route Handler.
+
+`ADMIN_PUBLIC_PATHS` bypasses the "must be logged in" guard; `ADMIN_AUTH_ONLY_PATHS` is a subset that also redirects already-logged-in users away. `/admin/reset-password` is in `PUBLIC` but NOT in `AUTH_ONLY` — user must be logged in to set a password (but the error state is visible to anyone, logged-in or not).
 
 ### Database
 
