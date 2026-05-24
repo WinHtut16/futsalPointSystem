@@ -16,9 +16,9 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 ```
 
 **First-time setup:**
-1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`
+1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://mya-thida-futsal.vercel.app` in Vercel env vars)
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → **`soft-delete-rewards-migration.sql`**
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → **`soft-delete-rewards-migration.sql`** → `handle-new-user-trigger-fix.sql`
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -97,7 +97,7 @@ Server-side guards in `lib/auth.ts`:
 All tables have Row-Level Security enforced. Key patterns:
 - `is_admin()` is a `SECURITY DEFINER` function used in RLS policies to avoid infinite recursion when policies on `profiles` would otherwise re-query `profiles`. Returns true for both `admin` and `superadmin`.
 - `add_points_transaction()` is an RPC function that atomically increments `profiles.total_points` and inserts into `point_transactions`. Always call this via Supabase RPC — never do the two steps separately.
-- `handle_new_user()` trigger auto-creates a `profiles` row when a new `auth.users` entry is inserted.
+- `handle_new_user()` trigger auto-creates a `profiles` row when a new `auth.users` entry is inserted. Uses `COALESCE(raw_user_meta_data->>'username', split_part(email,'@',1))` so it doesn't crash when `raw_user_meta_data` is absent (e.g. users created via the Supabase Auth dashboard).
 - `profiles.phone` is nullable — staff admin accounts have no phone.
 
 **Tables:** `profiles`, `point_transactions`, `rewards`, `redemption_requests`
