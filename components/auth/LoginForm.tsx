@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { phoneToEmail } from '@/lib/utils'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
@@ -63,16 +64,14 @@ export default function LoginForm() {
         required
         autoComplete="tel"
       />
-      <Input
+      <PasswordInput
         id="password"
         label={t('auth.password')}
-        type="password"
         placeholder={t('auth.passwordPlaceholder')}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
         autoComplete="current-password"
-        showPasswordToggle
       />
       {error && (
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>

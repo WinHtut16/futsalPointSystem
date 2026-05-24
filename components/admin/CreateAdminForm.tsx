@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
-import PasswordStrengthMeter from '@/components/ui/PasswordStrengthMeter'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function CreateAdminForm() {
@@ -51,16 +51,15 @@ export default function CreateAdminForm() {
       <p className="text-xs text-gray-400 -mt-2">
         {t('admin.usernameHint')}
       </p>
-      <Input
+      <PasswordInput
         id="password"
         label={t('admin.passwordLabel')}
-        type="password"
         placeholder={t('auth.newPasswordPlaceholder')}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        showStrength
       />
-      <PasswordStrengthMeter password={password} />
       {error && (
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
       )}

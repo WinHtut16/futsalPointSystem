@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { usernameToAdminEmail } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
 
 export default function AdminLoginForm() {
@@ -67,16 +68,14 @@ export default function AdminLoginForm() {
         required
         autoComplete="username"
       />
-      <Input
+      <PasswordInput
         id="password"
         label={t('auth.password')}
-        type="password"
         placeholder={t('auth.passwordPlaceholder')}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
         autoComplete="current-password"
-        showPasswordToggle
       />
       {error && (
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>

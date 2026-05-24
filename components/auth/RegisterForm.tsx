@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { phoneToEmail, normalizePhone } from '@/lib/utils'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
-import PasswordStrengthMeter, { calcStrength } from '@/components/ui/PasswordStrengthMeter'
+import { calcStrength } from '@/components/ui/PasswordStrengthMeter'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function RegisterForm() {
@@ -91,21 +92,17 @@ export default function RegisterForm() {
         minLength={2}
         maxLength={50}
       />
-      <div className="space-y-2">
-        <Input
-          id="password"
-          label={t('auth.password')}
-          type="password"
-          placeholder={t('auth.newPasswordPlaceholder')}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="new-password"
-          minLength={8}
-          showPasswordToggle
-        />
-        <PasswordStrengthMeter password={password} />
-      </div>
+      <PasswordInput
+        id="password"
+        label={t('auth.password')}
+        placeholder={t('auth.newPasswordPlaceholder')}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        autoComplete="new-password"
+        minLength={8}
+        showStrength
+      />
       {error && (
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
       )}

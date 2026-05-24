@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
-import PasswordStrengthMeter, { calcStrength } from '@/components/ui/PasswordStrengthMeter'
+import { calcStrength } from '@/components/ui/PasswordStrengthMeter'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface Props {
@@ -59,22 +59,18 @@ export default function ResetPasswordForm({ customerId, customerName }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="space-y-2">
-        <Input
-          id="new-password"
-          label={t('admin.newPasswordLabel')}
-          type="password"
-          placeholder={t('auth.newPasswordPlaceholder')}
-          value={password}
-          onChange={(e) => { setPassword(e.target.value); setStatus('idle'); setMessage('') }}
-          autoComplete="new-password"
-        />
-        <PasswordStrengthMeter password={password} />
-      </div>
-      <Input
+      <PasswordInput
+        id="new-password"
+        label={t('admin.newPasswordLabel')}
+        placeholder={t('auth.newPasswordPlaceholder')}
+        value={password}
+        onChange={(e) => { setPassword(e.target.value); setStatus('idle'); setMessage('') }}
+        autoComplete="new-password"
+        showStrength
+      />
+      <PasswordInput
         id="confirm-password"
         label={t('admin.confirmPasswordLabel')}
-        type="password"
         placeholder={t('admin.confirmPasswordPlaceholder')}
         value={confirm}
         onChange={(e) => { setConfirm(e.target.value); setStatus('idle'); setMessage('') }}

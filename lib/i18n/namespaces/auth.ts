@@ -41,6 +41,11 @@ export const authEN = {
   'auth.passwordUpdated': 'Password updated!',
   'auth.redirectingToLogin': 'Redirecting to login...',
   'auth.setNewPassword': 'Set New Password',
+  // Password strength labels
+  'auth.strengthWeak': 'Weak password',
+  'auth.strengthFair': 'Fair password',
+  'auth.strengthGood': 'Good password',
+  'auth.strengthStrong': 'Strong password',
 } as const
 
 export const authMY: { [K in keyof typeof authEN]: string } = {
@@ -86,4 +91,9 @@ export const authMY: { [K in keyof typeof authEN]: string } = {
   'auth.passwordUpdated': 'စကားဝှက် ပြောင်းပြီးပါပြီ!',
   'auth.redirectingToLogin': 'ဝင်ရောက်ရန် စာမျက်နှာသို့ ပြန်ညွှန်းနေသည်...',
   'auth.setNewPassword': 'စကားဝှက်အသစ် သတ်မှတ်ရန်',
+  // Password strength labels
+  'auth.strengthWeak': 'အားနည်းသော စကားဝှက်',
+  'auth.strengthFair': 'ပုံမှန် စကားဝှက်',
+  'auth.strengthGood': 'ကောင်းသော စကားဝှက်',
+  'auth.strengthStrong': 'အားကောင်းသော စကားဝှက်',
 }

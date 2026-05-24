@@ -155,7 +155,9 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 - `components/customer/` — PointsCard, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
 - `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
 - `components/admin/analytics/` — superadmin-only chart components (all `'use client'`): `ChartsSection` (dynamic-imports charts with `ssr:false`, renders chart cards), `PointsBarChart` (points issued vs redeemed last 30 days), `StatusDonut` (redemption status breakdown), `TopRewardsBar` (top 5 rewards by approvals), `TopCustomersBar` (top 5 customers by points). All use Recharts + `useLanguage()` for i18n.
-- `components/ui/` — shared primitives: Button, Card, Input (`showPasswordToggle` prop renders eye toggle), Badge, Modal, PasswordStrengthMeter, T (i18n leaf for server components), LanguageToggle
+- `components/ui/` — shared primitives: Button, Card, Input, **PasswordInput** (use for every password field — always has eye-toggle, add `showStrength` prop on new-password fields), Badge, Modal, PasswordStrengthMeter (uses i18n; strength labels in `auth.strengthWeak/Fair/Good/Strong`), T (i18n leaf for server components), LanguageToggle
+
+**Password fields:** Always use `<PasswordInput>` instead of `<Input type="password">`. The `showPasswordToggle` prop on `Input` is kept for backward compatibility but `PasswordInput` is the canonical pattern. Use `showStrength` on primary new-password fields only — never on confirm-password fields.
 
 **Charts:** Recharts is installed for the superadmin analytics dashboard. `ssr:false` dynamic imports must live in a `'use client'` component (Next.js 16 forbids `ssr:false` in Server Components). Pass serializable data from the server page to the `ChartsSection` client wrapper, which handles all dynamic imports internally.
 

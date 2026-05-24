@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
-import PasswordStrengthMeter from '@/components/ui/PasswordStrengthMeter'
 import LanguageToggle from '@/components/ui/LanguageToggle'
 
 export default function AdminResetPasswordPage() {
@@ -73,28 +72,22 @@ export default function AdminResetPasswordPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Input
-                  id="password"
-                  label={t('admin.newPasswordLabel')}
-                  type="password"
-                  placeholder={t('auth.newPasswordPlaceholder')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  showPasswordToggle
-                />
-                <PasswordStrengthMeter password={password} />
-              </div>
-              <Input
+              <PasswordInput
+                id="password"
+                label={t('admin.newPasswordLabel')}
+                placeholder={t('auth.newPasswordPlaceholder')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                showStrength
+              />
+              <PasswordInput
                 id="confirm"
                 label={t('admin.confirmPasswordLabel')}
-                type="password"
                 placeholder={t('auth.repeatPasswordPlaceholder')}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 required
-                showPasswordToggle
               />
               {error && (
                 <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>

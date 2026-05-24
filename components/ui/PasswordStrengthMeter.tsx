@@ -1,5 +1,7 @@
 'use client'
 
+import { useLanguage } from '@/lib/i18n/LanguageContext'
+
 interface Props {
   password: string
 }
@@ -18,16 +20,21 @@ export function calcStrength(password: string): 0 | 1 | 2 | 3 | 4 {
   return 4
 }
 
-const LEVELS = [
-  { label: 'Weak',   color: 'bg-red-500' },
-  { label: 'Fair',   color: 'bg-orange-400' },
-  { label: 'Good',   color: 'bg-yellow-400' },
-  { label: 'Strong', color: 'bg-green-500' },
-]
+const LEVEL_COLORS = ['bg-red-500', 'bg-orange-400', 'bg-yellow-400', 'bg-green-500']
+const LEVEL_TEXT_COLORS = ['text-red-500', 'text-orange-500', 'text-yellow-600', 'text-green-600']
 
 export default function PasswordStrengthMeter({ password }: Props) {
+  const { t } = useLanguage()
   if (!password) return null
   const score = calcStrength(password)
+
+  const LEVELS = [
+    { label: t('auth.strengthWeak'),   color: LEVEL_COLORS[0] },
+    { label: t('auth.strengthFair'),   color: LEVEL_COLORS[1] },
+    { label: t('auth.strengthGood'),   color: LEVEL_COLORS[2] },
+    { label: t('auth.strengthStrong'), color: LEVEL_COLORS[3] },
+  ]
+
   const level = LEVELS[score - 1]
 
   return (
@@ -42,13 +49,8 @@ export default function PasswordStrengthMeter({ password }: Props) {
           />
         ))}
       </div>
-      <p className={`text-xs font-medium ${
-        score === 1 ? 'text-red-500' :
-        score === 2 ? 'text-orange-500' :
-        score === 3 ? 'text-yellow-600' :
-        'text-green-600'
-      }`}>
-        {level.label} password
+      <p className={`text-xs font-medium ${LEVEL_TEXT_COLORS[score - 1]}`}>
+        {level.label}
       </p>
     </div>
   )
