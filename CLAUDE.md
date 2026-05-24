@@ -87,7 +87,7 @@ Server-side guards in `lib/auth.ts`:
 
 1. Superadmin visits `/admin/forgot-password` → enters real email
 2. Supabase sends reset email with link to `/auth/callback?next=/admin/reset-password`
-3. `/auth/callback/route.ts` handles two Supabase email-link formats: `?code=` (PKCE, legacy) via `exchangeCodeForSession`, and `?token_hash=&type=` (OTP, supabase-js 2.x default) via `verifyOtp`. Either path establishes a session and redirects to `/admin/reset-password`.
+3. `/auth/callback/route.ts` handles two Supabase email-link formats: `?code=` (PKCE, legacy) via `exchangeCodeForSession`, and `?token_hash=&type=` (OTP, supabase-js 2.x default) via `verifyOtp`. Either path establishes a session and redirects to `/admin/reset-password`. **Important:** the callback creates an inline `createServerClient` (from `@supabase/ssr`, NOT `createClient()` from `lib/supabase/server.ts`) that sets session cookies directly on the `NextResponse.redirect()` response object. Using `lib/supabase/server.ts` here would silently drop the session tokens — its `setAll` writes to the `cookies()` store from `next/headers`, which has no connection to the redirect response returned by the Route Handler.
 4. User sets new password → signs out → redirected to `/admin/login`
 
 `ADMIN_PUBLIC_PATHS` bypasses the "must be logged in" guard; `ADMIN_AUTH_ONLY_PATHS` is a subset that also redirects already-logged-in users away. `/admin/reset-password` is in `PUBLIC` but NOT in `AUTH_ONLY` — user must be logged in to set a password.
