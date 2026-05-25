@@ -5,6 +5,8 @@ import TransactionItem from '@/components/customer/TransactionItem'
 import PendingRedemptionsBanner from '@/components/admin/PendingRedemptionsBanner'
 import T from '@/components/ui/T'
 import ChartsSection from '@/components/admin/analytics/ChartsSection'
+import PeriodSelector from '@/components/admin/analytics/PeriodSelector'
+import PeriodLabel from '@/components/admin/analytics/PeriodLabel'
 import type { PointTransaction } from '@/types'
 import type { DailyPoint } from '@/components/admin/analytics/PointsBarChart'
 import type { StatusEntry } from '@/components/admin/analytics/StatusDonut'
@@ -30,15 +32,33 @@ function StatCard({
   )
 }
 
-export default async function AdminDashboardPage() {
+const MIN_YEAR = 2023
+
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string; year?: string }>
+}) {
   const profile = await getCurrentUser()
   const supabase = await createClient()
   const isSuperAdmin = profile?.role === 'superadmin'
 
   if (isSuperAdmin) {
     const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    const currentYear = now.getFullYear()
+
+    // Resolve & clamp the selected period from query params (default: current month/year)
+    const sp = await searchParams
+    const pm = Number(sp.month)
+    const py = Number(sp.year)
+    const month =
+      Number.isInteger(pm) && pm >= 1 && pm <= 12 ? pm : now.getMonth() + 1
+    const year =
+      Number.isInteger(py) && py >= MIN_YEAR && py <= currentYear ? py : currentYear
+
+    const periodStart = new Date(year, month - 1, 1).toISOString()
+    const periodEnd = new Date(year, month, 1).toISOString()
+    const daysInMonth = new Date(year, month, 0).getDate()
 
     const [
       { count: customerCount },
@@ -46,66 +66,97 @@ export default async function AdminDashboardPage() {
       { data: allEarn },
       { data: allRedeem },
       { data: earnThisMonth },
-      { data: last30DaysTx },
-      { data: allStatuses },
+      { data: monthTx },
+      { data: monthStatuses },
       { count: approvedThisMonth },
       { count: pendingCount },
+      { count: pendingThisMonth },
       { count: activeRewardsCount },
       { data: approvedRedemptions },
-      { data: topCustomers },
+      { data: monthEarners },
       { data: recentTx },
     ] = await Promise.all([
+      // — Overview (all-time, NOT affected by period filter) —
       supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
         .eq('role', 'customer'),
+      // — Period-scoped: new customers —
       supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
         .eq('role', 'customer')
-        .gte('created_at', startOfMonth),
+        .gte('created_at', periodStart)
+        .lt('created_at', periodEnd),
+      // — Overview: all-time points issued —
       supabase
         .from('point_transactions')
         .select('points_delta')
         .eq('transaction_type', 'earn'),
+      // — Overview: all-time points redeemed —
       supabase
         .from('point_transactions')
         .select('points_delta')
         .eq('transaction_type', 'redeem'),
+      // — Period-scoped: points issued in month —
       supabase
         .from('point_transactions')
         .select('points_delta')
         .eq('transaction_type', 'earn')
-        .gte('created_at', startOfMonth),
+        .gte('created_at', periodStart)
+        .lt('created_at', periodEnd),
+      // — Period-scoped: daily points chart (earn + redeem in month) —
       supabase
         .from('point_transactions')
         .select('points_delta, transaction_type, created_at')
-        .gte('created_at', thirtyDaysAgo),
-      supabase.from('redemption_requests').select('status'),
+        .gte('created_at', periodStart)
+        .lt('created_at', periodEnd),
+      // — Period-scoped: redemption statuses (by created_at) for donut —
+      supabase
+        .from('redemption_requests')
+        .select('status')
+        .gte('created_at', periodStart)
+        .lt('created_at', periodEnd),
+      // — Period-scoped: approvals (by resolved_at) —
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'approved')
-        .gte('resolved_at', startOfMonth),
+        .gte('resolved_at', periodStart)
+        .lt('resolved_at', periodEnd),
+      // — Banner: current actionable pending (all-time) —
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending'),
+      // — Period-scoped: pending requests created in month (stat card) —
+      supabase
+        .from('redemption_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .gte('created_at', periodStart)
+        .lt('created_at', periodEnd),
+      // — Overview: active rewards (all-time) —
       supabase
         .from('rewards')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true)
         .eq('is_deleted', false),
+      // — Period-scoped: top rewards by approvals (resolved in month) —
       supabase
         .from('redemption_requests')
         .select('reward_id, reward:rewards(name)')
-        .eq('status', 'approved'),
+        .eq('status', 'approved')
+        .gte('resolved_at', periodStart)
+        .lt('resolved_at', periodEnd),
+      // — Period-scoped: points earned per customer in month (top customers) —
       supabase
-        .from('profiles')
-        .select('username, phone, total_points')
-        .eq('role', 'customer')
-        .order('total_points', { ascending: false })
-        .limit(5),
+        .from('point_transactions')
+        .select('points_delta, customer_id, customer:profiles!customer_id(username, phone)')
+        .eq('transaction_type', 'earn')
+        .gte('created_at', periodStart)
+        .lt('created_at', periodEnd),
+      // — Recent transactions (all-time, latest 10) —
       supabase
         .from('point_transactions')
         .select(
@@ -120,9 +171,9 @@ export default async function AdminDashboardPage() {
     const totalPointsRedeemed = Math.abs(allRedeem?.reduce((s, t) => s + t.points_delta, 0) ?? 0)
     const pointsIssuedMonth = earnThisMonth?.reduce((s, t) => s + t.points_delta, 0) ?? 0
 
-    // Daily chart data (last 30 days)
+    // Daily chart data (every day of the selected month)
     const dailyMap = new Map<string, { issued: number; redeemed: number }>()
-    last30DaysTx?.forEach((tx) => {
+    monthTx?.forEach((tx) => {
       const date = tx.created_at.slice(0, 10)
       const entry = dailyMap.get(date) ?? { issued: 0, redeemed: 0 }
       if (tx.transaction_type === 'earn') entry.issued += tx.points_delta
@@ -130,21 +181,22 @@ export default async function AdminDashboardPage() {
       dailyMap.set(date, entry)
     })
     const chartData: DailyPoint[] = []
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 86400000)
-      const key = d.toISOString().slice(0, 10)
+    for (let day = 1; day <= daysInMonth; day++) {
+      const mm = String(month).padStart(2, '0')
+      const dd = String(day).padStart(2, '0')
+      const key = `${year}-${mm}-${dd}`
       const entry = dailyMap.get(key) ?? { issued: 0, redeemed: 0 }
-      chartData.push({ date: key.slice(5), ...entry })
+      chartData.push({ date: `${mm}-${dd}`, ...entry })
     }
 
-    // Redemption status donut
+    // Redemption status donut (selected month)
     const statusCounts: Record<string, number> = {
       pending: 0,
       approved: 0,
       rejected: 0,
       cancelled: 0,
     }
-    allStatuses?.forEach((r) => {
+    monthStatuses?.forEach((r) => {
       if (r.status in statusCounts) statusCounts[r.status]++
     })
     const donutData: StatusEntry[] = Object.entries(statusCounts).map(([status, value]) => ({
@@ -165,11 +217,19 @@ export default async function AdminDashboardPage() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5)
 
-    // Top customers by total points
-    const topCustomerEntries: CustomerEntry[] = (topCustomers ?? []).map((c) => ({
-      label: c.username ?? c.phone?.slice(-6) ?? '????',
-      total_points: c.total_points,
-    }))
+    // Top customers by points earned in the selected month
+    const earnerMap = new Map<string, CustomerEntry>()
+    monthEarners?.forEach((tx) => {
+      if (!tx.customer_id) return
+      const c = tx.customer as unknown as { username: string | null; phone: string | null } | null
+      const label = c?.username ?? c?.phone?.slice(-6) ?? '????'
+      const entry = earnerMap.get(tx.customer_id) ?? { label, total_points: 0 }
+      entry.total_points += tx.points_delta
+      earnerMap.set(tx.customer_id, entry)
+    })
+    const topCustomerEntries: CustomerEntry[] = [...earnerMap.values()]
+      .sort((a, b) => b.total_points - a.total_points)
+      .slice(0, 5)
 
     return (
       <div className="space-y-5">
@@ -190,11 +250,14 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* This Month KPIs */}
+        {/* Period-scoped KPIs */}
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-            <T k="admin.secondaryMetrics" />
-          </p>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              <PeriodLabel month={month} year={year} />
+            </p>
+            <PeriodSelector month={month} year={year} minYear={MIN_YEAR} maxYear={currentYear} />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <StatCard
               value={newCustomersThisMonth ?? 0}
@@ -202,7 +265,7 @@ export default async function AdminDashboardPage() {
             />
             <StatCard value={pointsIssuedMonth} label={<T k="admin.pointsIssuedMonth" />} />
             <StatCard value={approvedThisMonth ?? 0} label={<T k="admin.approvalsThisMonth" />} />
-            <StatCard value={pendingCount ?? 0} label={<T k="admin.pendingRedemptions" />} />
+            <StatCard value={pendingThisMonth ?? 0} label={<T k="admin.pendingRedemptions" />} />
           </div>
         </div>
 
@@ -213,6 +276,8 @@ export default async function AdminDashboardPage() {
           donutData={donutData}
           topRewards={topRewards}
           topCustomers={topCustomerEntries}
+          month={month}
+          year={year}
         />
 
         {/* Recent transactions */}

@@ -28,11 +28,29 @@ const TopCustomersBar = dynamic(() => import('./TopCustomersBar'), {
   loading: () => <ChartSkeleton h={180} />,
 })
 
+const MONTH_KEYS = [
+  'admin.monthJan',
+  'admin.monthFeb',
+  'admin.monthMar',
+  'admin.monthApr',
+  'admin.monthMay',
+  'admin.monthJun',
+  'admin.monthJul',
+  'admin.monthAug',
+  'admin.monthSep',
+  'admin.monthOct',
+  'admin.monthNov',
+  'admin.monthDec',
+] as const
+
 interface ChartsSectionProps {
   pointsChartData: DailyPoint[]
   donutData: StatusEntry[]
   topRewards: RewardEntry[]
   topCustomers: CustomerEntry[]
+  /** Selected month (1–12) and year, used to label the points chart. */
+  month: number
+  year: number
 }
 
 export default function ChartsSection({
@@ -40,17 +58,19 @@ export default function ChartsSection({
   donutData,
   topRewards,
   topCustomers,
+  month,
+  year,
 }: ChartsSectionProps) {
   const { t } = useLanguage()
+  const period = `${t(MONTH_KEYS[month - 1])} ${year}`
+  const pointsTitle = t('admin.pointsForMonth', { period })
 
   return (
     <>
       {/* Charts row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
-          <h2 className="text-sm font-semibold text-gray-700 mb-2">
-            {t('admin.pointsLast30Days')}
-          </h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-2">{pointsTitle}</h2>
           <PointsBarChart data={pointsChartData} />
         </div>
 
