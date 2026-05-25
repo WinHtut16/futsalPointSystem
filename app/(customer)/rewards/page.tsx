@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { getActiveRewards } from '@/lib/cached-queries'
 import { redirect } from 'next/navigation'
 import RewardsGrid from '@/components/customer/RewardsGrid'
+import RealtimePointsBadge from '@/components/customer/RealtimePointsBadge'
 import T from '@/components/ui/T'
 import type { Reward } from '@/types'
 
@@ -27,9 +28,7 @@ export default async function RewardsPage() {
     <div className="px-4 py-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900"><T k="rewards.title" /></h1>
-        <span className="text-sm text-gray-500 bg-white border border-gray-200 px-2 py-1 rounded-lg font-semibold text-brand-600">
-          {profile.total_points} <T k="rewards.pts" />
-        </span>
+        <RealtimePointsBadge userId={profile.id} initialPoints={profile.total_points} />
       </div>
 
       {rewards.length > 0 ? (

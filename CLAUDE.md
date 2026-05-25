@@ -126,6 +126,7 @@ All tables have Row-Level Security enforced. Key patterns:
 | `lib/supabase/client.ts` | Browser Supabase client (for client components) |
 | `lib/supabase/server.ts` | SSR Supabase client + `createServiceClient()` (raw `@supabase/supabase-js`, truly bypasses RLS) |
 | `lib/cached-queries.ts` | `getActiveRewards()` — `unstable_cache` wrapper (tag: `'rewards'`, revalidate: 30s) for the customer-facing rewards list. Filters `is_active=true` AND `is_deleted=false`. Any API route that mutates the `rewards` table **must** call `revalidateTag('rewards', 'default')` (Next.js 16 requires the cacheLife profile as second arg) or customers will see stale data for up to 30 s. |
+| `hooks/useRealtimePoints.ts` | `useRealtimePoints(userId, initialPoints)` — shared hook; same channel + 20s polling pattern as `PointsCard`. Used by `RealtimePointsBadge` on rewards and history pages. |
 
 ### Real-Time Architecture
 
@@ -150,6 +151,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 | `PendingRequestsList` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer history |
 | `RewardsGrid` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer rewards |
 | `PointsCard` | `profiles` | UPDATE (unfiltered, client-side id check) | Customer dashboard |
+| `RealtimePointsBadge` | `profiles` | UPDATE (unfiltered, client-side id check) | Customer rewards, history |
 
 ### Internationalization
 
@@ -165,7 +167,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 ### Component Organization
 
 - `components/auth/` — LoginForm, RegisterForm, AdminLoginForm
-- `components/customer/` — PointsCard, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
+- `components/customer/` — PointsCard, RealtimePointsBadge, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
 - `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
 - `components/admin/analytics/` — superadmin-only chart components (all `'use client'`): `ChartsSection` (dynamic-imports charts with `ssr:false`, renders chart cards), `PointsBarChart` (points issued vs redeemed last 30 days), `StatusDonut` (redemption status breakdown), `TopRewardsBar` (top 5 rewards by approvals), `TopCustomersBar` (top 5 customers by points). All use Recharts + `useLanguage()` for i18n.
 - `components/ui/` — shared primitives: Button, Card, Input, **PasswordInput** (use for every password field — always has eye-toggle, add `showStrength` prop on new-password fields), Badge, Modal, PasswordStrengthMeter (uses i18n; strength labels in `auth.strengthWeak/Fair/Good/Strong`), T (i18n leaf for server components), LanguageToggle
