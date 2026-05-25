@@ -4,9 +4,7 @@ import Card from '@/components/ui/Card'
 import TransactionItem from '@/components/customer/TransactionItem'
 import PendingRedemptionsBanner from '@/components/admin/PendingRedemptionsBanner'
 import T from '@/components/ui/T'
-import ChartsSection from '@/components/admin/analytics/ChartsSection'
-import PeriodSelector from '@/components/admin/analytics/PeriodSelector'
-import PeriodLabel from '@/components/admin/analytics/PeriodLabel'
+import DashboardPeriodSection from '@/components/admin/analytics/DashboardPeriodSection'
 import type { PointTransaction } from '@/types'
 import type { DailyPoint } from '@/components/admin/analytics/PointsBarChart'
 import type { StatusEntry } from '@/components/admin/analytics/StatusDonut'
@@ -250,34 +248,20 @@ export default async function AdminDashboardPage({
           </div>
         </div>
 
-        {/* Period-scoped KPIs */}
-        <div>
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              <PeriodLabel month={month} year={year} />
-            </p>
-            <PeriodSelector month={month} year={year} minYear={MIN_YEAR} maxYear={currentYear} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <StatCard
-              value={newCustomersThisMonth ?? 0}
-              label={<T k="admin.newCustomersMonth" />}
-            />
-            <StatCard value={pointsIssuedMonth} label={<T k="admin.pointsIssuedMonth" />} />
-            <StatCard value={approvedThisMonth ?? 0} label={<T k="admin.approvalsThisMonth" />} />
-            <StatCard value={pendingThisMonth ?? 0} label={<T k="admin.pendingRedemptions" />} />
-          </div>
-        </div>
-
-        <PendingRedemptionsBanner initialCount={pendingCount ?? 0} />
-
-        <ChartsSection
-          pointsChartData={chartData}
+        <DashboardPeriodSection
+          month={month}
+          year={year}
+          minYear={MIN_YEAR}
+          maxYear={currentYear}
+          newCustomers={newCustomersThisMonth ?? 0}
+          pointsIssued={pointsIssuedMonth}
+          approvals={approvedThisMonth ?? 0}
+          pendingThisMonth={pendingThisMonth ?? 0}
+          pendingBannerCount={pendingCount ?? 0}
+          chartData={chartData}
           donutData={donutData}
           topRewards={topRewards}
           topCustomers={topCustomerEntries}
-          month={month}
-          year={year}
         />
 
         {/* Recent transactions */}
