@@ -22,6 +22,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
       .from('profiles')
       .select('*, point_transactions(*, reward:rewards(name))')
       .eq('id', id)
+      .eq('role', 'customer')
       .single()
 
     if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -48,6 +49,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (!parsed.success) return badRequest(parsed.error)
 
     const supabase = await createServiceClient()
+
+    // IDOR guard: only customer accounts may be managed through this endpoint
+    const { data: target } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', id)
+      .single()
+    if (!target || target.role !== 'customer') {
+      return NextResponse.json({ error: 'Customer not found.' }, { status: 404 })
+    }
 
     if ('password' in parsed.data) {
       const { error } = await supabase.auth.admin.updateUserById(id, {
@@ -80,6 +91,17 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     const { id } = idParsed.data
 
     const supabase = await createServiceClient()
+
+    // IDOR guard: only customer accounts may be deleted through this endpoint
+    const { data: target } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', id)
+      .single()
+    if (!target || target.role !== 'customer') {
+      return NextResponse.json({ error: 'Customer not found.' }, { status: 404 })
+    }
+
     const { error } = await supabase.auth.admin.deleteUser(id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })

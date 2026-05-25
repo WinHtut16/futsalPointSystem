@@ -9,7 +9,7 @@ npm run dev           # Start dev server at localhost:3000
 npm run build         # Production build
 npm run start         # Start production server
 npm run lint          # Run ESLint
-npm test              # Vitest unit tests (192 tests, no DB required)
+npm test              # Vitest unit tests (200 tests, no DB required)
 npm run test:e2e      # Playwright E2E tests (requires .env.e2e + running server)
 npm run test:e2e:ui   # Playwright with interactive UI
 npm run test:e2e:debug  # Playwright with step-by-step debugger
@@ -18,7 +18,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 **First-time setup:**
 1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://mya-thida-futsal.vercel.app` in Vercel env vars)
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → **`soft-delete-rewards-migration.sql`** → `handle-new-user-trigger-fix.sql`
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → **`security-rls-profiles-fix.sql`**
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -201,10 +201,14 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 
 ### Security
 
-**Applied fixes** (see `supabase-rls-security-fix.sql` for the DB-side changes):
-- `profiles_update` RLS policy scoped to `is_admin()` only — customers cannot escalate their own role or inflate points via the anon key
-- `transactions_insert` RLS policy scoped to `is_admin()` only — customers cannot self-insert point transactions
-- `redemption_requests` unique partial index `(customer_id, reward_id) WHERE status = 'pending'` — prevents duplicate pending requests (race guard)
+**Applied fixes:**
+- `profiles_update` RLS policy scoped to `is_admin()` only — customers cannot escalate their own role or inflate points via the anon key (`supabase-rls-security-fix.sql`)
+- `transactions_insert` RLS policy scoped to `is_admin()` only — customers cannot self-insert point transactions (`supabase-rls-security-fix.sql`)
+- `redemption_requests` unique partial index `(customer_id, reward_id) WHERE status = 'pending'` — prevents duplicate pending requests (race guard) (`supabase-rls-security-fix.sql`)
+- `profiles_update` and `profiles_delete` RLS policies dropped entirely — no anon-key UPDATE/DELETE on profiles is needed (all mutations use service role); closes admin→superadmin escalation and admin-deletes-superadmin paths (`security-rls-profiles-fix.sql`)
+- `rewards` SELECT RLS consolidated: duplicate/conflicting policies dropped, replaced with single policy requiring `auth.role() = 'authenticated'` — closes unauthenticated anon-key read of active rewards (`security-rls-rewards-fix.sql`)
+- IDOR guards on all `[id]` API routes: `GET/PUT/DELETE /api/customers/[id]` verify target has `role='customer'`; `PUT /api/admin/staff/[id]` verifies target has `role='admin'` — prevents cross-role operations
+- `PUT /api/rewards/[id]` calls `requireAnyAdmin()` before parsing the request body — auth guard fires before any body read
 - `app/auth/callback/route.ts` validates the `next` param to reject absolute URLs, `//`, and `\` redirect bypasses
 - `app/(auth)/admin/reset-password/page.tsx` calls `signOut({ scope: 'global' })` immediately after password update, not deferred
 - `next.config.js` emits HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and `Content-Security-Policy` on every response
@@ -219,6 +223,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 - `business-logic.test.ts` — points/redemption logic with a controlled Supabase mock; covers concurrent race conditions, `calculatePoints`, points/add success path, redemption reject branch, and soft-deleted reward handling
 - `middleware.test.ts` — route-guard redirect logic for all role combinations (unauthenticated, customer, admin, superadmin)
 - `rewards-visibility.test.ts` — GET /api/rewards applies `is_active=true` filter for customers but not admins; PUT toggle-only vs full-update authorization
+- `api-idor.test.ts` — IDOR guards on `[id]` routes: customers/[id] returns 404 for non-customer targets; staff/[id] returns 404 for non-admin targets; sensitive auth ops (updateUserById, deleteUser) not called when guard fires
 
 **E2E tests** (`e2e/`, run with `npm run test:e2e`, requires real Supabase + `.env.e2e`):
 - `journey-1-customer.spec.ts` — register, view points, request and cancel a reward

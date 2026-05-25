@@ -6,6 +6,9 @@ import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, pars
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Fail-fast: reject unauthenticated / non-admin callers before touching the body
+    await requireAnyAdmin()
+
     const idParsed = IdParamSchema.safeParse(await params)
     if (!idParsed.success) return badRequest(idParsed.error)
     const { id } = idParsed.data
@@ -16,11 +19,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     let updates: Record<string, unknown>
 
     if (toggleParsed.success) {
-      // Toggle-only: admin or superadmin
-      await requireAnyAdmin()
+      // Toggle-only: any admin — already authorized above
       updates = { is_active: toggleParsed.data.is_active, updated_at: new Date().toISOString() }
     } else {
-      // Full update: superadmin only
+      // Full update: superadmin only — secondary role check
       await requireSuperAdmin()
       const parsed = RewardUpdateSchema.safeParse(body)
       if (!parsed.success) return badRequest(parsed.error)

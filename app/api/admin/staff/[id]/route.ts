@@ -41,6 +41,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (!parsed.success) return badRequest(parsed.error)
 
     const supabase = await createServiceClient()
+
+    // IDOR guard: only admin accounts may be managed through this endpoint
+    const { data: target } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', id)
+      .single()
+    if (!target || target.role !== 'admin') {
+      return NextResponse.json({ error: 'Admin not found.' }, { status: 404 })
+    }
+
     const { error } = await supabase.auth.admin.updateUserById(id, { password: parsed.data.password })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })
