@@ -11,6 +11,7 @@ Two small display-layer features:
 
 1. **Member Since** — show a customer's account creation date/time on the admin customer detail page (the page opened when an admin clicks a customer's name).
 2. **Transaction DateTime** — show the exact time (not just date) for every transaction in all three transaction history views, using Myanmar/Yangon timezone (UTC+6:30).
+3. **Pending Request DateTime** — also show the exact time on pending redemption request rows in the customer history page (`PendingRequestItem`).
 
 No database changes. No new components. No changes to any transaction logic or business rules.
 
@@ -64,7 +65,7 @@ All three transaction history views use the shared `TransactionItem` component. 
 | Admin customer detail — Transaction History | `app/(admin)/admin/customers/[id]/page.tsx` | admin/superadmin |
 | Customer history page | `app/(customer)/history/page.tsx` | customer |
 
-**Not in scope:** `PendingRequestItem` (shows `requested_at` date for pending redemption requests — the user did not request a change here).
+**Also in scope:** `PendingRequestItem` — shows `requested_at` date for pending redemption requests on the customer history page. Updated in Feature 3 below.
 
 ### Change
 
@@ -76,6 +77,26 @@ In `TransactionItem.tsx`, change one import and one call:
   ...
 - <p className="text-xs text-gray-400">{formatDate(tx.created_at)}</p>
 + <p className="text-xs text-gray-400">{formatDateTime(tx.created_at)}</p>
+```
+
+---
+
+## Feature 3: Exact Time on Pending Request Rows
+
+### Scope
+
+`components/customer/PendingRequestItem.tsx` renders each pending redemption request on the customer history page. It currently shows `formatDate(request.requested_at)` — date only.
+
+### Change
+
+In `PendingRequestItem.tsx`, change one import and one call:
+
+```diff
+- import { formatDate } from '@/lib/utils'
++ import { formatDateTime } from '@/lib/utils'
+  ...
+- <p className="text-xs text-gray-400">{formatDate(request.requested_at)}</p>
++ <p className="text-xs text-gray-400">{formatDateTime(request.requested_at)}</p>
 ```
 
 ---
@@ -131,10 +152,11 @@ Add `admin.memberSince` to both language objects in `lib/i18n/namespaces/admin.t
 |------|--------|
 | `lib/utils.ts` | Add `timeZone: 'Asia/Yangon'` to `formatDate`; add `timeZone`, `hour12` to `formatDateTime` |
 | `components/customer/TransactionItem.tsx` | `formatDate` → `formatDateTime` |
+| `components/customer/PendingRequestItem.tsx` | `formatDate` → `formatDateTime` |
 | `app/(admin)/admin/customers/[id]/page.tsx` | Add "Member Since" row + `formatDateTime` import |
 | `lib/i18n/namespaces/admin.ts` | Add `admin.memberSince` key (EN + MY) |
 
-**Total: 4 files. No DB migration. No new components.**
+**Total: 5 files. No DB migration. No new components.**
 
 ---
 
@@ -142,6 +164,6 @@ Add `admin.memberSince` to both language objects in `lib/i18n/namespaces/admin.t
 
 - No changes to transaction data, logic, or APIs.
 - No changes to the customers list table view.
-- No changes to `PendingRequestItem` (pending redemption request dates).
+- No changes to the admin-side redemption requests list (`RedemptionsList`, `RedemptionRequestCard`) — those are separate admin views not mentioned in scope.
 - No changes to how `created_at` is stored — it already records the correct UTC timestamp at signup.
 - No new icon library or date library (uses native `Intl`/`toLocaleString`).
