@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { RedemptionRequest } from '@/types'
-import { formatDate } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function PendingRequestItem({
@@ -37,7 +37,7 @@ export default function PendingRequestItem({
             {request.reward?.name ?? t('tx.redemption')}
           </p>
           <p className="text-xs text-yellow-600 font-medium">{t('history.pendingApproval')}</p>
-          <p className="text-xs text-gray-400">{formatDate(request.requested_at)}</p>
+          <p className="text-xs text-gray-400">{formatDateTime(request.requested_at)}</p>
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0 ml-2">
