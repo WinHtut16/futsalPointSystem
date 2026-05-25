@@ -10,6 +10,7 @@ import DeleteCustomerButton from '@/components/admin/DeleteCustomerButton'
 import T from '@/components/ui/T'
 import type { PointTransaction } from '@/types'
 import Link from 'next/link'
+import { formatDateTime } from '@/lib/utils'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -43,6 +44,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       <Card>
         <p className="text-xl font-bold text-gray-900">{customer.username}</p>
         <p className="text-sm text-gray-500">{customer.phone}</p>
+        <p className="text-xs text-gray-400 mt-0.5">
+          <T k="admin.memberSince" />: {formatDateTime(customer.created_at)}
+        </p>
         <p className="text-3xl font-bold text-brand-600 mt-3">
           {customer.total_points.toLocaleString()} <span className="text-base font-normal text-gray-400"><T k="common.pts" /></span>
         </p>
