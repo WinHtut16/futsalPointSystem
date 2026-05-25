@@ -117,13 +117,13 @@ export default async function AdminDashboardPage({
         .select('status')
         .gte('created_at', periodStart)
         .lt('created_at', periodEnd),
-      // — Period-scoped: approvals (by resolved_at) —
+      // — Period-scoped: approvals (by created_at, consistent with the donut) —
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'approved')
-        .gte('resolved_at', periodStart)
-        .lt('resolved_at', periodEnd),
+        .gte('created_at', periodStart)
+        .lt('created_at', periodEnd),
       // — Banner: current actionable pending (all-time) —
       supabase
         .from('redemption_requests')
@@ -142,13 +142,13 @@ export default async function AdminDashboardPage({
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true)
         .eq('is_deleted', false),
-      // — Period-scoped: top rewards by approvals (resolved in month) —
+      // — Period-scoped: top rewards by approvals (by created_at, consistent with the donut) —
       supabase
         .from('redemption_requests')
         .select('reward_id, reward:rewards(name)')
         .eq('status', 'approved')
-        .gte('resolved_at', periodStart)
-        .lt('resolved_at', periodEnd),
+        .gte('created_at', periodStart)
+        .lt('created_at', periodEnd),
       // — Period-scoped: points earned per customer in month (top customers) —
       supabase
         .from('point_transactions')
