@@ -26,6 +26,8 @@ interface PeriodSelectorProps {
   maxYear: number
   /** When provided, called instead of the built-in router.replace navigation. */
   onNavigate?: (month: number, year: number) => void
+  /** When true, both dropdowns are disabled (e.g. during a navigation transition). */
+  disabled?: boolean
 }
 
 export default function PeriodSelector({
@@ -34,6 +36,7 @@ export default function PeriodSelector({
   minYear,
   maxYear,
   onNavigate,
+  disabled = false,
 }: PeriodSelectorProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -52,7 +55,8 @@ export default function PeriodSelector({
 
   const selectClass =
     'rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm text-gray-800 ' +
-    'focus:outline-none focus:ring-2 focus:ring-brand-500/40'
+    'focus:outline-none focus:ring-2 focus:ring-brand-500/40 ' +
+    'disabled:opacity-50 disabled:cursor-not-allowed'
 
   return (
     <div className="flex items-center gap-2">
@@ -61,6 +65,7 @@ export default function PeriodSelector({
         aria-label={t('admin.periodMonth')}
         className={selectClass}
         value={month}
+        disabled={disabled}
         onChange={(e) => update(Number(e.target.value), year)}
       >
         {MONTH_KEYS.map((key, i) => (
@@ -74,6 +79,7 @@ export default function PeriodSelector({
         aria-label={t('admin.periodYear')}
         className={selectClass}
         value={year}
+        disabled={disabled}
         onChange={(e) => update(month, Number(e.target.value))}
       >
         {years.map((y) => (

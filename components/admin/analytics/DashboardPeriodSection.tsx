@@ -99,6 +99,7 @@ export default function DashboardPeriodSection({
             minYear={minYear}
             maxYear={maxYear}
             onNavigate={handleNavigate}
+            disabled={isPending}
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
