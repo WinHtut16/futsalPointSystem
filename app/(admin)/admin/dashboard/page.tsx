@@ -111,44 +111,44 @@ export default async function AdminDashboardPage({
         .select('points_delta, transaction_type, created_at')
         .gte('created_at', periodStart)
         .lt('created_at', periodEnd),
-      // — Period-scoped: redemption statuses (by created_at) for donut —
+      // — Period-scoped: redemption statuses (by requested_at) for donut —
       supabase
         .from('redemption_requests')
         .select('status')
-        .gte('created_at', periodStart)
-        .lt('created_at', periodEnd),
-      // — Period-scoped: approvals (by created_at, consistent with the donut) —
+        .gte('requested_at', periodStart)
+        .lt('requested_at', periodEnd),
+      // — Period-scoped: approvals (by requested_at, consistent with the donut) —
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'approved')
-        .gte('created_at', periodStart)
-        .lt('created_at', periodEnd),
+        .gte('requested_at', periodStart)
+        .lt('requested_at', periodEnd),
       // — Banner: current actionable pending (all-time) —
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending'),
-      // — Period-scoped: pending requests created in month (stat card) —
+      // — Period-scoped: pending requests in month (stat card) —
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending')
-        .gte('created_at', periodStart)
-        .lt('created_at', periodEnd),
+        .gte('requested_at', periodStart)
+        .lt('requested_at', periodEnd),
       // — Overview: active rewards (all-time) —
       supabase
         .from('rewards')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true)
         .eq('is_deleted', false),
-      // — Period-scoped: top rewards by approvals (by created_at, consistent with the donut) —
+      // — Period-scoped: top rewards by approvals (by requested_at, consistent with the donut) —
       supabase
         .from('redemption_requests')
         .select('reward_id, reward:rewards(name)')
         .eq('status', 'approved')
-        .gte('created_at', periodStart)
-        .lt('created_at', periodEnd),
+        .gte('requested_at', periodStart)
+        .lt('requested_at', periodEnd),
       // — Period-scoped: points earned per customer in month (top customers) —
       supabase
         .from('point_transactions')
