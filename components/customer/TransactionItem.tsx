@@ -1,7 +1,7 @@
 'use client'
 
 import type { PointTransaction } from '@/types'
-import { formatDate } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 interface TransactionItemProps {
@@ -53,7 +53,7 @@ export default function TransactionItem({ tx, showCustomer }: TransactionItemPro
             </p>
           )}
           <p className="text-sm font-medium text-gray-800 truncate">{label}</p>
-          <p className="text-xs text-gray-400">{formatDate(tx.created_at)}</p>
+          <p className="text-xs text-gray-400">{formatDateTime(tx.created_at)}</p>
           {tx.note && <p className="text-xs text-gray-400 italic truncate">{tx.note}</p>}
         </div>
       </div>
