@@ -115,6 +115,7 @@ export const adminEN = {
 
   // Customer detail page
   'admin.backToCustomers': '← Customers',
+  'admin.memberSince': 'Member Since',
   'admin.addPointsSection': 'Add Points',
   'admin.resetPasswordSection': 'Reset Password',
   'admin.transactionHistory': 'Transaction History',
@@ -279,6 +280,7 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.noCustomersSearch': 'ရှာဖွေမှုနှင့် ကိုက်ညီသည့် ဖောက်သည် မရှိပါ။',
   'admin.noCustomers': 'ဖောက်သည်များ မရှိသေးပါ။',
   'admin.backToCustomers': '← ဖောက်သည်များ',
+  'admin.memberSince': 'အဖွဲ့ဝင်သည့်နေ့',
   'admin.addPointsSection': 'အမှတ်ထည့်ရန်',
   'admin.resetPasswordSection': 'စကားဝှက် ပြောင်းလဲရန်',
   'admin.transactionHistory': 'မှတ်တမ်း',
