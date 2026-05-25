@@ -163,6 +163,19 @@ export const adminEN = {
   'admin.byPoints': 'by points',
   'admin.noData': 'No data yet',
   'admin.pts': 'pts',
+
+  // AdjustPointsForm
+  'admin.adjustPointsSection': 'Adjust Points',
+  'admin.adjustAmountLabel': 'Adjustment Amount (+ to add, − to deduct)',
+  'admin.adjustAmountPlaceholder': 'e.g. -30 or 50',
+  'admin.adjustReasonLabel': 'Reason (required)',
+  'admin.adjustReasonPlaceholder': 'e.g. Entry correction, Duplicate entry, Bonus',
+  'admin.adjustPreviewAdd': 'Will add {points} pts to balance',
+  'admin.adjustPreviewDeduct': 'Will deduct {points} pts from balance',
+  'admin.adjustButton': 'Apply Adjustment',
+  'admin.adjustSuccess': "Adjusted {name}'s points by {points}.",
+  'admin.adjustFailed': 'Failed to apply adjustment.',
+  'admin.adjustInvalidAmount': 'Enter a non-zero whole number.',
 } as const
 
 export const adminMY: { [K in keyof typeof adminEN]: string } = {
@@ -291,4 +304,17 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.byPoints': 'မှတ်အရ',
   'admin.noData': 'ဒေတာ မရှိသေးပါ',
   'admin.pts': 'မှတ်',
+
+  // AdjustPointsForm
+  'admin.adjustPointsSection': 'မှတ်ချိန်ညှိရန်',
+  'admin.adjustAmountLabel': 'ချိန်ညှိမည့် မှတ် (+ ထည့်ရန်၊ − နုတ်ရန်)',
+  'admin.adjustAmountPlaceholder': 'ဥပမာ -30 သို့မဟုတ် 50',
+  'admin.adjustReasonLabel': 'အကြောင်းပြချက် (မဖြစ်မနေ ဖြည့်ရမည်)',
+  'admin.adjustReasonPlaceholder': 'ဥပမာ မှားယွင်းမှု ပြင်ဆင်ခြင်း၊ ထပ်နေသော မှတ်တမ်း',
+  'admin.adjustPreviewAdd': 'လက်ကျန် မှတ်ထဲသို့ {points} မှတ် ထည့်မည်',
+  'admin.adjustPreviewDeduct': 'လက်ကျန် မှတ်မှ {points} မှတ် နုတ်မည်',
+  'admin.adjustButton': 'ချိန်ညှိမှု အသုံးပြုရန်',
+  'admin.adjustSuccess': '{name} ၏ မှတ်ကို {points} ချိန်ညှိပြီးပါပြီ။',
+  'admin.adjustFailed': 'ချိန်ညှိမှု မအောင်မြင်ပါ။',
+  'admin.adjustInvalidAmount': 'သုညမဟုတ်သော ကိန်းပြည့်ကို ထည့်ပါ။',
 }

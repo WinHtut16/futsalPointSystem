@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import TransactionItem from '@/components/customer/TransactionItem'
 import AddPointsForm from '@/components/admin/AddPointsForm'
+import AdjustPointsForm from '@/components/admin/AdjustPointsForm'
 import ResetPasswordForm from '@/components/admin/ResetPasswordForm'
 import DeleteCustomerButton from '@/components/admin/DeleteCustomerButton'
 import T from '@/components/ui/T'
@@ -50,6 +51,11 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       <Card>
         <h2 className="font-semibold text-gray-900 mb-4"><T k="admin.addPointsSection" /></h2>
         <AddPointsForm customerId={id} customerName={customer.username} />
+      </Card>
+
+      <Card>
+        <h2 className="font-semibold text-gray-900 mb-4"><T k="admin.adjustPointsSection" /></h2>
+        <AdjustPointsForm customerId={id} customerName={customer.username} />
       </Card>
 
       <Card>

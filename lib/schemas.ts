@@ -61,6 +61,17 @@ export const AddPointsSchema = z.object({
   note: safeText(500).nullish(),
 })
 
+export const AdjustPointsSchema = z.object({
+  customer_id: uuid,
+  points_delta: z
+    .number({ message: 'Must be a number.' })
+    .int('Must be a whole number.')
+    .min(-10_000, 'Adjustment cannot exceed 10,000 points.')
+    .max(10_000, 'Adjustment cannot exceed 10,000 points.')
+    .refine((v) => v !== 0, { message: 'Amount cannot be zero.' }),
+  reason: z.string().trim().min(1, 'Reason is required.').max(500, 'Reason is too long.'),
+})
+
 export const RedeemSchema = z.object({ reward_id: uuid })
 
 export const RedemptionActionSchema = z.object({

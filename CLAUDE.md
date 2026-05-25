@@ -18,7 +18,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 **First-time setup:**
 1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://mya-thida-futsal.vercel.app` in Vercel env vars)
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → **`security-rls-profiles-fix.sql`**
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → **`point-adjustment-migration.sql`**
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -75,7 +75,7 @@ Three roles stored in `profiles.role`: `customer`, `admin`, `superadmin`.
 | Role | Capabilities |
 |------|-------------|
 | `customer` | View points/history, redeem rewards |
-| `admin` | Add points, manage customers (incl. delete), view all rewards, toggle rewards active/inactive |
+| `admin` | Add points, adjust points (correction/audit), manage customers (incl. delete), view all rewards, toggle rewards active/inactive |
 | `superadmin` | All admin capabilities + rewards CRUD + staff admin CRUD + forgot-password via email + full analytics dashboard |
 
 Server-side guards in `lib/auth.ts`:
@@ -109,7 +109,8 @@ Authentication → Email Templates → Recovery. Replace `{{ .ConfirmationURL }}
 
 All tables have Row-Level Security enforced. Key patterns:
 - `is_admin()` is a `SECURITY DEFINER` function used in RLS policies to avoid infinite recursion when policies on `profiles` would otherwise re-query `profiles`. Returns true for both `admin` and `superadmin`.
-- `add_points_transaction()` is an RPC function that atomically increments `profiles.total_points` and inserts into `point_transactions`. Always call this via Supabase RPC — never do the two steps separately.
+- `add_points_transaction()` is an RPC function that atomically increments `profiles.total_points` and inserts into `point_transactions`. Always call this via Supabase RPC — never do the two steps separately. Used for all three transaction types: `earn`, `redeem`, and `adjustment`.
+- `point_transactions.transaction_type` accepts `'earn'` (session play), `'redeem'` (reward redemption), or `'adjustment'` (manual correction by admin). The check constraint was updated by `point-adjustment-migration.sql`.
 - `handle_new_user()` trigger auto-creates a `profiles` row when a new `auth.users` entry is inserted. Uses `COALESCE(raw_user_meta_data->>'username', split_part(email,'@',1))` so it doesn't crash when `raw_user_meta_data` is absent (e.g. users created via the Supabase Auth dashboard).
 - `profiles.phone` is nullable — staff admin accounts have no phone.
 
@@ -168,7 +169,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 
 - `components/auth/` — LoginForm, RegisterForm, AdminLoginForm
 - `components/customer/` — PointsCard, RealtimePointsBadge, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
-- `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
+- `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, **AdjustPointsForm** (manual point corrections — positive or negative, mandatory reason field), CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
 - `components/admin/analytics/` — superadmin-only chart components (all `'use client'`): `ChartsSection` (dynamic-imports charts with `ssr:false`, renders chart cards), `PointsBarChart` (points issued vs redeemed last 30 days), `StatusDonut` (redemption status breakdown), `TopRewardsBar` (top 5 rewards by approvals), `TopCustomersBar` (top 5 customers by points). All use Recharts + `useLanguage()` for i18n.
 - `components/ui/` — shared primitives: Button, Card, Input, **PasswordInput** (use for every password field — always has eye-toggle, add `showStrength` prop on new-password fields), Badge, Modal, PasswordStrengthMeter (uses i18n; strength labels in `auth.strengthWeak/Fair/Good/Strong`), T (i18n leaf for server components), LanguageToggle
 
@@ -185,7 +186,8 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 | `POST /api/auth/register` | public | Create customer account |
 | `GET/POST /api/customers` | admin/superadmin | List / search customers |
 | `GET/PUT/DELETE /api/customers/[id]` | admin/superadmin | Customer detail, password reset, delete |
-| `POST /api/points/add` | admin/superadmin | Credit points to a customer |
+| `POST /api/points/add` | admin/superadmin | Credit points to a customer (session play) |
+| `POST /api/points/adjust` | admin/superadmin | Manual point adjustment — positive or negative integer, mandatory `reason`, blocked if balance would go below zero |
 | `GET/POST /api/redemptions` | customer (GET: admin) | List / create redemption requests |
 | `PATCH /api/redemptions/[id]` | customer/admin | Cancel (customer) or approve/reject (admin) |
 | `GET/POST /api/rewards` | superadmin (GET: any authenticated user) | List / create rewards |
@@ -200,6 +202,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 
 - Earning: 10 points per hour of play, added by admin via `/api/points/add`
 - Redeeming: customer triggers `/api/points/redeem`; server checks stock > 0 and sufficient balance before calling `add_points_transaction()` with a negative amount
+- Adjusting: admin corrects mistakes via `/api/points/adjust`; positive or negative integer, mandatory `reason` stored as `note`; server blocks if `total_points + points_delta < 0`; creates `transaction_type='adjustment'` record for audit trail. Displayed in customer history as ✏️ with blue (positive) or red (negative) amount and the reason as italic note.
 
 ### Security
 
