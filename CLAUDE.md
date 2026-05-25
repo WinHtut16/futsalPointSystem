@@ -9,7 +9,7 @@ npm run dev           # Start dev server at localhost:3000
 npm run build         # Production build
 npm run start         # Start production server
 npm run lint          # Run ESLint
-npm test              # Vitest unit tests (200 tests, no DB required)
+npm test              # Vitest unit tests (204 tests, no DB required)
 npm run test:e2e      # Playwright E2E tests (requires .env.e2e + running server)
 npm run test:e2e:ui   # Playwright with interactive UI
 npm run test:e2e:debug  # Playwright with step-by-step debugger
@@ -125,7 +125,7 @@ All tables have Row-Level Security enforced. Key patterns:
 | `lib/auth.ts` | `getCurrentUser()`, `requireRole()`, `requireAnyAdmin()`, `requireSuperAdmin()` — server-side auth helpers |
 | `lib/schemas.ts` | Zod schemas + `badRequest()` / `parseJson()` helpers used by every API route |
 | `lib/points.ts` | `calculatePoints()` — 10 points per hour |
-| `lib/utils.ts` | `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email |
+| `lib/utils.ts` | `formatDate(dateStr)` — date-only display in Myanmar/Yangon timezone (e.g. `"24 May 2025"`); `formatDateTime(dateStr)` — date + time with AM/PM in Myanmar timezone (e.g. `"24 May 2025, 10:45 am"`). Both use `timeZone: 'Asia/Yangon'` (UTC+6:30). Always use these helpers for any date/time display — never format raw timestamps without them. `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email. |
 | `lib/supabase/client.ts` | Browser Supabase client (for client components) |
 | `lib/supabase/server.ts` | SSR Supabase client + `createServiceClient()` (raw `@supabase/supabase-js`, truly bypasses RLS) |
 | `lib/cached-queries.ts` | `getActiveRewards()` — `unstable_cache` wrapper (tag: `'rewards'`, revalidate: 30s) for the customer-facing rewards list. Filters `is_active=true` AND `is_deleted=false`. Any API route that mutates the `rewards` table **must** call `revalidateTag('rewards', 'default')` (Next.js 16 requires the cacheLife profile as second arg) or customers will see stale data for up to 30 s. |
@@ -170,7 +170,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 ### Component Organization
 
 - `components/auth/` — LoginForm, RegisterForm, AdminLoginForm
-- `components/customer/` — PointsCard, RealtimePointsBadge, RewardsGrid, RewardCard, PendingRequestsList, PendingRequestItem, TransactionItem, CustomerNav
+- `components/customer/` — PointsCard, RealtimePointsBadge, RewardsGrid, RewardCard, PendingRequestsList, **PendingRequestItem** (shows `requested_at` via `formatDateTime` — Myanmar TZ), **TransactionItem** (shows `created_at` via `formatDateTime` — Myanmar TZ; used on admin dashboard, admin customer detail page, and customer history page), CustomerNav
 - `components/admin/` — PendingRedemptionsBanner, RedemptionsList, RedemptionRequestCard, AddPointsForm, **AdjustPointsForm** (manual point corrections — positive or negative, mandatory reason field), CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, AdminNav, LogoutButton
 - `components/admin/analytics/` — superadmin-only chart components (all `'use client'`): `DashboardPeriodSection` (client wrapper that owns `useTransition` for period navigation; renders period label/selector, 4 period stat cards with skeleton numbers, `PendingRedemptionsBanner`, and `ChartsSection` — prevents full-page `loading.tsx` on month/year change by wrapping `router.replace` in `startTransition`), `ChartsSection` (dynamic-imports charts with `ssr:false`, renders chart cards; takes `month`/`year` props to build the points-chart title; accepts `isPending` prop to replace chart areas with `ChartSkeleton` while a period transition is in progress), `PointsBarChart` (points issued vs redeemed, daily across the selected month), `StatusDonut` (redemption status breakdown for the selected month), `TopRewardsBar` (top 5 rewards by approvals in the selected month), `TopCustomersBar` (top 5 customers by points earned in the selected month), `PeriodSelector` (month + year dropdowns; accepts `onNavigate` callback prop so parent can wrap navigation in `startTransition`; accepts `disabled` prop to lock dropdowns during transition), `PeriodLabel` (renders the selected period as an uppercase "MONTH YEAR" heading). All use Recharts + `useLanguage()` for i18n.
 - `components/ui/` — shared primitives: Button, Card, Input, **PasswordInput** (use for every password field — always has eye-toggle, add `showStrength` prop on new-password fields), Badge, Modal, PasswordStrengthMeter (uses i18n; strength labels in `auth.strengthWeak/Fair/Good/Strong`), T (i18n leaf for server components), LanguageToggle
