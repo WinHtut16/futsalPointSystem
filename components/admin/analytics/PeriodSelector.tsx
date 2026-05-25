@@ -24,9 +24,17 @@ interface PeriodSelectorProps {
   year: number
   minYear: number
   maxYear: number
+  /** When provided, called instead of the built-in router.replace navigation. */
+  onNavigate?: (month: number, year: number) => void
 }
 
-export default function PeriodSelector({ month, year, minYear, maxYear }: PeriodSelectorProps) {
+export default function PeriodSelector({
+  month,
+  year,
+  minYear,
+  maxYear,
+  onNavigate,
+}: PeriodSelectorProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { t } = useLanguage()
@@ -35,7 +43,11 @@ export default function PeriodSelector({ month, year, minYear, maxYear }: Period
   for (let y = maxYear; y >= minYear; y--) years.push(y)
 
   function update(nextMonth: number, nextYear: number) {
-    router.replace(`${pathname}?month=${nextMonth}&year=${nextYear}`, { scroll: false })
+    if (onNavigate) {
+      onNavigate(nextMonth, nextYear)
+    } else {
+      router.replace(`${pathname}?month=${nextMonth}&year=${nextYear}`, { scroll: false })
+    }
   }
 
   const selectClass =
