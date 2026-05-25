@@ -51,6 +51,8 @@ interface ChartsSectionProps {
   /** Selected month (1–12) and year, used to label the points chart. */
   month: number
   year: number
+  /** When true, chart areas show a skeleton placeholder instead of chart content. */
+  isPending?: boolean
 }
 
 export default function ChartsSection({
@@ -60,6 +62,7 @@ export default function ChartsSection({
   topCustomers,
   month,
   year,
+  isPending = false,
 }: ChartsSectionProps) {
   const { t } = useLanguage()
   const period = `${t(MONTH_KEYS[month - 1])} ${year}`
@@ -71,14 +74,14 @@ export default function ChartsSection({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
           <h2 className="text-sm font-semibold text-gray-700 mb-2">{pointsTitle}</h2>
-          <PointsBarChart data={pointsChartData} />
+          {isPending ? <ChartSkeleton /> : <PointsBarChart data={pointsChartData} />}
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
           <h2 className="text-sm font-semibold text-gray-700 mb-2">
             {t('admin.redemptionStatus')}
           </h2>
-          <StatusDonut data={donutData} />
+          {isPending ? <ChartSkeleton /> : <StatusDonut data={donutData} />}
         </div>
       </div>
 
@@ -91,7 +94,7 @@ export default function ChartsSection({
               ({t('admin.byApprovals')})
             </span>
           </h2>
-          <TopRewardsBar data={topRewards} />
+          {isPending ? <ChartSkeleton h={180} /> : <TopRewardsBar data={topRewards} />}
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
@@ -101,7 +104,7 @@ export default function ChartsSection({
               ({t('admin.byPoints')})
             </span>
           </h2>
-          <TopCustomersBar data={topCustomers} />
+          {isPending ? <ChartSkeleton h={180} /> : <TopCustomersBar data={topCustomers} />}
         </div>
       </div>
     </>
