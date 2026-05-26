@@ -24,8 +24,6 @@ interface DashboardPeriodSectionProps {
   pointsIssued: number
   approvals: number
   pendingThisMonth: number
-  // All-time pending count for the banner (not period-scoped)
-  pendingBannerCount: number
   // Chart data
   chartData: DailyPoint[]
   donutData: StatusEntry[]
@@ -69,7 +67,6 @@ export default function DashboardPeriodSection({
   pointsIssued,
   approvals,
   pendingThisMonth,
-  pendingBannerCount,
   chartData,
   donutData,
   topRewards,
@@ -126,7 +123,7 @@ export default function DashboardPeriodSection({
         </div>
       </div>
 
-      <PendingRedemptionsBanner initialCount={pendingBannerCount} />
+      <PendingRedemptionsBanner />
 
       <ChartsSection
         pointsChartData={chartData}
