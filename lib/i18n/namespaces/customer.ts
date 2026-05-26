@@ -11,7 +11,7 @@ export const customerEN = {
   'dashboard.viewAll': 'View all',
   'dashboard.noActivity': 'No activity yet. Start playing to earn points!',
   'dashboard.spendPoints': 'Ready to spend your points?',
-  'dashboard.viewRewards': '🎁 View Rewards',
+  'dashboard.viewRewards': 'View Rewards',
   // History
   'history.title': 'Point History',
   'history.pendingRequests': 'Pending Requests',
@@ -57,7 +57,7 @@ export const customerMY: { [K in keyof typeof customerEN]: string } = {
   'dashboard.viewAll': 'အားလုံးကြည့်ရန်',
   'dashboard.noActivity': 'မှတ်တမ်းမရှိသေးပါ။ ကစားပြီး ပွိုင့်များ ရယူပါ!',
   'dashboard.spendPoints': 'ပွိုင့်များ သုံးရန် အဆင်သင့်ဖြစ်ပြီလား?',
-  'dashboard.viewRewards': '🎁 ဆုလာဘ်များ ကြည့်ရန်',
+  'dashboard.viewRewards': 'ဆုလာဘ်များ ကြည့်ရန်',
   'history.title': 'ပွိုင့်မှတ်တမ်း',
   'history.pendingRequests': 'ဆောင်ရွက်ဆဲ တောင်းဆိုမှုများ',
   'history.pendingApproval': 'အတည်ပြုချက် စောင့်ဆိုင်းနေသည်',

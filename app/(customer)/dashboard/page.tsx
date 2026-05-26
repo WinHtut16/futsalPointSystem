@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { Gift } from 'lucide-react'
 import PointsCard from '@/components/customer/PointsCard'
 import TransactionItem from '@/components/customer/TransactionItem'
 import Card from '@/components/ui/Card'
@@ -53,6 +54,7 @@ export default async function DashboardPage() {
           href="/rewards"
           className="inline-flex items-center gap-2 bg-brand-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-brand-700 transition"
         >
+          <Gift className="w-4 h-4" />
           <T k="dashboard.viewRewards" />
         </Link>
       </Card>
