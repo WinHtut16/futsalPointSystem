@@ -58,6 +58,12 @@ test.describe('Journey 5: Negative paths', () => {
   test('customer cannot request a reward when balance is insufficient', async ({ page }) => {
     await loginAsCustomer(page, CUSTOMER_PHONE, CUSTOMER_PASSWORD)
     await page.goto('/rewards')
+    // Next.js unstable_cache uses stale-while-revalidate: the first request after
+    // revalidateTag returns the stale (pre-insert) cache while the server re-fetches
+    // in the background.  By the time page.goto completes the background fetch is
+    // done, so reloading picks up the freshly-cached list that includes the new reward.
+    await page.reload()
+    await page.waitForLoadState('networkidle')
 
     const expensiveCard = page.locator('.rounded-2xl.shadow-sm', { hasText: EXPENSIVE_REWARD_NAME })
     await expect(expensiveCard).toBeVisible()

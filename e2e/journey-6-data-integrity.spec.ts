@@ -30,6 +30,20 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 // ── Journey 6 ─────────────────────────────────────────────────────────────────
 
 test.describe.serial('Journey 6: Data Integrity', () => {
+  // Defensive pre-run cleanup: if a previous run crashed before afterAll, stale
+  // profiles would cause registration tests to 409 on the next run.
+  test.beforeAll(async () => {
+    const db = makeDb()
+
+    const { data: newProfile } = await db
+      .from('profiles').select('id').eq('phone', NEW_PHONE).maybeSingle()
+    if (newProfile) await db.auth.admin.deleteUser(newProfile.id)
+
+    const { data: throwaway } = await db
+      .from('profiles').select('id').eq('phone', THROWAWAY_PHONE).maybeSingle()
+    if (throwaway) await db.auth.admin.deleteUser(throwaway.id)
+  })
+
   test.afterAll(async () => {
     const db = makeDb()
 
