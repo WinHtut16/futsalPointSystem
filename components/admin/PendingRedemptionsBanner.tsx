@@ -1,61 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { usePendingRedemptions } from '@/contexts/PendingRedemptionsContext'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
-const POLL_INTERVAL_MS = 20_000
-
-export default function PendingRedemptionsBanner({ initialCount }: { initialCount: number }) {
-  const [count, setCount] = useState(initialCount)
+export default function PendingRedemptionsBanner() {
+  const { count } = usePendingRedemptions()
   const { t } = useLanguage()
-
-  const fetchCount = useCallback(async () => {
-    const supabase = createClient()
-    const { count: fresh } = await supabase
-      .from('redemption_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
-    if (fresh !== null) setCount(fresh)
-  }, [])
-
-  useEffect(() => {
-    const supabase = createClient()
-
-    // Realtime: instant updates when Supabase delivers them
-    const channel = supabase
-      .channel('pending-redemptions')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'redemption_requests' },
-        (payload) => {
-          if ((payload.new as { status: string }).status === 'pending') {
-            setCount((c) => c + 1)
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'redemption_requests' },
-        (payload) => {
-          const prev = (payload.old as { status?: string }).status
-          const next = (payload.new as { status: string }).status
-          if (prev === 'pending' && next !== 'pending') {
-            setCount((c) => Math.max(0, c - 1))
-          }
-        }
-      )
-      .subscribe()
-
-    // Polling: guaranteed fallback every 20 s
-    const timer = setInterval(fetchCount, POLL_INTERVAL_MS)
-
-    return () => {
-      supabase.removeChannel(channel)
-      clearInterval(timer)
-    }
-  }, [fetchCount])
 
   if (count === 0) return null
 
