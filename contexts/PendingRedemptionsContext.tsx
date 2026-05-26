@@ -29,11 +29,11 @@ export function PendingRedemptionsProvider({
 
   const fetchCount = useCallback(async () => {
     const supabase = createClient()
-    const { count: fresh } = await supabase
+    const { count: fresh, error } = await supabase
       .from('redemption_requests')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending')
-    if (fresh !== null) setCount(fresh)
+    if (!error && fresh !== null) setCount(fresh)
   }, [])
 
   useEffect(() => {
