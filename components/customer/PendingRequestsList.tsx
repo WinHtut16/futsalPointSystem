@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { CheckCircle, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { RedemptionRequest } from '@/types'
@@ -93,7 +94,10 @@ export default function PendingRequestsList({
               : 'bg-red-50 text-red-600 border-b border-red-100'
           }`}
         >
-          <span>{n.type === 'approved' ? '✅' : '❌'}</span>
+          {n.type === 'approved'
+            ? <CheckCircle className="w-4 h-4 shrink-0 text-green-600" />
+            : <XCircle className="w-4 h-4 shrink-0 text-red-500" />
+          }
           <span>{n.type === 'approved' ? t('history.approved') : t('history.rejected')}</span>
         </div>
       ))}

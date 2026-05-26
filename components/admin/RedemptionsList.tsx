@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { Check } from 'lucide-react'
 import type { RedemptionRequest } from '@/types'
 import RedemptionRequestCard from './RedemptionRequestCard'
 import { createClient } from '@/lib/supabase/client'
@@ -102,7 +103,7 @@ export default function RedemptionsList({ initialRequests }: { initialRequests: 
         </div>
       ) : (
         <div className="text-center py-12 text-gray-400">
-          <p className="text-4xl mb-3">✓</p>
+          <Check className="w-10 h-10 mx-auto mb-3 text-gray-300" />
           <p className="text-sm">
             {query ? t('admin.noRedemptionsSearch') : t('admin.noPendingRedemptions')}
           </p>

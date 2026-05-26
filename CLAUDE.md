@@ -185,7 +185,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 - **All-time (NOT affected by the filter):** the Overview block — Total Customers, Points Issued, Points Redeemed, Active Rewards — plus the latest-10 Recent Transactions list. (The pending count for `PendingRedemptionsBanner` is now fetched once in `app/(admin)/layout.tsx` as `initialCount` for `PendingRedemptionsContext` — no longer a dashboard page query.)
 - **Period-scoped (`[periodStart, periodEnd)` half-open range):** New Customers / Pts Issued, Approvals, Pending stat card, the daily points chart (one bar per day of the month), the status donut, Top Rewards (approvals), and Top Customers (**points earned in the month**, aggregated from `earn` transactions — not the all-time `total_points` balance). Period-scoped queries use different timestamp columns per table: `profiles` and `point_transactions` filter on `created_at`; `redemption_requests` filters on **`requested_at`** (that table has no `created_at` column — it uses `requested_at` as the submission timestamp and `resolved_at` as the resolution timestamp). Mixing up the column names causes queries to silently return null (Supabase PostgREST drops rows when the filter column doesn't exist), making charts show "no data."
 
-**Icons:** No external icon library is installed. All icons are inline SVGs using `fill="none" stroke="currentColor" viewBox="0 0 24 24"` with `strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}`. Do not add an icon library; write inline SVGs instead.
+**Icons:** `lucide-react` is installed. Use Lucide components for all icons — import by name (e.g. `import { Gift, Clock } from 'lucide-react'`). Size with `className="w-4 h-4"` (inline/button) or `w-5 h-5` (nav), `w-10 h-10` (empty-state hero). Color via `text-*` utilities or inherit `currentColor` from the parent. Do not use inline SVGs for new icons.
 
 ### API Surface
 
@@ -210,7 +210,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 
 - Earning: 10 points per hour of play, added by admin via `/api/points/add`
 - Redeeming: customer triggers `/api/points/redeem`; server checks stock > 0 and sufficient balance before calling `add_points_transaction()` with a negative amount
-- Adjusting: admin corrects mistakes via `/api/points/adjust`; positive or negative integer, mandatory `reason` stored as `note`; server blocks if `total_points + points_delta < 0`; creates `transaction_type='adjustment'` record for audit trail. Displayed in customer history as ✏️ with blue (positive) or red (negative) amount and the reason as italic note.
+- Adjusting: admin corrects mistakes via `/api/points/adjust`; positive or negative integer, mandatory `reason` stored as `note`; server blocks if `total_points + points_delta < 0`; creates `transaction_type='adjustment'` record for audit trail. Displayed in customer history with a Pencil icon on blue background, blue (positive) or red (negative) amount, and the reason as italic note.
 
 ### Security
 

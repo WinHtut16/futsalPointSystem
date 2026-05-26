@@ -1,5 +1,6 @@
 'use client'
 
+import { Zap, Pencil, Gift } from 'lucide-react'
 import type { PointTransaction } from '@/types'
 import { formatDateTime } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -15,13 +16,19 @@ export default function TransactionItem({ tx, showCustomer }: TransactionItemPro
   const isAdjustment = tx.transaction_type === 'adjustment'
   const isPositiveAdjustment = isAdjustment && tx.points_delta > 0
 
-  const icon = isEarn ? '⚽' : isAdjustment ? '✏️' : '🎁'
+  const IconComponent = isEarn ? Zap : isAdjustment ? Pencil : Gift
 
   const iconBg = isEarn
     ? 'bg-green-100'
     : isAdjustment
       ? 'bg-blue-100'
       : 'bg-orange-100'
+
+  const iconColor = isEarn
+    ? 'text-green-600'
+    : isAdjustment
+      ? 'text-blue-500'
+      : 'text-orange-500'
 
   const amountColor = isEarn
     ? 'text-green-600'
@@ -42,8 +49,8 @@ export default function TransactionItem({ tx, showCustomer }: TransactionItemPro
   return (
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-3 min-w-0">
-        <div className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-lg ${iconBg}`}>
-          {icon}
+        <div className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center ${iconBg}`}>
+          <IconComponent className={`w-4 h-4 ${iconColor}`} />
         </div>
         <div className="min-w-0">
           {showCustomer && tx.customer && (

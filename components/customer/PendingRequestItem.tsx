@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Clock } from 'lucide-react'
 import type { RedemptionRequest } from '@/types'
 import { formatDateTime } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -29,8 +30,8 @@ export default function PendingRequestItem({
   return (
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-lg bg-yellow-100">
-          ⏳
+        <div className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center bg-yellow-100">
+          <Clock className="w-4 h-4 text-yellow-600" />
         </div>
         <div className="min-w-0">
           <p className="text-sm font-medium text-gray-800 truncate">
