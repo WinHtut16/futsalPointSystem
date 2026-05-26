@@ -5,12 +5,14 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import type { UserRole } from '@/types'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { usePendingRedemptions } from '@/contexts/PendingRedemptionsContext'
 
 interface Props { role: UserRole }
 
 export default function AdminNav({ role }: Props) {
   const pathname = usePathname()
   const { t } = useLanguage()
+  const { count } = usePendingRedemptions()
 
   const baseLinks = [
     { href: '/admin/dashboard', label: t('admin.navDashboard') },
@@ -20,6 +22,8 @@ export default function AdminNav({ role }: Props) {
   ]
   const superadminLinks = [{ href: '/admin/staff', label: t('admin.navStaff') }]
   const links = role === 'superadmin' ? [...baseLinks, ...superadminLinks] : baseLinks
+
+  const badgeText = count > 99 ? '99+' : String(count)
 
   return (
     <nav className="bg-gray-800 text-sm flex">
@@ -34,7 +38,18 @@ export default function AdminNav({ role }: Props) {
               : 'text-gray-400 hover:text-white'
           )}
         >
-          {link.label}
+          {link.href === '/admin/redemptions' ? (
+            <span className="relative inline-block">
+              {link.label}
+              {count > 0 && (
+                <span className="absolute -top-2 -right-3 bg-amber-400 text-amber-900 text-[10px] font-bold leading-none px-1 py-0.5 rounded-full min-w-[16px] text-center">
+                  {badgeText}
+                </span>
+              )}
+            </span>
+          ) : (
+            link.label
+          )}
         </Link>
       ))}
     </nav>
