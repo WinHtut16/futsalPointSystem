@@ -50,8 +50,8 @@ function makeChain() {
   }
   const chain: Record<string, unknown> = {
     single:      vi.fn(async () => next()),
-    maybySingle: vi.fn(async () => next()),
-    maybeSingle: vi.fn(async () => next()),
+    maybySingle: vi.fn(async () => next()), // Supabase SDK has two spellings in the wild
+    maybeSingle: vi.fn(async () => next()), // keep both to avoid test fragility
   }
   for (const m of ['select', 'eq', 'neq', 'order', 'limit', 'insert',
                    'update', 'upsert', 'delete', 'lt', 'gt']) {
@@ -74,7 +74,7 @@ const ADMIN_ID    = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const CUSTOMER_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 
 function asAdmin()    { authState.user = { id: ADMIN_ID,    role: 'admin',    total_points: 0 } }
-function asCustomer() { authState.user = { id: CUSTOMER_ID, role: 'customer', total_points: 0 } }
+function asCustomer(total_points = 0) { authState.user = { id: CUSTOMER_ID, role: 'customer', total_points } }
 
 function mockQuery(...results: DbResult[]) { queryQueue.push(...results) }
 function mockRpcOnce(...results: DbResult[]) {
