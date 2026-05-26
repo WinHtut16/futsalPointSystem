@@ -2,7 +2,7 @@
  * Plays a short two-tone beep via the Web Audio API.
  * Silently swallows NotAllowedError (browser autoplay block) and any other errors.
  */
-export async function playNotificationBeep(): Promise<void> {
+export function playNotificationBeep(): void {
   try {
     const AudioContextClass =
       typeof window !== 'undefined'
