@@ -67,7 +67,6 @@ export default async function AdminDashboardPage({
       { data: monthTx },
       { data: monthStatuses },
       { count: approvedThisMonth },
-      { count: pendingCount },
       { count: pendingThisMonth },
       { count: activeRewardsCount },
       { data: approvedRedemptions },
@@ -122,11 +121,6 @@ export default async function AdminDashboardPage({
         .eq('status', 'approved')
         .gte('requested_at', periodStart)
         .lt('requested_at', periodEnd),
-      // — Banner: current actionable pending (all-time) —
-      supabase
-        .from('redemption_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending'),
       // — Period-scoped: pending requests in month (stat card) —
       supabase
         .from('redemption_requests')
@@ -257,7 +251,6 @@ export default async function AdminDashboardPage({
           pointsIssued={pointsIssuedMonth}
           approvals={approvedThisMonth ?? 0}
           pendingThisMonth={pendingThisMonth ?? 0}
-          pendingBannerCount={pendingCount ?? 0}
           chartData={chartData}
           donutData={donutData}
           topRewards={topRewards}
@@ -290,7 +283,6 @@ export default async function AdminDashboardPage({
     { count: customerCount },
     { data: pointsData },
     { data: recentTx },
-    { count: pendingCount },
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
     supabase.from('point_transactions').select('points_delta').eq('transaction_type', 'earn'),
@@ -301,10 +293,6 @@ export default async function AdminDashboardPage({
       )
       .order('created_at', { ascending: false })
       .limit(10),
-    supabase
-      .from('redemption_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending'),
   ])
 
   const totalPointsIssued = pointsData?.reduce((sum, t) => sum + t.points_delta, 0) ?? 0
@@ -330,7 +318,7 @@ export default async function AdminDashboardPage({
         </Card>
       </div>
 
-      <PendingRedemptionsBanner initialCount={pendingCount ?? 0} />
+      <PendingRedemptionsBanner />
 
       <Card className="p-0">
         <h2 className="font-semibold text-gray-900 px-4 pt-4 pb-2">
