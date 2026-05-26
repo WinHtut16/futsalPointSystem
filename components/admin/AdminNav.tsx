@@ -42,8 +42,9 @@ export default function AdminNav({ role }: Props) {
             <span className="relative inline-block">
               {link.label}
               {count > 0 && (
-                <span className="absolute -top-2 -right-3 bg-amber-400 text-amber-900 text-[10px] font-bold leading-none px-1 py-0.5 rounded-full min-w-[16px] text-center">
+                <span className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-amber-400 text-amber-900 text-[10px] font-bold leading-none px-1 py-0.5 rounded-full min-w-[16px] text-center">
                   {badgeText}
+                  <span className="sr-only"> pending requests</span>
                 </span>
               )}
             </span>
