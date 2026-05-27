@@ -48,7 +48,7 @@ export default function HomeContent({ posts }: { posts: NewsPost[] }) {
             {t('booking.home.heroSub')}
           </p>
           <div className="mt-5">
-            <Link href="/book" className="fb-btn fb-btn-primary w-full md:w-auto md:!px-10 md:!py-4 !text-[15px]">
+            <Link href="/book" className="fb-btn fb-btn-accent w-full md:w-auto md:!px-10 md:!py-4 !text-[15px]">
               <Calendar size={16} /> <span className={my}>{t('booking.nav.book')}</span> <ArrowRight size={16} />
             </Link>
           </div>
