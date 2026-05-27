@@ -8,7 +8,7 @@ export const bookingEN = {
 
   // Home — hero + sections
   'booking.home.heroKicker': 'YANGON · MYATHIDA PITCH',
-  'booking.home.heroTitle': 'Promoting National Sports, Starting from Mya Thida Futsal',
+  'booking.home.heroTitle': 'From Mya Thida Futsal to Advancing National Sports',
   'booking.home.heroSub': 'One court. Sixteen daily slots. Confirmed by deposit. Members earn points on every booking.',
   'booking.home.viewSchedule': 'View schedule',
   'booking.home.whyKicker': 'WHY MYATHIDA',
@@ -36,7 +36,7 @@ export const bookingEN = {
   'booking.pricing.tiers': 'Pricing tiers',
   'booking.pricing.weekdayAm': 'Weekday morning',
   'booking.pricing.weekdayPm': 'Weekday evening',
-  'booking.pricing.weekend': 'Weekend / Holiday',
+  'booking.pricing.weekend': 'Weekends & Public Holidays',
   'booking.pricing.allDay': 'All day',
   'booking.pricing.perHour': 'MMK / hr',
 
@@ -205,7 +205,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.pricing.tiers': 'ဈေးနှုန်းအဆင့်',
   'booking.pricing.weekdayAm': 'ရုံးဖွင့်ရက် မနက်',
   'booking.pricing.weekdayPm': 'ရုံးဖွင့်ရက် ညနေ',
-  'booking.pricing.weekend': 'ပိတ်ရက် / ရုံးပိတ်ရက်',
+  'booking.pricing.weekend': 'ပိတ်ရက် & အများပြည်သူ ရုံးပိတ်ရက်',
   'booking.pricing.allDay': 'တစ်နေ့လုံး',
   'booking.pricing.perHour': '၁ နာရီ MMK',
 

@@ -51,7 +51,7 @@ export default function TimeSlotGrid({
             </div>
             <div className={`mt-1 text-[11px] leading-snug text-ink ${my}`}>
               {t('booking.book.maxNoticeBody')}
-              <span className="font-fbmono font-bold">+95 9 777 888 999</span>
+              <span className="font-fbmono font-bold">+95 9 797 272000</span>
             </div>
           </div>
         </div>

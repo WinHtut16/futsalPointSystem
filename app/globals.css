@@ -166,3 +166,10 @@
   text-transform: uppercase;
   opacity: 0.7;
 }
+
+/* Page content entrance — applied to content wrapper after loading.tsx resolves */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in { animation: page-in 0.15s ease-out; }

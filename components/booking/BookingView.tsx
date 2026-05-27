@@ -14,6 +14,7 @@ import {
   MAX_SLOTS,
   type SlotState,
 } from '@/lib/booking'
+import { getHolidayName } from '@/lib/holidays'
 import BookingCalendar, { type CalendarData } from './BookingCalendar'
 import { PricingLegend } from './Pricing'
 import SlotLegend from './SlotLegend'
@@ -101,6 +102,7 @@ export default function BookingView({
   const total = dateISO ? selected.reduce((sum, h) => sum + priceForHour(dateISO, h), 0) : 0
   const deposit = depositFor(selected.length)
   const weekendRate = dateISO ? isWeekendRate(dateISO) : false
+  const holidayName = dateISO ? getHolidayName(dateISO, lang === 'my' ? 'my' : 'en') : null
 
   const longDate = (() => {
     if (!dateISO) return ''
@@ -173,6 +175,9 @@ export default function BookingView({
                       </span>
                     )}
                   </div>
+                  {holidayName && (
+                    <div className={`mt-0.5 text-[11px] font-medium text-holiday ${my}`}>{holidayName}</div>
+                  )}
                 )}
               </div>
             </div>

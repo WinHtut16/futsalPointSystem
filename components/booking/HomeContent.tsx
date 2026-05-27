@@ -39,7 +39,7 @@ export default function HomeContent({ posts }: { posts: NewsPost[] }) {
           </div>
           <h1 className={`my-3 font-display font-extrabold tracking-tight ${
             lang === 'my'
-              ? 'text-2xl leading-relaxed my'
+              ? 'text-3xl leading-relaxed my'
               : 'text-4xl leading-[1.05] md:text-6xl'
           }`}>
             {t('booking.home.heroTitle')}
@@ -47,15 +47,9 @@ export default function HomeContent({ posts }: { posts: NewsPost[] }) {
           <p className={`max-w-md text-sm leading-relaxed opacity-90 md:text-base ${my}`}>
             {t('booking.home.heroSub')}
           </p>
-          <div className="mt-5 flex gap-2.5">
-            <Link href="/book" className="fb-btn fb-btn-accent flex-1 md:flex-none md:!px-6 md:!py-4">
-              <Calendar size={15} /> <span className={my}>{t('booking.nav.book')}</span> <ArrowRight size={15} />
-            </Link>
-            <Link
-              href="/book"
-              className="fb-btn bg-white text-primary border-white/80 hover:bg-white/90 md:!px-6 md:!py-4"
-            >
-              <span className={my}>{t('booking.home.viewSchedule')}</span>
+          <div className="mt-5">
+            <Link href="/book" className="fb-btn fb-btn-primary w-full md:w-auto md:!px-10 md:!py-4 !text-[15px]">
+              <Calendar size={16} /> <span className={my}>{t('booking.nav.book')}</span> <ArrowRight size={16} />
             </Link>
           </div>
         </div>

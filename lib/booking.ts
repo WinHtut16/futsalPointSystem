@@ -1,6 +1,8 @@
 // Pure booking logic — pricing tiers, holiday detection, slot helpers.
 // Operates on ISO calendar dates ('YYYY-MM-DD') to stay timezone-safe.
 
+import { isHoliday } from './holidays'
+
 export const MAX_SLOTS = 2
 export const OPEN_HOUR = 6 // first slot starts 06:00
 export const CLOSE_HOUR = 22 // last slot ends 22:00 (last start = 21:00)
@@ -41,8 +43,10 @@ export function isThingyan(date: string): boolean {
 }
 
 // Weekend/holiday days are charged at the flat weekend rate all day.
+// Includes Myanmar public holidays from lib/holidays.ts; isThingyan handles
+// Thingyan for years not yet covered by the annual holiday config.
 export function isWeekendRate(date: string): boolean {
-  return isWeekend(date) || isThingyan(date)
+  return isWeekend(date) || isThingyan(date) || isHoliday(date)
 }
 
 export function tierForHour(date: string, hour: number): PriceTier {

@@ -132,6 +132,7 @@ export default function BookingCalendar({
                 type="button"
                 disabled={!clickable}
                 onClick={clickable ? () => onSelect(c.d) : undefined}
+                title={isHol ? data.holidays[c.d] : undefined}
                 className="relative flex flex-col items-start p-1.5 font-display text-[13px]"
                 style={{
                   aspectRatio: '1 / 1.05',

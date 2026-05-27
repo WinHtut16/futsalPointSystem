@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { isThingyan } from '@/lib/booking'
+import { isHoliday, getHolidayName } from '@/lib/holidays'
 import SiteNavbar from '@/components/booking/SiteNavbar'
 import BookingView, { type DayInfo } from '@/components/booking/BookingView'
 import type { CalendarData } from '@/components/booking/BookingCalendar'
@@ -76,7 +77,8 @@ async function loadMonth(year: number, monthIdx: number) {
   const calData: CalendarData = { holidays: {}, closed: {}, booked: [], pending: [] }
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = `${year}-${pad(monthIdx + 1)}-${pad(d)}`
-    if (isThingyan(iso)) calData.holidays[d] = 'Thingyan'
+    if (isHoliday(iso)) calData.holidays[d] = getHolidayName(iso) ?? 'Holiday'
+    else if (isThingyan(iso)) calData.holidays[d] = 'Thingyan' // fallback for years not in config
     const info = dayInfo[d]
     if (info?.dayClosed) calData.closed[d] = 'Closed'
     if (info?.booked.length) calData.booked.push(d)
@@ -106,7 +108,7 @@ export default async function BookPage({
   return (
     <>
       <SiteNavbar active="booking" mobileTitle={undefined} back />
-      <div className="mx-auto max-w-6xl md:px-16 md:py-8">
+      <div className="animate-page-in mx-auto max-w-6xl md:px-16 md:py-8">
         <BookingView
           year={year}
           monthIdx={monthIdx}
