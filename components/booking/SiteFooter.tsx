@@ -32,7 +32,7 @@ export default function SiteFooter() {
               <span className="font-fbmono">+95 9 797 272000</span>
             </a>
             <a
-              href="viber://chat?number=%2B959797272000"
+              href="https://viber.me/959797272000"
               className="flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-2 text-xs transition-colors hover:bg-white/20"
             >
               <MessageCircle size={14} />

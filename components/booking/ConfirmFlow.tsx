@@ -15,7 +15,7 @@ const MO_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'O
 
 const BANK = { name: 'KBZ Bank', number: '0123 4567 8910 11', holder: 'Myathida Futsal Co., Ltd.' }
 const PHONE = '+95 9 797 272000'
-const VIBER_URL = 'viber://chat?number=%2B959797272000'
+const VIBER_URL = 'https://viber.me/959797272000'
 
 export default function ConfirmFlow({
   bookingDate,
