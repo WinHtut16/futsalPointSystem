@@ -19,8 +19,13 @@ export default function AdminNav({ role }: Props) {
     { href: '/admin/customers', label: t('admin.navCustomers') },
     { href: '/admin/redemptions', label: t('admin.navRequests') },
     { href: '/admin/rewards', label: t('admin.navRewards') },
+    { href: '/admin/bookings', label: t('booking.admin.bookings') },
+    { href: '/admin/court', label: t('booking.admin.court') },
   ]
-  const superadminLinks = [{ href: '/admin/staff', label: t('admin.navStaff') }]
+  const superadminLinks = [
+    { href: '/admin/cms', label: t('booking.admin.cms') },
+    { href: '/admin/staff', label: t('admin.navStaff') },
+  ]
   const links = role === 'superadmin' ? [...baseLinks, ...superadminLinks] : baseLinks
 
   const badgeText = count > 99 ? '99+' : String(count)
