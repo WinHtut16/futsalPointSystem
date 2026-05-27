@@ -95,9 +95,9 @@ describe('dayHours', () => {
 })
 
 describe('depositFor', () => {
-  it('is 10,000 per slot', () => {
+  it('is a flat 10,000 MMK regardless of slot count', () => {
     expect(depositFor(1)).toBe(10000)
-    expect(depositFor(MAX_SLOTS)).toBe(20000)
+    expect(depositFor(MAX_SLOTS)).toBe(10000)
   })
 })
 

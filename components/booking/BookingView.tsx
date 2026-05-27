@@ -56,12 +56,10 @@ export default function BookingView({
 
   const [selectedDay, setSelectedDay] = useState<number | null>(initialDay)
   const [selected, setSelected] = useState<number[]>([])
-  const [limitNotice, setLimitNotice] = useState(false)
 
   const selectDay = (d: number) => {
     setSelectedDay(d)
     setSelected([])
-    setLimitNotice(false)
   }
 
   const navMonth = (delta: number) => {
@@ -74,14 +72,8 @@ export default function BookingView({
 
   const toggleSlot = (hour: number) => {
     setSelected((prev) => {
-      if (prev.includes(hour)) {
-        setLimitNotice(false)
-        return prev.filter((h) => h !== hour)
-      }
-      if (prev.length >= MAX_SLOTS) {
-        setLimitNotice(true)
-        return prev
-      }
+      if (prev.includes(hour)) return prev.filter((h) => h !== hour)
+      if (prev.length >= MAX_SLOTS) return prev
       return [...prev, hour].sort((a, b) => a - b)
     })
   }
@@ -99,6 +91,7 @@ export default function BookingView({
       })
     : []
 
+  const atMax = selected.length >= MAX_SLOTS
   const total = dateISO ? selected.reduce((sum, h) => sum + priceForHour(dateISO, h), 0) : 0
   const deposit = depositFor(selected.length)
   const weekendRate = dateISO ? isWeekendRate(dateISO) : false
@@ -186,7 +179,7 @@ export default function BookingView({
             <SlotLegend dense />
             {dateISO ? (
               <div className="mt-3">
-                <TimeSlotGrid slots={slots} selected={selected} onToggle={toggleSlot} showLimitNotice={limitNotice} />
+                <TimeSlotGrid slots={slots} selected={selected} onToggle={toggleSlot} atMax={atMax} />
               </div>
             ) : (
               <div className="mt-3 rounded-[var(--r-md)] border border-line bg-surface-alt p-6 text-center text-sm text-ink-muted">
@@ -224,13 +217,15 @@ export default function BookingView({
           <div>
             <div className={`font-display text-[11px] text-ink-muted ${my}`}>
               {selected.length} {t('booking.summary.slotsDeposit')}
+              {selected.length > 0 && (
+                <span className="ml-1 font-fbmono">· {t('booking.confirm.deposit')} {deposit.toLocaleString('en-US')}</span>
+              )}
             </div>
             <div className="flex items-baseline gap-2">
               <span className="font-display text-[22px] font-extrabold tracking-tight text-ink-primary">
                 {total.toLocaleString('en-US')}
               </span>
               <span className="font-fbmono text-[11px] text-ink-muted">MMK</span>
-              <span className="font-fbmono text-[11px] text-ink-muted">· {deposit.toLocaleString('en-US')}</span>
             </div>
           </div>
           <ProceedButton selected={selected} dateISO={dateISO} loggedIn={loggedIn} />

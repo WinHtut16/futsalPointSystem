@@ -92,9 +92,9 @@ export default async function BookingsPage() {
   }
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <SiteNavbar active="dashboard" mobileTitle={undefined} />
-      <div className="mx-auto max-w-2xl pb-24 md:px-0 md:py-6">
+      <div className="mx-auto w-full max-w-2xl flex-1 pb-6 md:px-0 md:py-6">
         <BookingsDashboard
           name={user.username ?? 'Member'}
           points={user.total_points ?? 0}
@@ -103,6 +103,6 @@ export default async function BookingsPage() {
         />
       </div>
       <BottomNav active="me" />
-    </>
+    </div>
   )
 }

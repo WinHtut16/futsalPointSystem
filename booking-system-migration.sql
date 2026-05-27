@@ -171,7 +171,7 @@ begin
     deposit_total, price_total, contact_name, contact_phone
   ) values (
     v_ref, p_customer_id, p_booking_date, 'pending',
-    10000 * v_count, v_price_total, p_contact_name, p_contact_phone
+    10000, v_price_total, p_contact_name, p_contact_phone
   ) returning * into v_booking;
 
   for v_slot in select * from jsonb_array_elements(p_slots)

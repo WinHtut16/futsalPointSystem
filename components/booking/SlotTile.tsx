@@ -16,6 +16,7 @@ export default function SlotTile({
   state,
   tier,
   selected = false,
+  maxReached = false,
   onClick,
 }: {
   hourStart: number
@@ -23,24 +24,27 @@ export default function SlotTile({
   state: SlotState
   tier: PriceTier
   selected?: boolean
+  maxReached?: boolean
   onClick?: () => void
 }) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
-  const disabled = state !== 'available'
+  const disabled = state !== 'available' || maxReached
+  // maxReached available slots use closed visual style
+  const visualState = maxReached && state === 'available' ? 'closed' : state
 
   return (
     <button
       type="button"
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`pill-${state} relative flex items-center justify-between rounded-[var(--r-md)] px-3.5 py-3 text-left`}
+      className={`pill-${visualState} relative flex items-center justify-between rounded-[var(--r-md)] px-3.5 py-3 text-left`}
       style={{
         border: `1.5px solid ${selected ? 'var(--color-primary)' : 'currentColor'}`,
         background: selected ? 'var(--color-primary)' : undefined,
         color: selected ? 'var(--color-on-primary)' : undefined,
-        cursor: state === 'available' ? 'pointer' : 'not-allowed',
-        opacity: state === 'closed' ? 0.85 : 1,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: (state === 'closed' || maxReached) ? 0.85 : 1,
       }}
       aria-pressed={selected}
     >
@@ -61,7 +65,7 @@ export default function SlotTile({
         <Check size={16} strokeWidth={2.4} />
       ) : (
         <span className={`font-display text-[10px] font-bold uppercase tracking-wide opacity-90 ${my}`}>
-          {t(`booking.slot.${state}` as never)}
+          {maxReached ? 'Max' : t(`booking.slot.${state}` as never)}
         </span>
       )}
     </button>

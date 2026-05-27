@@ -16,35 +16,21 @@ export default function TimeSlotGrid({
   slots,
   selected,
   onToggle,
-  showLimitNotice = false,
+  atMax = false,
 }: {
   slots: SlotView[]
   selected: number[]
   onToggle: (hourStart: number) => void
-  showLimitNotice?: boolean
+  atMax?: boolean
 }) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-2">
-        {slots.map((s) => (
-          <SlotTile
-            key={s.hourStart}
-            hourStart={s.hourStart}
-            price={s.price}
-            state={s.state}
-            tier={s.tier}
-            selected={selected.includes(s.hourStart)}
-            onClick={() => onToggle(s.hourStart)}
-          />
-        ))}
-      </div>
-
-      {showLimitNotice && (
-        <div className="mt-3.5 flex items-start gap-2.5 rounded-[var(--r-md)] border border-slot-pending bg-slot-pending-bg p-3.5">
-          <AlertTriangle size={16} className="mt-0.5 text-slot-pending" />
+      {atMax && (
+        <div className="mb-3 flex items-start gap-2.5 rounded-[var(--r-md)] border border-slot-pending bg-slot-pending-bg p-3.5">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-slot-pending" />
           <div>
             <div className={`font-display text-xs font-bold text-slot-pending ${my}`}>
               {t('booking.book.maxNoticeTitle')}
@@ -56,6 +42,25 @@ export default function TimeSlotGrid({
           </div>
         </div>
       )}
+
+      <div className="grid grid-cols-2 gap-2">
+        {slots.map((s) => {
+          const isSelected = selected.includes(s.hourStart)
+          const tileMaxReached = atMax && s.state === 'available' && !isSelected
+          return (
+            <SlotTile
+              key={s.hourStart}
+              hourStart={s.hourStart}
+              price={s.price}
+              state={s.state}
+              tier={s.tier}
+              selected={isSelected}
+              maxReached={tileMaxReached}
+              onClick={() => onToggle(s.hourStart)}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }

@@ -133,9 +133,6 @@ export default function ConfirmFlow({
                 {t('booking.confirm.payNow')}
               </div>
               <div className="font-display text-[22px] font-extrabold text-primary">{deposit.toLocaleString('en-US')} MMK</div>
-              <div className={`mt-0.5 text-[11px] text-ink ${my}`}>
-                10,000 × {slots.length}
-              </div>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-white">
               <Wallet size={24} />

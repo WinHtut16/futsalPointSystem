@@ -21,11 +21,12 @@ export default function NewsContent({ posts }: { posts: NewsPost[] }) {
   const my = lang === 'my' ? 'my' : ''
   const [cat, setCat] = useState<Cat>('all')
   const visible = cat === 'all' ? posts : posts.filter((p) => p.category === cat)
+  const isEmpty = visible.length === 0
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <SiteNavbar active="news" mobileTitle={t('booking.news.title')} />
-      <div className="mx-auto max-w-6xl px-4 pb-24 pt-5 md:px-16 md:pt-10">
+      <div className={`mx-auto w-full max-w-6xl px-4 pb-4 pt-5 md:px-16 md:pt-10 ${isEmpty ? 'flex flex-1 flex-col' : 'flex-1'}`}>
         <div className="hidden md:block">
           <SectionLabel kicker={t('booking.news.title')} title={t('booking.news.whatsOn')} />
         </div>
@@ -44,9 +45,17 @@ export default function NewsContent({ posts }: { posts: NewsPost[] }) {
           ))}
         </div>
 
-        <NewsCardGrid posts={visible} columns={3} />
+        {isEmpty ? (
+          <div className="flex flex-1 items-center justify-center py-8">
+            <div className="fb-card p-8 text-center text-sm text-ink-muted">
+              <span className={my}>{t('booking.news.empty')}</span>
+            </div>
+          </div>
+        ) : (
+          <NewsCardGrid posts={visible} columns={3} />
+        )}
       </div>
       <BottomNav active="news" />
-    </>
+    </div>
   )
 }

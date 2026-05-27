@@ -71,8 +71,9 @@ export function dayHours(): number[] {
   return hours
 }
 
-export function depositFor(slotCount: number): number {
-  return DEPOSIT_PER_SLOT * slotCount
+// Deposit is a flat 10,000 MMK per booking regardless of slot count.
+export function depositFor(_slotCount: number): number {
+  return DEPOSIT_PER_SLOT
 }
 
 // Whether a confirmed booking can still be cancelled for a full refund:
