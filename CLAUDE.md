@@ -18,7 +18,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 **First-time setup:**
 1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://mya-thida-futsal.vercel.app` in Vercel env vars)
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → **`point-adjustment-migration.sql`**
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → **`booking-system-migration.sql`**
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -34,6 +34,16 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 ## Architecture
 
 **Stack:** Next.js 16 App Router, TypeScript, Supabase (auth + DB), Tailwind CSS, Recharts (charts)
+
+### Booking System (futsal court online booking)
+
+Lives in the same codebase as the loyalty/points system. Single court, EN/MY, mobile-first (390px), deposit-confirmed bookings, Lucide icons, no emoji.
+
+- **Design tokens:** `app/globals.css` holds the booking design tokens as CSS custom properties (`--color-primary` deep pitch-green, `--color-accent` gold, slot-state + price-tier colors, radii, shadows, fonts) plus `fb-*` / `pill-*` helper classes and a `.theme-wc` World Cup retheme block. `tailwind.config.ts` maps these to semantic Tailwind colors (`primary`, `accent`, `slot-*`, `holiday`, `price-*`, `ink`, `surface`, `line`) and fonts (`font-display` Sora, `font-body` Manrope, `font-fbmono` JetBrains Mono, `font-my` Noto Sans Myanmar). **The existing `brand-*` green scale and Tailwind defaults (`font-mono`, `rounded-*`) are untouched** — booking tokens are additive only. Fonts are loaded via `next/font/google` in `app/layout.tsx` (CSS vars on `<html>`).
+- **Booking logic:** `lib/booking.ts` — pure, timezone-safe (ISO `YYYY-MM-DD`) helpers: `priceForHour`/`tierForHour` (weekday AM 20k / PM 25k / weekend+holiday 30k), `isThingyan` (Apr 13–16, only auto-marked holiday), `isWeekendRate`, `dayHours` (16 slots 06:00–21:00), `depositFor` (10,000/slot), `canCancel` (12-hour refund window), `MAX_SLOTS=2`. Unit-tested in `__tests__/booking-logic.test.ts`.
+- **i18n:** booking strings live in `lib/i18n/namespaces/booking.ts` (`bookingEN`/`bookingMY`, keys prefixed `booking.`), registered in `lib/i18n/index.ts`. Uses the existing custom i18n (`useLanguage()` / `<T>`), **not** next-intl.
+- **DB:** `booking-system-migration.sql` adds `bookings`, `booking_slots` (with `active` mirror column + `uq_active_slot_per_hour` partial unique index as the race guard; kept in sync with parent booking status via the `sync_booking_slots_active` trigger), `court_closures`, `cms_posts` (markdown body, promotions = `category='promotion'`). Adds `'booking'` to the `point_transactions.transaction_type` check. `create_booking_transaction()` RPC inserts a booking + its slots atomically and generates the `MYF-YYYY-NNNN` ref via `booking_ref_seq`. `bookings` is in the realtime publication.
+- **Points integration:** confirming a booking (admin flips `deposit_received` → true) awards `calculatePoints(totalHours)` (10 pts/hr) via the existing `add_points_transaction` RPC with `p_transaction_type='booking'`; `bookings.points_awarded` guards against double-award.
 
 ### Route Groups
 
@@ -205,6 +215,13 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 | `DELETE /api/rewards/[id]` | superadmin | Soft-delete reward (sets `is_deleted=true`, `is_active=false`) — row preserved so transaction history retains reward name |
 | `GET/POST /api/admin/staff` | superadmin | List / create staff admin accounts |
 | `GET/PUT/DELETE /api/admin/staff/[id]` | superadmin | Staff detail, reset password, delete |
+| `POST /api/bookings` | customer (login required) | Create booking — calls `create_booking_transaction` RPC; 409 on slot conflict |
+| `PATCH /api/bookings/[id]` | customer/admin | cancel (customer, 12-hr window); confirm+award-points / unconfirm / close (admin) |
+| `POST /api/closures` | admin/superadmin | Create court closure (day or single slot) |
+| `DELETE /api/closures?id=` | admin/superadmin | Remove a court closure |
+| `POST /api/cms` | superadmin | Create CMS post (news/promotion/league/event) |
+| `PUT /api/cms/[id]` | superadmin | Update CMS post fields (preserves `published_at` on publish) |
+| `DELETE /api/cms/[id]` | superadmin | Delete CMS post |
 
 ### Points Business Logic
 
