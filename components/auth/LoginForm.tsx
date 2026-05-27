@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { phoneToEmail } from '@/lib/utils'
@@ -10,8 +10,15 @@ import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
+// Only allow same-origin relative redirects (block //host and \ bypasses).
+function safeNext(next: string | null): string | null {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.includes('\\')) return null
+  return next
+}
+
 export default function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useLanguage()
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -48,7 +55,8 @@ export default function LoginForm() {
       .single()
 
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
-    router.push(isAdmin ? '/admin/dashboard' : '/dashboard')
+    const next = safeNext(searchParams.get('next'))
+    router.push(isAdmin ? '/admin/dashboard' : next ?? '/dashboard')
     router.refresh()
   }
 

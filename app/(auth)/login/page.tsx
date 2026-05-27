@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import LoginForm from '@/components/auth/LoginForm'
 import T from '@/components/ui/T'
 import LanguageToggle from '@/components/ui/LanguageToggle'
@@ -18,7 +19,9 @@ export default function LoginPage() {
           <p className="text-brand-200 text-sm mt-1"><T k="auth.tagline" /></p>
         </div>
         <div className="bg-white rounded-2xl shadow-xl p-6">
-          <LoginForm />
+          <Suspense fallback={null}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </main>

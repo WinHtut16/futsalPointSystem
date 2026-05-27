@@ -74,6 +74,45 @@ export const AdjustPointsSchema = z.object({
 
 export const RedeemSchema = z.object({ reward_id: uuid })
 
+export const CreateBookingSchema = z.object({
+  booking_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date.'),
+  slots: z
+    .array(z.number().int().min(6, 'Invalid slot.').max(21, 'Invalid slot.'))
+    .min(1, 'Select at least one slot.')
+    .max(2, 'Maximum 2 slots per booking.')
+    .refine((arr) => new Set(arr).size === arr.length, { message: 'Duplicate slots.' }),
+})
+
+export const BookingActionSchema = z
+  .object({
+    action: z.enum(['cancel', 'confirm', 'unconfirm', 'close'], { message: 'Invalid action.' }),
+  })
+  .strict()
+
+export const ClosureCreateSchema = z.object({
+  closure_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date.'),
+  hour_start: z.number().int().min(6).max(21).nullish(),
+  reason: safeText(200).nullish(),
+})
+
+export const CmsPostSchema = z.object({
+  slug: z
+    .string()
+    .trim()
+    .min(1, 'Slug is required.')
+    .max(120)
+    .regex(/^[a-z0-9-]+$/, 'Slug may contain only lowercase letters, numbers and hyphens.'),
+  category: z.enum(['news', 'promotion', 'league', 'event'], { message: 'Invalid category.' }),
+  title: safeText(200).min(1, 'Title is required.'),
+  title_my: safeText(200).nullish(),
+  excerpt: safeText(500).nullish(),
+  excerpt_my: safeText(500).nullish(),
+  body_md: safeText(20000).nullish(),
+  body_my_md: safeText(20000).nullish(),
+  cover_url: safeText(500).nullish(),
+  published: z.boolean().optional(),
+})
+
 export const RedemptionActionSchema = z.object({
   action: z.enum(['cancel', 'approve', 'reject'], { message: 'Invalid action.' }),
   notes: safeText(500).nullish(),
