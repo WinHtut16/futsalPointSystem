@@ -164,20 +164,22 @@ export default function BookingView({
                   {t('booking.book.pickTime')}
                 </div>
                 {dateISO && (
-                  <div className="mt-1 flex items-center gap-1.5 text-[11px] text-ink-muted">
-                    <Calendar size={11} /> <span className={my}>{longDate}</span>
-                    {weekendRate && (
-                      <span
-                        className="fb-chip"
-                        style={{ background: 'var(--color-accent-soft)', color: 'oklch(0.40 0.13 78)', padding: '2px 6px', fontSize: 9 }}
-                      >
-                        {t('booking.book.weekendRate')}
-                      </span>
+                  <>
+                    <div className="mt-1 flex items-center gap-1.5 text-[11px] text-ink-muted">
+                      <Calendar size={11} /> <span className={my}>{longDate}</span>
+                      {weekendRate && (
+                        <span
+                          className="fb-chip"
+                          style={{ background: 'var(--color-accent-soft)', color: 'oklch(0.40 0.13 78)', padding: '2px 6px', fontSize: 9 }}
+                        >
+                          {t('booking.book.weekendRate')}
+                        </span>
+                      )}
+                    </div>
+                    {holidayName && (
+                      <div className={`mt-0.5 text-[11px] font-medium text-holiday ${my}`}>{holidayName}</div>
                     )}
-                  </div>
-                  {holidayName && (
-                    <div className={`mt-0.5 text-[11px] font-medium text-holiday ${my}`}>{holidayName}</div>
-                  )}
+                  </>
                 )}
               </div>
             </div>
