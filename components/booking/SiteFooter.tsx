@@ -1,6 +1,6 @@
 'use client'
 
-import { Phone, MapPin, Clock, MessageCircle, Mail } from 'lucide-react'
+import { Phone, MapPin, Clock, MessageCircle } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Logo from './Logo'
 
@@ -14,7 +14,7 @@ export default function SiteFooter() {
           <Logo size={30} color="#fff" />
           <div className="mt-3.5 flex flex-col gap-2 text-xs opacity-85">
             <span className="flex items-center gap-2">
-              <Phone size={13} /> <span className="font-fbmono">+95 9 777 888 999</span>
+              <Phone size={13} /> <span className="font-fbmono">+95 9 797 272000</span>
             </span>
             <span className="flex items-center gap-2">
               <MapPin size={13} /> <span className={my}>{t('booking.book.location')}</span>
@@ -23,15 +23,21 @@ export default function SiteFooter() {
               <Clock size={13} /> <span className={my}>{t('booking.home.openHours')}</span>
             </span>
           </div>
-          <div className="mt-4 flex gap-2.5">
-            {[MessageCircle, Phone, Mail].map((Ic, i) => (
-              <span
-                key={i}
-                className="flex h-9 w-9 items-center justify-center rounded-md bg-white/10"
-              >
-                <Ic size={16} />
-              </span>
-            ))}
+          <div className="mt-4 flex gap-2">
+            <a
+              href="tel:+959797272000"
+              className="flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-2 text-xs transition-colors hover:bg-white/20"
+            >
+              <Phone size={14} />
+              <span className="font-fbmono">+95 9 797 272000</span>
+            </a>
+            <a
+              href="viber://chat?number=%2B959797272000"
+              className="flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-2 text-xs transition-colors hover:bg-white/20"
+            >
+              <MessageCircle size={14} />
+              <span>Viber</span>
+            </a>
           </div>
         </div>
       </div>

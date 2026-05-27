@@ -8,7 +8,7 @@ export const bookingEN = {
 
   // Home — hero + sections
   'booking.home.heroKicker': 'YANGON · MYATHIDA PITCH',
-  'booking.home.heroTitle': 'Book the pitch. Skip the queue.',
+  'booking.home.heroTitle': 'Promoting National Sports, Starting from Mya Thida Futsal',
   'booking.home.heroSub': 'One court. Sixteen daily slots. Confirmed by deposit. Members earn points on every booking.',
   'booking.home.viewSchedule': 'View schedule',
   'booking.home.whyKicker': 'WHY MYATHIDA',
@@ -177,17 +177,17 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
 
   // Home
   'booking.home.heroKicker': 'ရန်ကုန် · မြသီတာ ဘောလုံးကွင်း',
-  'booking.home.heroTitle': 'ဘောလုံးကွင်း ဘွတ်ကင်လုပ်ပါ။ တန်းစီခြင်းမှ ကင်းဝေးပါ။',
-  'booking.home.heroSub': 'ကွင်းတစ်ကွင်း။ တစ်နေ့ ၁၆ နာရီ။ စပေါ်ဖြင့် အတည်ပြုခြင်း။ မက်ဘာတိုင်း ပွိုင့်ရရှိမည်။',
+  'booking.home.heroTitle': 'မြသီတာဖူဆယ်မှ နိုင်ငံ့အားကစား မြှင့်တင်ရေးသို့',
+  'booking.home.heroSub': 'ကွင်းတစ်ကွင်း။ တစ်နေ့ ၁၆ နာရီ။ စပေါ်ငွေဖြင့် အတည်ပြုခြင်း။ မန်ဘာတိုင်း ပွိုင့်ရရှိမည်။',
   'booking.home.viewSchedule': 'အချိန်ဇယားကြည့်ရန်',
-  'booking.home.whyKicker': 'အဘယ်ကြောင့် မြသီတာ',
+  'booking.home.whyKicker': 'မြသီတာကို ဘာကြောင့်ရွေးချယ်သင့်သလဲ',
   'booking.home.howKicker': 'အလုပ်လုပ်ပုံ',
   'booking.home.howTitle': 'ဘွတ်ကင်အတည်ပြုဖို့ သုံးဆင့်',
   'booking.home.step1Title': 'ရှာဖွေ',
-  'booking.home.step1Body': 'ပြက္ခဒိန်ဖွင့်၊ အားလပ်တဲ့ ၁ နာရီရွေး။ ဘွတ်ကင်တစ်ခုလျှင် ၂ ခုအထိ။',
+  'booking.home.step1Body': 'ပြက္ခဒိန်ဖွင့်၊ အားလပ်တဲ့ ၁ နာရီရွေး။ ဘွတ်ကင်တစ်ခုလျှင် ၂ ချိန်အထိ။',
   'booking.home.step2Title': 'ဘွတ်ကင်',
   'booking.home.step2Body': 'ရက်စွဲ၊ အချိန်နှင့် ဆက်သွယ်ရန် အတည်ပြုပါ။',
-  'booking.home.step3Title': 'စပေါ်ပေး',
+  'booking.home.step3Title': 'စပေါ်ငွေပေး',
   'booking.home.step3Body': '၁ နာရီလျှင် ၁၀,၀၀၀ ကျပ် လွှဲပါ။ Viber ဖြင့် အထောက်အထားပို့ပါ။',
   'booking.home.featEasyTitle': 'ဘွတ်ကင်လွယ်ကူ',
   'booking.home.featEasyBody': 'ရက်ရွေး၊ အချိန်ရွေး၊ စပေါ်ပို့ပေးပါ။',
@@ -201,10 +201,10 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
 
   // Pricing
   'booking.pricing.title': 'ဈေးနှုန်း',
-  'booking.pricing.sub': 'အချိန်အလိုက် တန်းပြတ်ဈေး။ အံ့ဩစရာမရှိ။',
+  'booking.pricing.sub': 'အချိန်အလိုက် သတ်မှတ်ထားသော ဈေးနှုန်းများ။',
   'booking.pricing.tiers': 'ဈေးနှုန်းအဆင့်',
-  'booking.pricing.weekdayAm': 'အလုပ်ရက် မနက်',
-  'booking.pricing.weekdayPm': 'အလုပ်ရက် ညနေ',
+  'booking.pricing.weekdayAm': 'ရုံးဖွင့်ရက် မနက်',
+  'booking.pricing.weekdayPm': 'ရုံးဖွင့်ရက် ညနေ',
   'booking.pricing.weekend': 'ပိတ်ရက် / ရုံးပိတ်ရက်',
   'booking.pricing.allDay': 'တစ်နေ့လုံး',
   'booking.pricing.perHour': '၁ နာရီ MMK',
@@ -219,22 +219,22 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.book.location': 'ဗဟန်း၊ ရန်ကုန်',
   'booking.book.roofed': 'အမိုးပါ',
   'booking.book.maxNoticeTitle': 'ဘွတ်ကင်တစ်ခု ၂ နာရီထိသာ',
-  'booking.book.maxNoticeBody': 'အချိန်ပိုလိုပါက ဖုန်းခေါ်ပါ — ',
-  'booking.book.freeCancel': 'အချိန် ၁၂ နာရီကြိုပြီး ဖျက်ပါက အပြည့်အဝပြန်အမ်း',
+  'booking.book.maxNoticeBody': 'အချိန်ပို ဘွတ်ကင်လုပ်လိုပါက ဖုန်းခေါ်ပါ — ',
+  'booking.book.freeCancel': 'အချိန် ၁၂ နာရီကြိုပြီး ဘွတ်ကင်ဖျက်ပါက အပြည့်အဝ‌ေ၍ါပြန်အမ်း',
   'booking.book.proceed': 'ဆက်လုပ်ရန်',
   'booking.book.proceedToBook': 'ဘွတ်ကင်ဆက်လုပ်ရန်',
   'booking.book.loginToBook': 'ဘွတ်ကင်လုပ်ရန် အကောင့်ဝင်ပါ',
 
   // Calendar
   'booking.cal.publicHoliday': 'အများပြည်သူရုံးပိတ်ရက်',
-  'booking.cal.adminClosed': 'အုပ်ချုပ်ရေးက ပိတ်',
+  'booking.cal.adminClosed': 'အက်ဒမင်မှ ပိတ်ထားသည်',
   'booking.cal.hasBookings': 'ဘွတ်ကင်ရှိ',
   'booking.cal.closed': 'ပိတ်',
 
   // Slot states
   'booking.slot.available': 'အားလပ်',
   'booking.slot.pending': 'စောင့်ဆိုင်း',
-  'booking.slot.booked': 'ဘွတ်ကင်ပြီး',
+  'booking.slot.booked': 'ဘွတ်ကင်ရှိပြီး',
   'booking.slot.closed': 'ပိတ်',
 
   // Summary
@@ -242,10 +242,10 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.summary.date': 'ရက်စွဲ',
   'booking.summary.selectedSlots': 'ရွေးထားသော အချိန်',
   'booking.summary.total': 'စုစုပေါင်း',
-  'booking.summary.depositDue': 'စပေါ်ပေးရမည်',
+  'booking.summary.depositDue': 'စပေါ်ငွေပေးရမည်',
   'booking.summary.perSlot': '၁ နာရီ ၁၀,၀၀၀',
-  'booking.summary.confirmedAfter': 'စပေါ်ပေးပြီးမှ ဘွတ်ကင် အတည်ဖြစ်ပါသည်။',
-  'booking.summary.slotsDeposit': 'နာရီ · စပေါ်',
+  'booking.summary.confirmedAfter': 'စပေါ်ငွေပေးပြီးမှ ဘွတ်ကင် အတည်ဖြစ်ပါသည်။',
+  'booking.summary.slotsDeposit': 'နာရီ · စပေါ်ငွေ',
 
   // Confirm flow
   'booking.confirm.title': 'ဘွတ်ကင်အတည်ပြုခြင်း',
@@ -253,12 +253,12 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.confirm.stepPayment': 'ပေးချေမှု',
   'booking.confirm.stepSubmitted': 'တင်ပြီး',
   'booking.confirm.review': 'အကျဉ်းချုပ်စစ်ဆေးပါ',
-  'booking.confirm.reviewSub': 'အောက်ပါအချက်များမှန်ပါက စပေါ်လွှဲရန် ဆက်လုပ်ပါ။',
+  'booking.confirm.reviewSub': 'အောက်ပါအချက်များမှန်ပါက စပေါ်ငွေလွှဲရန် ဆက်လုပ်ပါ။',
   'booking.confirm.contact': 'ဆက်သွယ်ရန်',
   'booking.confirm.payNow': 'ယခုပေးချေရမည်',
   'booking.confirm.continuePayment': 'ပေးချေမှု ညွှန်ကြားချက်ဆီ',
-  'booking.confirm.transfer': 'စပေါ်လွှဲပါ',
-  'booking.confirm.transferSub': 'အောက်ပါ ဘဏ်အကောင့်သို့ စပေါ်လွှဲပြီး အောက်က နည်းလမ်းနှစ်ခုထဲမှ တစ်ခုဖြင့် အကြောင်းကြားပါ။',
+  'booking.confirm.transfer': 'စပေါ်ငွေလွှဲပါ',
+  'booking.confirm.transferSub': 'အောက်ပါ ဘဏ်အကောင့်သို့ စပေါ်ငွေလွှဲပြီး အောက်က နည်းလမ်းနှစ်ခုထဲမှ တစ်ခုဖြင့် အကြောင်းကြားပါ။',
   'booking.confirm.bankAccount': 'ဘဏ်အကောင့်',
   'booking.confirm.copyAccount': 'ကူးယူရန်',
   'booking.confirm.notifyUs': 'ပြီးတဲ့အခါ',
@@ -270,18 +270,18 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.confirm.submittedSub': 'စပေါ်ရောက်ပြီးတာနဲ့ Viber သို့မဟုတ် SMS မှ အကြောင်းပြန်ပါမည်။',
   'booking.confirm.ref': 'ဘွတ်ကင်နံပါတ်',
   'booking.confirm.pendingConfirmation': 'စောင့်ဆိုင်း',
-  'booking.confirm.deposit': 'စပေါ်',
+  'booking.confirm.deposit': 'စပေါ်ငွေ',
   'booking.confirm.time': 'အချိန်',
   'booking.confirm.openViber': 'Viber မှာ',
   'booking.confirm.viewBookings': 'အကောင့်ဆီ ပြန်',
   'booking.confirm.submit': 'ဘွတ်ကင်တင်ရန်',
 
   // Cancellation policy
-  'booking.policy.title': 'ဖျက်ခြင်းမူဝါဒ',
+  'booking.policy.title': 'ဘွတ်ကင်ဖျက်ခြင်းမူဝါဒ',
   'booking.policy.before': '၁၂ နာရီကြိုပြီး ဖျက်ပါက —',
-  'booking.policy.beforeBody': 'စပေါ်အပြည့်အဝ ပြန်အမ်းမည်။',
-  'booking.policy.within': '၁၂ နာရီအတွင်း ဖျက်ပါက —',
-  'booking.policy.withinBody': 'စပေါ်ပြန်အမ်းမည် မဟုတ်ပါ။',
+  'booking.policy.beforeBody': 'စပေါ်ငွေအပြည့်အဝ ပြန်အမ်းမည်။',
+  'booking.policy.within': 'အချိန်နီးကပ်မှ ဖျက်ပါက —',
+  'booking.policy.withinBody': 'စပေါ်ငွေပြန်အမ်းမည် မဟုတ်ပါ။',
 
   // Dashboard
   'booking.dash.title': 'အကောင့်',
@@ -308,7 +308,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.news.all': 'အားလုံး',
   'booking.news.catNews': 'သတင်း',
   'booking.news.catPromotion': 'ပရိုမိုးရှင်း',
-  'booking.news.catLeague': 'လီဂ်',
+  'booking.news.catLeague': 'လိဂ်',
   'booking.news.catEvent': 'ပွဲ',
   'booking.news.empty': 'ပို့စ် မရှိသေးပါ။',
 

@@ -37,7 +37,11 @@ export default function HomeContent({ posts }: { posts: NewsPost[] }) {
           <div className={`font-display text-[10px] font-bold uppercase tracking-[0.16em] text-accent md:text-xs ${my}`}>
             {t('booking.home.heroKicker')}
           </div>
-          <h1 className={`my-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl ${my}`}>
+          <h1 className={`my-3 font-display font-extrabold tracking-tight ${
+            lang === 'my'
+              ? 'text-2xl leading-relaxed my'
+              : 'text-4xl leading-[1.05] md:text-6xl'
+          }`}>
             {t('booking.home.heroTitle')}
           </h1>
           <p className={`max-w-md text-sm leading-relaxed opacity-90 md:text-base ${my}`}>
@@ -49,7 +53,7 @@ export default function HomeContent({ posts }: { posts: NewsPost[] }) {
             </Link>
             <Link
               href="/book"
-              className="fb-btn fb-btn-ghost border-white/30 bg-white/10 text-white hover:bg-white/20 md:!px-6 md:!py-4"
+              className="fb-btn bg-white text-primary border-white/80 hover:bg-white/90 md:!px-6 md:!py-4"
             >
               <span className={my}>{t('booking.home.viewSchedule')}</span>
             </Link>
