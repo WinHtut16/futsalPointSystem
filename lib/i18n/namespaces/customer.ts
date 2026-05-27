@@ -27,6 +27,7 @@ export const customerEN = {
   'tx.played': 'Played',
   'tx.redemption': 'Redemption',
   'tx.adjustment': 'Point Adjustment',
+  'tx.booking': 'Booking',
   // Rewards
   'rewards.title': 'Rewards',
   'rewards.left': 'left',
@@ -71,6 +72,7 @@ export const customerMY: { [K in keyof typeof customerEN]: string } = {
   'tx.played': 'ကစားခဲ့သည်',
   'tx.redemption': 'ဆုလာဘ်ရယူမှု',
   'tx.adjustment': 'မှတ်ချိန်ညှိမှု',
+  'tx.booking': 'ဘွတ်ကင်',
   'rewards.title': 'ဆုလာဘ်များ',
   'rewards.left': 'ကျန်',
   'rewards.pts': 'မှတ်',

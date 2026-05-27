@@ -38,7 +38,7 @@ export interface Reward {
   updated_at: string
 }
 
-export type TransactionType = 'earn' | 'redeem' | 'adjustment'
+export type TransactionType = 'earn' | 'redeem' | 'adjustment' | 'booking'
 
 export interface PointTransaction {
   id: string

@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect customer routes — role check delegated to layout (saves 1 DB round trip per request)
-  const customerRoutes = ['/dashboard', '/history', '/rewards']
+  const customerRoutes = ['/dashboard', '/history', '/rewards', '/bookings']
   if (customerRoutes.some((r) => pathname.startsWith(r))) {
     if (!user) {
       return NextResponse.redirect(new URL('/login', request.url))
@@ -74,8 +74,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // Staff management is superadmin-only
-    if (pathname.startsWith('/admin/staff') && profile?.role !== 'superadmin') {
+    // Staff management and CMS are superadmin-only
+    if (
+      (pathname.startsWith('/admin/staff') || pathname.startsWith('/admin/cms')) &&
+      profile?.role !== 'superadmin'
+    ) {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     }
   }

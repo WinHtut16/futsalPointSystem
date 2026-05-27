@@ -1,6 +1,6 @@
 'use client'
 
-import { Zap, Pencil, Gift } from 'lucide-react'
+import { Zap, Pencil, Gift, CalendarCheck } from 'lucide-react'
 import type { PointTransaction } from '@/types'
 import { formatDateTime } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -14,23 +14,24 @@ export default function TransactionItem({ tx, showCustomer }: TransactionItemPro
   const { t } = useLanguage()
   const isEarn = tx.transaction_type === 'earn'
   const isAdjustment = tx.transaction_type === 'adjustment'
+  const isBooking = tx.transaction_type === 'booking'
   const isPositiveAdjustment = isAdjustment && tx.points_delta > 0
 
-  const IconComponent = isEarn ? Zap : isAdjustment ? Pencil : Gift
+  const IconComponent = isEarn ? Zap : isBooking ? CalendarCheck : isAdjustment ? Pencil : Gift
 
-  const iconBg = isEarn
+  const iconBg = isEarn || isBooking
     ? 'bg-green-100'
     : isAdjustment
       ? 'bg-blue-100'
       : 'bg-orange-100'
 
-  const iconColor = isEarn
+  const iconColor = isEarn || isBooking
     ? 'text-green-600'
     : isAdjustment
       ? 'text-blue-500'
       : 'text-orange-500'
 
-  const amountColor = isEarn
+  const amountColor = isEarn || isBooking
     ? 'text-green-600'
     : isAdjustment
       ? isPositiveAdjustment
@@ -40,11 +41,13 @@ export default function TransactionItem({ tx, showCustomer }: TransactionItemPro
 
   const label = isEarn
     ? `${t('tx.played')} ${tx.hours_played}h`
-    : isAdjustment
-      ? t('tx.adjustment')
-      : (tx.reward?.name ?? t('tx.redemption'))
+    : isBooking
+      ? t('tx.booking')
+      : isAdjustment
+        ? t('tx.adjustment')
+        : (tx.reward?.name ?? t('tx.redemption'))
 
-  const amountPrefix = isEarn || isPositiveAdjustment ? '+' : ''
+  const amountPrefix = isEarn || isBooking || isPositiveAdjustment ? '+' : ''
 
   return (
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
