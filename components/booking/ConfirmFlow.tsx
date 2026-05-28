@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Check, Calendar, Clock, Wallet, Shield, CreditCard, ArrowRight, Banknote,
   Copy, MessageCircle, Phone, ArrowUpRight, Info, CalendarCheck, AlertTriangle,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { priceForHour, tierForHour, depositFor, formatHourRange, isWeekendRate } from '@/lib/booking'
+import { priceForHour, depositFor, formatHourRange, isWeekendRate, DEPOSIT_PER_SLOT } from '@/lib/booking'
 
 const WD_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const WD_MY = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ']
@@ -17,50 +17,63 @@ const BANK = { name: 'KBZ Bank', number: '0123 4567 8910 11', holder: 'Myathida 
 const PHONE = '+95 9 797 272000'
 const VIBER_URL = 'https://viber.me/959797272000'
 
+type BookingGroup = { date: string; hours: number[] }
+
+function longDateStr(date: string, lang: string): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const wd = (lang === 'my' ? WD_MY : WD_EN)[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
+  return lang === 'my' ? `${wd}နေ့ ၊ ${d} ၊ ${y}` : `${wd}, ${MO_EN[m - 1]} ${d}, ${y}`
+}
+
+function shortDateStr(date: string, lang: string): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const wd = (lang === 'my' ? WD_MY : WD_EN)[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
+  return lang === 'my' ? `${wd}နေ့ ၊ ${d}` : `${wd.slice(0, 3)} · ${MO_EN[m - 1]} ${d}, ${y}`
+}
+
+function timeRangeFor(hours: number[]): string {
+  if (hours.length === 1) return formatHourRange(hours[0])
+  return `${String(Math.min(...hours)).padStart(2, '0')}:00 – ${String(Math.max(...hours) + 1).padStart(2, '0')}:00`
+}
+
 export default function ConfirmFlow({
-  bookingDate,
-  slots,
+  bookings,
 }: {
-  bookingDate: string
-  slots: number[]
+  bookings: BookingGroup[]
 }) {
   const { t, lang } = useLanguage()
   const router = useRouter()
   const my = lang === 'my' ? 'my' : ''
 
   const [step, setStep] = useState(1)
-  const [ref, setRef] = useState<string | null>(null)
+  const [refs, setRefs] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [y, m, d] = bookingDate.split('-').map(Number)
-  const wd = (lang === 'my' ? WD_MY : WD_EN)[new Date(y, m - 1, d).getDay()]
-  const longDate = lang === 'my' ? `${wd}နေ့ ၊ ${d} ၊ ${y}` : `${wd}, ${MO_EN[m - 1]} ${d}, ${y}`
-  const shortDate = lang === 'my' ? `${wd}နေ့ ၊ ${d}` : `${wd.slice(0, 3)} · ${MO_EN[m - 1]} ${d}, ${y}`
-  const weekend = isWeekendRate(bookingDate)
+  const total = bookings.reduce((sum, g) =>
+    sum + g.hours.reduce((s, h) => s + priceForHour(g.date, h), 0), 0)
+  // One deposit per booking date
+  const totalDeposit = bookings.length * DEPOSIT_PER_SLOT
 
-  const total = slots.reduce((s, h) => s + priceForHour(bookingDate, h), 0)
-  const deposit = depositFor(slots.length)
-  const timeRange =
-    slots.length === 1
-      ? formatHourRange(slots[0])
-      : `${String(Math.min(...slots)).padStart(2, '0')}:00 – ${String(Math.max(...slots) + 1).padStart(2, '0')}:00`
-
-  async function createBooking() {
+  async function createBookings() {
     setSubmitting(true)
     setError(null)
+    const newRefs: string[] = []
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ booking_date: bookingDate, slots }),
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        setError(json.error ?? 'Something went wrong.')
-        return
+      for (const g of bookings) {
+        const res = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ booking_date: g.date, slots: g.hours }),
+        })
+        const json = await res.json()
+        if (!res.ok) {
+          setError(json.error ?? 'Something went wrong.')
+          return
+        }
+        newRefs.push(json.ref)
       }
-      setRef(json.ref)
+      setRefs(newRefs)
       setStep(2)
     } catch {
       setError('Network error. Please try again.')
@@ -93,30 +106,37 @@ export default function ConfirmFlow({
               </div>
             </div>
 
-            <Row icon={<Calendar size={14} />} label={t('booking.summary.date')}>
-              <span className={`font-display text-[13px] font-bold text-ink-primary ${my}`}>{longDate}</span>
-            </Row>
-
-            <div className="border-b border-line py-3.5">
-              <div className="mb-2 inline-flex items-center gap-2 text-[12px] text-ink-muted">
-                <Clock size={14} /> <span className={my}>{t('booking.confirm.time')}</span>
-              </div>
-              {slots.map((h) => (
-                <div key={h} className="flex items-center justify-between py-1.5">
-                  <span className="font-fbmono text-[13px] text-ink-primary">{formatHourRange(h)}</span>
-                  <span className="flex items-center gap-2">
-                    {weekend && (
-                      <span className="fb-chip" style={{ background: 'var(--color-accent-soft)', color: 'oklch(0.40 0.13 78)', fontSize: 9 }}>
-                        {t('booking.book.weekendRate')}
-                      </span>
-                    )}
-                    <span className="font-display text-sm font-bold text-ink-primary">
-                      {priceForHour(bookingDate, h).toLocaleString('en-US')}
-                    </span>
-                  </span>
-                </div>
-              ))}
-            </div>
+            {bookings.map((g, i) => {
+              const lDate = longDateStr(g.date, lang)
+              const weekend = isWeekendRate(g.date)
+              return (
+                <Fragment key={g.date}>
+                  <Row icon={<Calendar size={14} />} label={t('booking.summary.date')}>
+                    <span className={`font-display text-[13px] font-bold text-ink-primary ${my}`}>{lDate}</span>
+                  </Row>
+                  <div className={i < bookings.length - 1 ? 'border-b border-line py-3.5' : 'py-3.5'}>
+                    <div className="mb-2 inline-flex items-center gap-2 text-[12px] text-ink-muted">
+                      <Clock size={14} /> <span className={my}>{t('booking.confirm.time')}</span>
+                    </div>
+                    {g.hours.map((h) => (
+                      <div key={h} className="flex items-center justify-between py-1.5">
+                        <span className="font-fbmono text-[13px] text-ink-primary">{formatHourRange(h)}</span>
+                        <span className="flex items-center gap-2">
+                          {weekend && (
+                            <span className="fb-chip" style={{ background: 'var(--color-accent-soft)', color: 'oklch(0.40 0.13 78)', fontSize: 9 }}>
+                              {t('booking.book.weekendRate')}
+                            </span>
+                          )}
+                          <span className="font-display text-sm font-bold text-ink-primary">
+                            {priceForHour(g.date, h).toLocaleString('en-US')}
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Fragment>
+              )
+            })}
 
             <div className="flex items-baseline justify-between pt-3.5">
               <span className={`font-display text-[13px] text-ink-muted ${my}`}>{t('booking.summary.total')}</span>
@@ -132,7 +152,7 @@ export default function ConfirmFlow({
               <div className={`font-display text-[11px] font-semibold uppercase tracking-wide text-ink-muted ${my}`}>
                 {t('booking.confirm.payNow')}
               </div>
-              <div className="font-display text-[22px] font-extrabold text-primary">{deposit.toLocaleString('en-US')} MMK</div>
+              <div className="font-display text-[22px] font-extrabold text-primary">{totalDeposit.toLocaleString('en-US')} MMK</div>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-white">
               <Wallet size={24} />
@@ -143,7 +163,7 @@ export default function ConfirmFlow({
 
           <button
             type="button"
-            onClick={createBooking}
+            onClick={createBookings}
             disabled={submitting}
             className="fb-btn fb-btn-primary mt-5 w-full !py-4"
           >
@@ -157,7 +177,7 @@ export default function ConfirmFlow({
       {step === 2 && (
         <div className="px-4 pb-4">
           <div className={`mb-1.5 font-display text-[22px] font-extrabold tracking-tight text-ink-primary ${my}`}>
-            {t('booking.confirm.transfer')} · {deposit.toLocaleString('en-US')} MMK
+            {t('booking.confirm.transfer')} · {totalDeposit.toLocaleString('en-US')} MMK
           </div>
           <p className={`text-[13px] text-ink-muted ${my}`}>{t('booking.confirm.transferSub')}</p>
 
@@ -245,11 +265,17 @@ export default function ConfirmFlow({
                 <span className={my}>{t('booking.confirm.pendingConfirmation')}</span>
               </span>
             </div>
-            <div className="mt-1 font-fbmono text-[22px] font-bold tracking-wider text-ink-primary">{ref ?? '—'}</div>
-            <hr className="fb-divider my-3.5" />
-            <Line icon={<Calendar size={13} />} label={t('booking.summary.date')} value={shortDate} mono={false} myVal />
-            <Line icon={<Clock size={13} />} label={t('booking.confirm.time')} value={timeRange} mono />
-            <Line icon={<Wallet size={13} />} label={t('booking.confirm.deposit')} value={`${deposit.toLocaleString('en-US')} MMK`} mono={false} />
+
+            {refs.map((ref, i) => (
+              <Fragment key={ref}>
+                {i > 0 && <hr className="fb-divider my-3.5" />}
+                <div className="mt-1 font-fbmono text-[22px] font-bold tracking-wider text-ink-primary">{ref}</div>
+                <hr className="fb-divider my-3.5" />
+                <Line icon={<Calendar size={13} />} label={t('booking.summary.date')} value={shortDateStr(bookings[i].date, lang)} mono={false} myVal />
+                <Line icon={<Clock size={13} />} label={t('booking.confirm.time')} value={timeRangeFor(bookings[i].hours)} mono />
+                <Line icon={<Wallet size={13} />} label={t('booking.confirm.deposit')} value={`${depositFor(bookings[i].hours.length).toLocaleString('en-US')} MMK`} mono={false} />
+              </Fragment>
+            ))}
           </div>
 
           <div className="fb-card mt-3.5 p-4">

@@ -2,16 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Clock, Info, ArrowRight, MapPin, Sun } from 'lucide-react'
+import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import {
   dayHours,
   priceForHour,
   tierForHour,
   isWeekendRate,
-  depositFor,
   formatHourRange,
   MAX_SLOTS,
+  DEPOSIT_PER_SLOT,
   type SlotState,
 } from '@/lib/booking'
 import { getHolidayName } from '@/lib/holidays'
@@ -27,11 +27,20 @@ export type DayInfo = {
   dayClosed: boolean
 }
 
+type CartSlot = { date: string; hour: number }
+
 const WD_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const WD_MY = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ']
 const MO_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const pad = (n: number) => String(n).padStart(2, '0')
+
+function shortDateLabel(dateISO: string, lang: string): string {
+  const [y, m, d] = dateISO.split('-').map(Number)
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+  if (lang === 'my') return `${WD_MY[wd].slice(0, 3)} ${d} ${MO_EN[m - 1]}`
+  return `${WD_EN[wd].slice(0, 3)}, ${MO_EN[m - 1]} ${d}`
+}
 
 export default function BookingView({
   year,
@@ -55,11 +64,11 @@ export default function BookingView({
   const my = lang === 'my' ? 'my' : ''
 
   const [selectedDay, setSelectedDay] = useState<number | null>(initialDay)
-  const [selected, setSelected] = useState<number[]>([])
+  const [cart, setCart] = useState<CartSlot[]>([])
 
   const selectDay = (d: number) => {
     setSelectedDay(d)
-    setSelected([])
+    // cart intentionally NOT cleared — persists across date navigation
   }
 
   const navMonth = (delta: number) => {
@@ -71,14 +80,26 @@ export default function BookingView({
   }
 
   const toggleSlot = (hour: number) => {
-    setSelected((prev) => {
-      if (prev.includes(hour)) return prev.filter((h) => h !== hour)
+    if (!dateISO) return
+    const date = dateISO
+    setCart((prev) => {
+      const exists = prev.some(s => s.date === date && s.hour === hour)
+      if (exists) return prev.filter(s => !(s.date === date && s.hour === hour))
       if (prev.length >= MAX_SLOTS) return prev
-      return [...prev, hour].sort((a, b) => a - b)
+      return [...prev, { date, hour }].sort((a, b) =>
+        a.date < b.date ? -1 : a.date > b.date ? 1 : a.hour - b.hour
+      )
     })
   }
 
+  const removeFromCart = (date: string, hour: number) => {
+    setCart(prev => prev.filter(s => !(s.date === date && s.hour === hour)))
+  }
+
   const dateISO = selectedDay ? `${year}-${pad(monthIdx + 1)}-${pad(selectedDay)}` : null
+
+  // Hours in cart for the currently-viewed date (drives grid selected state)
+  const selectedHoursOnDate = cart.filter(s => s.date === dateISO).map(s => s.hour)
 
   const slots: SlotView[] = dateISO
     ? dayHours().map((hour) => {
@@ -91,9 +112,12 @@ export default function BookingView({
       })
     : []
 
-  const atMax = selected.length >= MAX_SLOTS
-  const total = dateISO ? selected.reduce((sum, h) => sum + priceForHour(dateISO, h), 0) : 0
-  const deposit = depositFor(selected.length)
+  const atMax = cart.length >= MAX_SLOTS
+  const total = cart.reduce((sum, s) => sum + priceForHour(s.date, s.hour), 0)
+  // Deposit = 10k per unique booking date in cart
+  const uniqueCartDates = [...new Set(cart.map(s => s.date))]
+  const deposit = uniqueCartDates.length * DEPOSIT_PER_SLOT
+
   const weekendRate = dateISO ? isWeekendRate(dateISO) : false
   const holidayName = dateISO ? getHolidayName(dateISO, lang === 'my' ? 'my' : 'en') : null
 
@@ -179,7 +203,7 @@ export default function BookingView({
             <SlotLegend dense />
             {dateISO ? (
               <div className="mt-3">
-                <TimeSlotGrid slots={slots} selected={selected} onToggle={toggleSlot} atMax={atMax} />
+                <TimeSlotGrid slots={slots} selected={selectedHoursOnDate} onToggle={toggleSlot} atMax={atMax} />
               </div>
             ) : (
               <div className="mt-3 rounded-[var(--r-md)] border border-line bg-surface-alt p-6 text-center text-sm text-ink-muted">
@@ -200,12 +224,12 @@ export default function BookingView({
         <div className="hidden md:block">
           <div className="sticky top-6 self-start">
             <Summary
-              longDate={longDate}
-              selected={selected}
-              dateISO={dateISO}
+              cart={cart}
               total={total}
               deposit={deposit}
+              onRemove={removeFromCart}
               loggedIn={loggedIn}
+              lang={lang}
             />
           </div>
         </div>
@@ -216,8 +240,8 @@ export default function BookingView({
         <div className="flex items-center justify-between">
           <div>
             <div className={`font-display text-[11px] text-ink-muted ${my}`}>
-              {selected.length} {t('booking.summary.slotsDeposit')}
-              {selected.length > 0 && (
+              {cart.length} {t('booking.summary.slotsDeposit')}
+              {cart.length > 0 && (
                 <span className="ml-1 font-fbmono">· {t('booking.confirm.deposit')} {deposit.toLocaleString('en-US')}</span>
               )}
             </div>
@@ -228,7 +252,7 @@ export default function BookingView({
               <span className="font-fbmono text-[11px] text-ink-muted">MMK</span>
             </div>
           </div>
-          <ProceedButton selected={selected} dateISO={dateISO} loggedIn={loggedIn} />
+          <ProceedButton cart={cart} loggedIn={loggedIn} />
         </div>
       </div>
     </div>
@@ -236,26 +260,26 @@ export default function BookingView({
 }
 
 function ProceedButton({
-  selected,
-  dateISO,
+  cart,
   loggedIn,
 }: {
-  selected: number[]
-  dateISO: string | null
+  cart: CartSlot[]
   loggedIn: boolean
 }) {
   const { t, lang } = useLanguage()
   const router = useRouter()
   const my = lang === 'my' ? 'my' : ''
-  const disabled = selected.length === 0 || !dateISO
+  const disabled = cart.length === 0
 
   const proceed = () => {
     if (disabled) return
+    const itemsParam = cart.map(s => `${s.date}_${s.hour}`).join(',')
+    const target = `/book/confirm?items=${itemsParam}`
     if (!loggedIn) {
-      router.push(`/login?next=${encodeURIComponent(`/book/confirm?date=${dateISO}&slots=${selected.join(',')}`)}`)
+      router.push(`/login?next=${encodeURIComponent(target)}`)
       return
     }
-    router.push(`/book/confirm?date=${dateISO}&slots=${selected.join(',')}`)
+    router.push(target)
   }
 
   return (
@@ -267,21 +291,21 @@ function ProceedButton({
 }
 
 function Summary({
-  longDate,
-  selected,
-  dateISO,
+  cart,
   total,
   deposit,
+  onRemove,
   loggedIn,
+  lang,
 }: {
-  longDate: string
-  selected: number[]
-  dateISO: string | null
+  cart: CartSlot[]
   total: number
   deposit: number
+  onRemove: (date: string, hour: number) => void
   loggedIn: boolean
+  lang: string
 }) {
-  const { t, lang } = useLanguage()
+  const { t } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
 
   return (
@@ -290,31 +314,37 @@ function Summary({
         {t('booking.summary.title')}
       </div>
       <div className="mt-3.5 flex flex-col gap-2.5">
-        {dateISO && (
-          <div className="flex items-center gap-2.5 rounded-lg bg-surface-alt px-3 py-2.5">
-            <Calendar size={14} className="text-ink-muted" />
-            <span className={`font-display text-xs font-semibold text-ink-primary ${my}`}>{longDate}</span>
-          </div>
-        )}
-
         <div>
           <div className={`mb-1.5 font-display text-[11px] font-semibold uppercase tracking-wide text-ink-muted ${my}`}>
             {t('booking.summary.selectedSlots')}
           </div>
-          {selected.length === 0 ? (
+          {cart.length === 0 ? (
             <div className="py-2 text-[12px] text-ink-faint">—</div>
           ) : (
-            selected.map((h) => (
+            cart.map((s) => (
               <div
-                key={h}
+                key={`${s.date}-${s.hour}`}
                 className="flex items-center justify-between border-b border-dashed border-line py-2"
               >
                 <span className="inline-flex items-center gap-2">
                   <Clock size={13} className="text-primary" />
-                  <span className="font-fbmono text-[13px]">{formatHourRange(h)}</span>
+                  <span className="flex flex-col">
+                    <span className="font-display text-[11px] text-ink-muted">{shortDateLabel(s.date, lang)}</span>
+                    <span className="font-fbmono text-[13px]">{formatHourRange(s.hour)}</span>
+                  </span>
                 </span>
-                <span className="font-display text-[13px] font-bold">
-                  {dateISO ? priceFor(dateISO, h).toLocaleString('en-US') : ''}
+                <span className="flex items-center gap-2">
+                  <span className="font-display text-[13px] font-bold">
+                    {priceFor(s.date, s.hour).toLocaleString('en-US')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onRemove(s.date, s.hour)}
+                    className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-alt text-ink-muted transition-colors hover:bg-slot-booked-bg hover:text-slot-booked"
+                    aria-label="Remove slot"
+                  >
+                    <X size={11} />
+                  </button>
                 </span>
               </div>
             ))
@@ -348,29 +378,28 @@ function Summary({
           <span>{t('booking.summary.confirmedAfter')}</span>
         </div>
 
-        <ProceedButtonFull selected={selected} dateISO={dateISO} loggedIn={loggedIn} />
+        <ProceedButtonFull cart={cart} loggedIn={loggedIn} />
       </div>
     </div>
   )
 }
 
 function ProceedButtonFull({
-  selected,
-  dateISO,
+  cart,
   loggedIn,
 }: {
-  selected: number[]
-  dateISO: string | null
+  cart: CartSlot[]
   loggedIn: boolean
 }) {
   const { t, lang } = useLanguage()
   const router = useRouter()
   const my = lang === 'my' ? 'my' : ''
-  const disabled = selected.length === 0 || !dateISO
+  const disabled = cart.length === 0
 
   const proceed = () => {
     if (disabled) return
-    const target = `/book/confirm?date=${dateISO}&slots=${selected.join(',')}`
+    const itemsParam = cart.map(s => `${s.date}_${s.hour}`).join(',')
+    const target = `/book/confirm?items=${itemsParam}`
     router.push(loggedIn ? target : `/login?next=${encodeURIComponent(target)}`)
   }
 
@@ -382,7 +411,6 @@ function ProceedButtonFull({
   )
 }
 
-// local helper to avoid re-importing in JSX scope
 function priceFor(dateISO: string, hour: number) {
   return priceForHour(dateISO, hour)
 }
