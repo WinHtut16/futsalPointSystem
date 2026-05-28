@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import RegisterForm from '@/components/auth/RegisterForm'
 import T from '@/components/ui/T'
 import LanguageToggle from '@/components/ui/LanguageToggle'
@@ -19,7 +20,9 @@ export default function RegisterPage() {
           <p className="text-brand-200 text-sm mt-1"><T k="auth.createTagline" /></p>
         </div>
         <div className="bg-white rounded-2xl shadow-xl p-6">
-          <RegisterForm />
+          <Suspense fallback={null}>
+            <RegisterForm />
+          </Suspense>
           <p className="text-center text-sm text-gray-500 mt-4">
             <T k="auth.haveAccount" />{' '}
             <Link href="/login" className="text-brand-600 font-medium hover:underline">

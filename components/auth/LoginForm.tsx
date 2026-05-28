@@ -89,7 +89,10 @@ export default function LoginForm() {
       </Button>
       <p className="text-center text-sm text-gray-500">
         {t('auth.noAccount')}{' '}
-        <Link href="/register" className="text-brand-600 font-medium hover:underline">
+        <Link
+          href={searchParams.get('next') ? `/register?next=${encodeURIComponent(searchParams.get('next')!)}` : '/register'}
+          className="text-brand-600 font-medium hover:underline"
+        >
           {t('auth.register')}
         </Link>
       </p>

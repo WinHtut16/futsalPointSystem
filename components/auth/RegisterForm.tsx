@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { phoneToEmail, normalizePhone } from '@/lib/utils'
 import Input from '@/components/ui/Input'
@@ -10,8 +10,14 @@ import Button from '@/components/ui/Button'
 import { calcStrength } from '@/components/ui/PasswordStrengthMeter'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
+function safeNext(next: string | null): string | null {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.includes('\\')) return null
+  return next
+}
+
 export default function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useLanguage()
   const [phone, setPhone] = useState('')
   const [username, setUsername] = useState('')
@@ -64,7 +70,8 @@ export default function RegisterForm() {
       return
     }
 
-    router.push('/dashboard')
+    const next = safeNext(searchParams.get('next'))
+    router.push(next ?? '/dashboard')
     router.refresh()
   }
 
