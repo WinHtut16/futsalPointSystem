@@ -6,10 +6,10 @@ import ConfirmFlow from '@/components/booking/ConfirmFlow'
 
 export const dynamic = 'force-dynamic'
 
-type BookingGroup = { date: string; hours: number[] }
+type BookingGroup = { date: string; hours: number[]; overrideHours?: number[] }
 
 // Parse ?items=2026-05-28_7,2026-05-29_8 format
-function parseItems(raw: string): BookingGroup[] | null {
+function parseItems(raw: string, overrideSet: Set<string>): BookingGroup[] | null {
   const map = new Map<string, Set<number>>()
   for (const token of raw.split(',')) {
     const under = token.lastIndexOf('_')
@@ -23,15 +23,30 @@ function parseItems(raw: string): BookingGroup[] | null {
   }
   if (map.size === 0) return null
 
-  // Enforce global MAX_SLOTS cap
-  const groups: BookingGroup[] = Array.from(map.entries()).map(([date, hoursSet]) => ({
-    date,
-    hours: Array.from(hoursSet).sort((a, b) => a - b),
-  }))
+  const groups: BookingGroup[] = Array.from(map.entries()).map(([date, hoursSet]) => {
+    const hours = Array.from(hoursSet).sort((a, b) => a - b)
+    const overrideHours = hours.filter(h => overrideSet.has(`${date}_${h}`))
+    return { date, hours, ...(overrideHours.length > 0 ? { overrideHours } : {}) }
+  })
   const totalSlots = groups.reduce((s, g) => s + g.hours.length, 0)
   if (totalSlots > MAX_SLOTS) return null
 
   return groups
+}
+
+// Parse ?overrides=YYYY-MM-DD_H,... into a Set of "YYYY-MM-DD_H" keys
+function parseOverrides(raw: string): Set<string> {
+  const set = new Set<string>()
+  for (const token of raw.split(',')) {
+    const under = token.lastIndexOf('_')
+    if (under < 0) continue
+    const date = token.slice(0, under)
+    const hour = Number(token.slice(under + 1))
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isInteger(hour) && hour >= 6 && hour < 22) {
+      set.add(`${date}_${hour}`)
+    }
+  }
+  return set
 }
 
 // Legacy: parse ?date=YYYY-MM-DD&slots=h1,h2
@@ -50,18 +65,25 @@ function parseLegacy(date?: string, slots?: string): BookingGroup[] | null {
 export default async function ConfirmPage({
   searchParams,
 }: {
-  searchParams: Promise<{ items?: string; date?: string; slots?: string }>
+  searchParams: Promise<{ items?: string; overrides?: string; date?: string; slots?: string }>
 }) {
   const sp = await searchParams
 
   const user = await getCurrentUser()
-  const bookings = sp.items ? parseItems(sp.items) : parseLegacy(sp.date, sp.slots)
+  const overrideSet = sp.overrides ? parseOverrides(sp.overrides) : new Set<string>()
+  const bookings = sp.items
+    ? parseItems(sp.items, overrideSet)
+    : parseLegacy(sp.date, sp.slots)
 
   if (!bookings) redirect('/book')
 
-  // Build redirect target for unauthenticated users
   const itemsParam = bookings.map(g => g.hours.map(h => `${g.date}_${h}`).join(',')).join(',')
-  const self = `/book/confirm?items=${itemsParam}`
+  const overridesParam = bookings
+    .flatMap(g => (g.overrideHours ?? []).map(h => `${g.date}_${h}`))
+    .join(',')
+  const self = overridesParam
+    ? `/book/confirm?items=${itemsParam}&overrides=${overridesParam}`
+    : `/book/confirm?items=${itemsParam}`
 
   if (!user) redirect(`/login?next=${encodeURIComponent(self)}`)
 
