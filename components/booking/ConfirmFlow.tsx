@@ -18,7 +18,7 @@ const KBZPAY = { number: '09 5190 865', holder: 'Aung Thura Phyo' }
 const PHONE = '+95 9 797 272000'
 const VIBER_URL = 'viber://chat?number=%2B959797272000'
 
-type BookingGroup = { date: string; hours: number[] }
+type BookingGroup = { date: string; hours: number[]; overrideHours?: number[] }
 
 function longDateStr(date: string, lang: string): string {
   const [y, m, d] = date.split('-').map(Number)
@@ -62,10 +62,15 @@ export default function ConfirmFlow({
     const newRefs: string[] = []
     try {
       for (const g of bookings) {
+        const hasOverride = g.overrideHours && g.overrideHours.length > 0
         const res = await fetch('/api/bookings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ booking_date: g.date, slots: g.hours }),
+          body: JSON.stringify({
+            booking_date: g.date,
+            slots: g.hours,
+            ...(hasOverride ? { override_request: true } : {}),
+          }),
         })
         const json = await res.json()
         if (!res.ok) {
@@ -161,6 +166,18 @@ export default function ConfirmFlow({
           </div>
 
           {error && <ErrorNote msg={error} />}
+
+          {bookings.some(g => g.overrideHours && g.overrideHours.length > 0) && (
+            <div
+              className="mt-4 flex items-start gap-2.5 rounded-[var(--r-md)] p-3.5"
+              style={{ background: 'var(--color-slot-pending-bg)', border: '1px solid var(--color-slot-pending)' }}
+            >
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" style={{ color: 'var(--color-slot-pending)' }} />
+              <p className={`text-[12px] leading-snug ${my}`} style={{ color: 'oklch(0.40 0.13 78)' }}>
+                {t('booking.pending.overrideNotice')}
+              </p>
+            </div>
+          )}
 
           <button
             type="button"
