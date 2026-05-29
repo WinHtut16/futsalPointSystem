@@ -82,10 +82,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             .eq('status', 'pending')
 
           if (conflictBookings && conflictBookings.length > 0) {
-            await supabase
+            const { error: cancelErr } = await supabase
               .from('bookings')
               .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
               .in('id', (conflictBookings as { id: string }[]).map((b) => b.id))
+            if (cancelErr) return NextResponse.json({ error: cancelErr.message }, { status: 500 })
           }
         }
       }
