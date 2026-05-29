@@ -15,12 +15,16 @@ export type SlotView = {
 export default function TimeSlotGrid({
   slots,
   selected,
+  overrideSelected = [],
   onToggle,
+  onPendingClick,
   atMax = false,
 }: {
   slots: SlotView[]
   selected: number[]
+  overrideSelected?: number[]
   onToggle: (hourStart: number) => void
+  onPendingClick?: (hourStart: number) => void
   atMax?: boolean
 }) {
   const { t, lang } = useLanguage()
@@ -46,6 +50,7 @@ export default function TimeSlotGrid({
       <div className="grid grid-cols-2 gap-2">
         {slots.map((s) => {
           const isSelected = selected.includes(s.hourStart)
+          const isOverrideSelected = overrideSelected.includes(s.hourStart)
           const tileMaxReached = atMax && s.state === 'available' && !isSelected
           return (
             <SlotTile
@@ -54,9 +59,11 @@ export default function TimeSlotGrid({
               price={s.price}
               state={s.state}
               tier={s.tier}
-              selected={isSelected}
+              selected={isSelected && !isOverrideSelected}
+              selectedAsOverride={isOverrideSelected}
               maxReached={tileMaxReached}
               onClick={() => onToggle(s.hourStart)}
+              onPendingClick={s.state === 'pending' ? () => onPendingClick?.(s.hourStart) : undefined}
             />
           )
         })}
