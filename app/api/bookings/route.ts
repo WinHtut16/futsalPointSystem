@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = CreateBookingSchema.safeParse(await parseJson(request))
   if (!parsed.success) return badRequest(parsed.error)
-  const { booking_date, slots } = parsed.data
+  const { booking_date, slots, override_request } = parsed.data
 
   // Cannot book a past date.
   if (booking_date < todayYangon()) {
@@ -42,6 +42,35 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // For override requests: only allow if the conflicting slot has a PENDING holder,
+  // not a CONFIRMED one. A confirmed slot is truly taken.
+  if (override_request) {
+    const { data: activeSlots } = await supabase
+      .from('booking_slots')
+      .select('booking_id, hour_start')
+      .eq('active', true)
+      .in('hour_start', slots)
+
+    if (activeSlots && activeSlots.length > 0) {
+      const bookingIds = activeSlots.map((s) => s.booking_id as string)
+      const { data: existingBookings } = await supabase
+        .from('bookings')
+        .select('id, status, booking_date')
+        .in('id', bookingIds)
+        .eq('booking_date', booking_date)
+
+      const hasConfirmed = existingBookings?.some(
+        (b) => b.status === 'confirmed' || b.status === 'closed'
+      )
+      if (hasConfirmed) {
+        return NextResponse.json(
+          { error: 'This slot is already confirmed. Please pick another time.' },
+          { status: 409 }
+        )
+      }
+    }
+  }
+
   // Recompute tier + price server-side — never trust client-supplied prices.
   const slotPayload = slots
     .slice()
@@ -52,7 +81,11 @@ export async function POST(request: NextRequest) {
       price: priceForHour(booking_date, hour),
     }))
 
-  const { data, error } = await supabase.rpc('create_booking_transaction', {
+  const rpcName = override_request
+    ? 'create_override_booking_transaction'
+    : 'create_booking_transaction'
+
+  const { data, error } = await supabase.rpc(rpcName, {
     p_customer_id: user.id,
     p_booking_date: booking_date,
     p_slots: slotPayload,

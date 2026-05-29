@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const supabase = createServiceClient()
   const { data: booking } = await supabase
     .from('bookings')
-    .select('id, customer_id, status, deposit_received, points_awarded')
+    .select('id, customer_id, status, deposit_received, points_awarded, override_request, booking_date')
     .eq('id', id)
     .single()
 
@@ -49,6 +49,46 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (action === 'confirm') {
     if (booking.status === 'cancelled' || booking.status === 'closed') {
       return NextResponse.json({ error: 'Cannot confirm a cancelled or closed booking.' }, { status: 409 })
+    }
+
+    // If this is an override booking: cancel conflicting pending bookings FIRST,
+    // so their slots become active=false before we set this booking to confirmed
+    // (which triggers the sync trigger to set our slots active=true).
+    if (booking.override_request) {
+      const { data: mySlots } = await supabase
+        .from('booking_slots')
+        .select('hour_start')
+        .eq('booking_id', id)
+
+      const hours = (mySlots ?? []).map((s: { hour_start: number }) => s.hour_start)
+
+      if (hours.length > 0) {
+        const { data: conflictSlots } = await supabase
+          .from('booking_slots')
+          .select('booking_id')
+          .eq('active', true)
+          .in('hour_start', hours)
+          .neq('booking_id', id)
+
+        if (conflictSlots && conflictSlots.length > 0) {
+          const conflictIds = [
+            ...new Set((conflictSlots as { booking_id: string }[]).map((s) => s.booking_id)),
+          ]
+          const { data: conflictBookings } = await supabase
+            .from('bookings')
+            .select('id')
+            .in('id', conflictIds)
+            .eq('booking_date', booking.booking_date)
+            .eq('status', 'pending')
+
+          if (conflictBookings && conflictBookings.length > 0) {
+            await supabase
+              .from('bookings')
+              .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+              .in('id', (conflictBookings as { id: string }[]).map((b) => b.id))
+          }
+        }
+      }
     }
 
     const { error: updErr } = await supabase

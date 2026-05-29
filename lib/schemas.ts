@@ -81,6 +81,7 @@ export const CreateBookingSchema = z.object({
     .min(1, 'Select at least one slot.')
     .max(2, 'Maximum 2 slots per booking.')
     .refine((arr) => new Set(arr).size === arr.length, { message: 'Duplicate slots.' }),
+  override_request: z.boolean().optional(),
 })
 
 export const BookingActionSchema = z
