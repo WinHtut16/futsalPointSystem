@@ -165,6 +165,19 @@ export const bookingEN = {
   'booking.admin.category': 'Category',
   'booking.admin.coverUrl': 'Cover image URL',
   'booking.admin.bodyMd': 'Body (markdown)',
+
+  // Pending override bottom sheet
+  'booking.pending.sheetTitle': 'Slot Pending Confirmation',
+  'booking.pending.sheetBody': 'This time slot has been reserved but the deposit has not been confirmed yet. You can still request this slot — if you complete the deposit payment, you will be given priority and we will contact the current holder.',
+  'booking.pending.request': 'Request This Slot',
+  'booking.pending.cancel': 'Cancel',
+  'booking.pending.priorityLabel': 'Priority request',
+  'booking.pending.overrideNotice': 'You are requesting a slot with a pending holder. Paying the deposit gives you priority — we will contact the current holder.',
+  // Slot legend hint
+  'booking.slot.pendingHint': 'tap to request',
+  // Admin
+  'booking.admin.overrideBadge': 'Override Request',
+  'booking.admin.overrideWarning': 'This booking requests a slot that has a pending holder. Confirming will cancel the original booking for that slot.',
 } as const
 
 export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
@@ -334,4 +347,17 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.admin.category': 'အမျိုးအစား',
   'booking.admin.coverUrl': 'ပုံ URL',
   'booking.admin.bodyMd': 'အကြောင်းအရာ (markdown)',
+
+  // Pending override bottom sheet
+  'booking.pending.sheetTitle': 'အချိန်ဆိုင်းငံ့နေ',
+  'booking.pending.sheetBody': 'ဤအချိန်ကို ဘွတ်ကင်လုပ်ထားသော်လည်း စပေါ်ငွေ အတည်မဖြစ်သေးပါ။ ဤအချိန်ကို တောင်းဆိုနိုင်သည် — စပေါ်ငွေပေးပြီးပါက ဦးစားပေး ရရှိမည်ဖြစ်ပြီး လက်ရှိ ဘွတ်ကင်ရှင်ကို ဆက်သွယ်ပါမည်။',
+  'booking.pending.request': 'ဤအချိန်ကို တောင်းဆိုမည်',
+  'booking.pending.cancel': 'မလုပ်တော့',
+  'booking.pending.priorityLabel': 'ဦးစားပေး တောင်းဆိုမှု',
+  'booking.pending.overrideNotice': 'လက်ရှိ ဘွတ်ကင်ရှင်ရှိသော အချိန်ကို တောင်းဆိုနေပါသည်။ စပေါ်ငွေပေးပြီးပါက ဦးစားရရှိမည်ဖြစ်ပြီး ၎င်းအားဆက်သွယ်ပါမည်။',
+  // Slot legend hint
+  'booking.slot.pendingHint': 'တောင်းဆိုနိုင်သည်',
+  // Admin
+  'booking.admin.overrideBadge': 'Override တောင်းဆိုမှု',
+  'booking.admin.overrideWarning': 'ဤဘွတ်ကင်သည် ဆိုင်းငံ့နေသော အချိန်ကို တောင်းဆိုနေသည်။ အတည်ပြုပါက မူလဘွတ်ကင် ပယ်ဖျက်မည်။',
 }
