@@ -46,6 +46,9 @@ Lives in the same codebase as the loyalty/points system. Single court, EN/MY, mo
 - **i18n:** booking strings live in `lib/i18n/namespaces/booking.ts` (`bookingEN`/`bookingMY`, keys prefixed `booking.`), registered in `lib/i18n/index.ts`. Uses the existing custom i18n (`useLanguage()` / `<T>`), **not** next-intl.
 - **DB:** `booking-system-migration.sql` adds `bookings`, `booking_slots` (with `active` mirror column + `uq_active_slot_per_hour` partial unique index as the race guard; kept in sync with parent booking status via the `sync_booking_slots_active` trigger), `court_closures`, `cms_posts` (markdown body, promotions = `category='promotion'`). Adds `'booking'` to the `point_transactions.transaction_type` check. `create_booking_transaction()` RPC inserts a booking + its slots atomically and generates the `MYF-YYYY-NNNN` ref via `booking_ref_seq`. `bookings` is in the realtime publication.
 - **Points integration:** confirming a booking (admin flips `deposit_received` → true) awards `calculatePoints(totalHours)` (10 pts/hr) via the existing `add_points_transaction` RPC with `p_transaction_type='booking'`; `bookings.points_awarded` guards against double-award.
+- **Payment details (ConfirmFlow Step 2):** KBZ Pay — number `09 5190 865`, account name `Aung Thura Phyo`. Logo at `public/images/kbz-pay.webp` (copied from `figures/kbz-logo.webp`). Displayed in `components/booking/ConfirmFlow.tsx`.
+- **Viber contact link:** Always use native deep link `viber://chat?number=%2B959797272000`. Web-based alternatives (`connect.viber.com/...`, `viber.me/...`) have broken before — do NOT change this to a web URL.
+- **Logos:** Auth pages, `SiteNavbar`, and `SiteFooter` use Next.js `<Image>` from `next/image`. Light backgrounds → `public/logo_black.jpg` (928×844). Dark backgrounds → `public/logo_white.jpg` (884×856). `components/booking/Logo.tsx` is an unused SVG mark — do not re-import it.
 
 ### Route Groups
 

@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Calendar, ChevronLeft } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import Logo from './Logo'
 import BookingLangToggle from './BookingLangToggle'
 
 const navItems = [
@@ -31,7 +31,7 @@ export default function SiteNavbar({
       {/* Desktop */}
       <div className="hidden items-center justify-between border-b border-line bg-surface px-8 py-4 md:flex">
         <Link href="/">
-          <Logo size={32} />
+          <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={928} height={844} className="h-9 w-auto object-contain" />
         </Link>
         <div className="flex items-center gap-7">
           {navItems.map(({ k, href, key }) => (
@@ -71,7 +71,7 @@ export default function SiteNavbar({
             </button>
           ) : (
             <Link href="/">
-              <Logo size={24} label="" />
+              <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={928} height={844} className="h-7 w-auto object-contain" />
             </Link>
           )}
           {mobileTitle && (

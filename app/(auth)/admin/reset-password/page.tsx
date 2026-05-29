@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import PasswordInput from '@/components/ui/PasswordInput'
@@ -58,8 +59,7 @@ export default function AdminResetPasswordPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo_black.jpg" alt="Mya Thida" className="w-28 h-28 rounded-2xl object-contain shadow-2xl" />
+            <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={928} height={844} className="w-28 h-28 rounded-2xl object-contain shadow-2xl" />
           </div>
           <h1 className="text-2xl font-bold text-white">{t('auth.adminResetPasswordTitle')}</h1>
         </div>

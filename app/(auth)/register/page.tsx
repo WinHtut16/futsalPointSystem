@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import Image from 'next/image'
 import RegisterForm from '@/components/auth/RegisterForm'
 import T from '@/components/ui/T'
 import LanguageToggle from '@/components/ui/LanguageToggle'
@@ -13,8 +14,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo_black.jpg" alt="Mya Thida" className="w-28 h-28 rounded-2xl object-contain shadow-2xl" />
+            <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={928} height={844} className="w-28 h-28 rounded-2xl object-contain shadow-2xl" />
           </div>
           <h1 className="text-2xl font-bold text-white"><T k="auth.createHeading" /></h1>
           <p className="text-brand-200 text-sm mt-1"><T k="auth.createTagline" /></p>

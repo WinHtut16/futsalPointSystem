@@ -2,8 +2,9 @@
 
 import { Fragment, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
-  Check, Calendar, Clock, Wallet, Shield, CreditCard, ArrowRight, Banknote,
+  Check, Calendar, Clock, Wallet, Shield, CreditCard, ArrowRight,
   Copy, MessageCircle, Phone, ArrowUpRight, Info, CalendarCheck, AlertTriangle,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -13,9 +14,9 @@ const WD_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
 const WD_MY = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ']
 const MO_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-const BANK = { name: 'KBZ Bank', number: '0123 4567 8910 11', holder: 'Myathida Futsal Co., Ltd.' }
+const KBZPAY = { number: '09 5190 865', holder: 'Aung Thura Phyo' }
 const PHONE = '+95 9 797 272000'
-const VIBER_URL = 'https://viber.me/959797272000'
+const VIBER_URL = 'viber://chat?number=%2B959797272000'
 
 type BookingGroup = { date: string; hours: number[] }
 
@@ -181,25 +182,30 @@ export default function ConfirmFlow({
           </div>
           <p className={`text-[13px] text-ink-muted ${my}`}>{t('booking.confirm.transferSub')}</p>
 
-          <div
-            className="fb-card mt-4 border-0 p-4 text-white"
-            style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))' }}
-          >
-            <div className="flex items-start justify-between">
+          <div className="fb-card mt-4 p-4">
+            <div className="flex items-center gap-3 border-b border-line pb-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-alt">
+                <Image
+                  src="/images/kbz-pay.webp"
+                  alt="KBZ Pay"
+                  width={200}
+                  height={200}
+                  className="h-14 w-auto object-contain"
+                />
+              </div>
               <div>
-                <div className={`font-display text-[11px] font-semibold uppercase tracking-widest opacity-70 ${my}`}>
+                <div className={`font-display text-[11px] font-semibold uppercase tracking-widest text-ink-muted ${my}`}>
                   {t('booking.confirm.bankAccount')}
                 </div>
-                <div className="mt-1 font-display text-base font-bold">{BANK.name}</div>
+                <div className="mt-0.5 font-display text-base font-bold text-ink-primary">KBZ Pay</div>
               </div>
-              <Banknote size={22} className="opacity-80" />
             </div>
-            <div className="mt-4 font-fbmono text-[22px] font-bold tracking-wider">{BANK.number}</div>
-            <div className="mt-1.5 text-xs opacity-85">{BANK.holder}</div>
+            <div className="mt-4 font-fbmono text-[22px] font-bold tracking-wider text-ink-primary">{KBZPAY.number}</div>
+            <div className="mt-1.5 text-sm text-ink-muted">{KBZPAY.holder}</div>
             <button
               type="button"
-              onClick={() => navigator.clipboard?.writeText(BANK.number.replace(/\s/g, ''))}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/20 px-3.5 py-2.5 font-display text-xs font-semibold"
+              onClick={() => navigator.clipboard?.writeText(KBZPAY.number.replace(/\s/g, ''))}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-line bg-surface-alt px-3.5 py-2.5 font-display text-xs font-semibold text-ink-primary"
             >
               <Copy size={13} /> <span className={my}>{t('booking.confirm.copyAccount')}</span>
             </button>
