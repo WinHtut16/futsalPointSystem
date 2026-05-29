@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, X, Phone, Clock } from 'lucide-react'
+import { Check, X, Phone, Clock, AlertTriangle } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'closed'
@@ -13,6 +13,7 @@ export type AdminBooking = {
   booking_date: string
   deposit_total: number
   deposit_received: boolean
+  override_request: boolean
   customer: { username: string | null; phone: string | null } | null
   hours: number[]
 }
@@ -102,7 +103,11 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
       ) : (
         <div className="space-y-3">
           {visible.map((b) => (
-            <div key={b.id} className="rounded-2xl bg-white p-4 shadow-sm">
+            <div
+              key={b.id}
+              className="rounded-2xl bg-white p-4 shadow-sm"
+              style={b.override_request && b.status === 'pending' ? { borderLeft: '3px solid #f59e0b' } : undefined}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-semibold text-gray-900">{b.customer?.username ?? 'Unknown'}</p>
@@ -110,10 +115,26 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
                     <Phone className="h-3 w-3" /> {b.customer?.phone ?? '—'}
                   </p>
                 </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold capitalize ${statusStyle[b.status]}`}>
-                  {b.status}
-                </span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {b.override_request && b.status === 'pending' && (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                      Override Request
+                    </span>
+                  )}
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold capitalize ${statusStyle[b.status]}`}>
+                    {b.status}
+                  </span>
+                </div>
               </div>
+
+              {b.override_request && b.status === 'pending' && (
+                <div className="mt-2.5 flex items-start gap-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                  <span>
+                    This booking requests a slot that has a pending holder. Confirming will cancel the original booking for that slot.
+                  </span>
+                </div>
+              )}
 
               <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-sm">
                 <span className="font-medium text-gray-800">{formatDate(b.booking_date)}</span>
@@ -131,7 +152,6 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
 
               {b.status !== 'cancelled' && b.status !== 'closed' && (
                 <div className="mt-3 flex items-center gap-2">
-                  {/* Deposit received toggle = confirm */}
                   <button
                     onClick={() => act(b.id, b.deposit_received ? 'unconfirm' : 'confirm')}
                     disabled={busy === b.id}
