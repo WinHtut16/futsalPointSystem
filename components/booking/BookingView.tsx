@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X } from 'lucide-react'
+import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X, AlertTriangle } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import {
   dayHours,
@@ -19,6 +19,7 @@ import BookingCalendar, { type CalendarData } from './BookingCalendar'
 import { PricingLegend } from './Pricing'
 import SlotLegend from './SlotLegend'
 import TimeSlotGrid, { type SlotView } from './TimeSlotGrid'
+import PendingSlotSheet from './PendingSlotSheet'
 
 export type DayInfo = {
   booked: number[]
@@ -27,7 +28,7 @@ export type DayInfo = {
   dayClosed: boolean
 }
 
-type CartSlot = { date: string; hour: number }
+type CartSlot = { date: string; hour: number; override?: boolean }
 
 const WD_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const WD_MY = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ']
@@ -65,10 +66,10 @@ export default function BookingView({
 
   const [selectedDay, setSelectedDay] = useState<number | null>(initialDay)
   const [cart, setCart] = useState<CartSlot[]>([])
+  const [pendingSheetHour, setPendingSheetHour] = useState<number | null>(null)
 
   const selectDay = (d: number) => {
     setSelectedDay(d)
-    // cart intentionally NOT cleared — persists across date navigation
   }
 
   const navMonth = (delta: number) => {
@@ -92,14 +93,38 @@ export default function BookingView({
     })
   }
 
+  const handlePendingClick = (hour: number) => {
+    if (cart.length >= MAX_SLOTS) return
+    setPendingSheetHour(hour)
+  }
+
+  const confirmPendingRequest = () => {
+    if (!dateISO || pendingSheetHour === null) return
+    const date = dateISO
+    const hour = pendingSheetHour
+    setPendingSheetHour(null)
+    setCart((prev) => {
+      const exists = prev.some(s => s.date === date && s.hour === hour)
+      if (exists || prev.length >= MAX_SLOTS) return prev
+      return [...prev, { date, hour, override: true }].sort((a, b) =>
+        a.date < b.date ? -1 : a.date > b.date ? 1 : a.hour - b.hour
+      )
+    })
+  }
+
   const removeFromCart = (date: string, hour: number) => {
     setCart(prev => prev.filter(s => !(s.date === date && s.hour === hour)))
   }
 
   const dateISO = selectedDay ? `${year}-${pad(monthIdx + 1)}-${pad(selectedDay)}` : null
 
-  // Hours in cart for the currently-viewed date (drives grid selected state)
-  const selectedHoursOnDate = cart.filter(s => s.date === dateISO).map(s => s.hour)
+  const selectedHoursOnDate = cart
+    .filter(s => s.date === dateISO && !s.override)
+    .map(s => s.hour)
+
+  const overrideSelectedHoursOnDate = cart
+    .filter(s => s.date === dateISO && s.override)
+    .map(s => s.hour)
 
   const slots: SlotView[] = dateISO
     ? dayHours().map((hour) => {
@@ -114,7 +139,6 @@ export default function BookingView({
 
   const atMax = cart.length >= MAX_SLOTS
   const total = cart.reduce((sum, s) => sum + priceForHour(s.date, s.hour), 0)
-  // Deposit = 10k per unique booking date in cart
   const uniqueCartDates = [...new Set(cart.map(s => s.date))]
   const deposit = uniqueCartDates.length * DEPOSIT_PER_SLOT
 
@@ -203,7 +227,14 @@ export default function BookingView({
             <SlotLegend dense />
             {dateISO ? (
               <div className="mt-3">
-                <TimeSlotGrid slots={slots} selected={selectedHoursOnDate} onToggle={toggleSlot} atMax={atMax} />
+                <TimeSlotGrid
+                  slots={slots}
+                  selected={selectedHoursOnDate}
+                  overrideSelected={overrideSelectedHoursOnDate}
+                  onToggle={toggleSlot}
+                  onPendingClick={atMax ? undefined : handlePendingClick}
+                  atMax={atMax}
+                />
               </div>
             ) : (
               <div className="mt-3 rounded-[var(--r-md)] border border-line bg-surface-alt p-6 text-center text-sm text-ink-muted">
@@ -250,13 +281,36 @@ export default function BookingView({
                 {total.toLocaleString('en-US')}
               </span>
               <span className="font-fbmono text-[11px] text-ink-muted">MMK</span>
+              {cart.some(s => s.override) && (
+                <span
+                  className="ml-1 rounded px-1.5 py-0.5 font-display text-[9px] font-bold uppercase tracking-wide"
+                  style={{ background: 'var(--color-slot-pending-bg)', color: 'oklch(0.50 0.13 78)' }}
+                >
+                  Priority
+                </span>
+              )}
             </div>
           </div>
           <ProceedButton cart={cart} loggedIn={loggedIn} />
         </div>
       </div>
+
+      {/* Pending slot bottom sheet */}
+      <PendingSlotSheet
+        hour={pendingSheetHour}
+        onConfirm={confirmPendingRequest}
+        onClose={() => setPendingSheetHour(null)}
+      />
     </div>
   )
+}
+
+function buildProceedTarget(cart: CartSlot[]): string {
+  const itemsParam = cart.map(s => `${s.date}_${s.hour}`).join(',')
+  const overrides = cart.filter(s => s.override).map(s => `${s.date}_${s.hour}`).join(',')
+  return overrides
+    ? `/book/confirm?items=${itemsParam}&overrides=${overrides}`
+    : `/book/confirm?items=${itemsParam}`
 }
 
 function ProceedButton({
@@ -273,8 +327,7 @@ function ProceedButton({
 
   const proceed = () => {
     if (disabled) return
-    const itemsParam = cart.map(s => `${s.date}_${s.hour}`).join(',')
-    const target = `/book/confirm?items=${itemsParam}`
+    const target = buildProceedTarget(cart)
     if (!loggedIn) {
       router.push(`/login?next=${encodeURIComponent(target)}`)
       return
@@ -325,17 +378,26 @@ function Summary({
               <div
                 key={`${s.date}-${s.hour}`}
                 className="flex items-center justify-between border-b border-dashed border-line py-2"
+                style={s.override ? { borderLeft: '2px solid var(--color-slot-pending)', paddingLeft: '8px' } : undefined}
               >
                 <span className="inline-flex items-center gap-2">
-                  <Clock size={13} className="text-primary" />
+                  <Clock size={13} className={s.override ? 'text-slot-pending' : 'text-primary'} />
                   <span className="flex flex-col">
                     <span className="font-display text-[11px] text-ink-muted">{shortDateLabel(s.date, lang)}</span>
                     <span className="font-fbmono text-[13px]">{formatHourRange(s.hour)}</span>
+                    {s.override && (
+                      <span
+                        className="mt-0.5 font-display text-[9px] font-bold uppercase tracking-wide"
+                        style={{ color: 'oklch(0.50 0.13 78)' }}
+                      >
+                        {t('booking.pending.priorityLabel')}
+                      </span>
+                    )}
                   </span>
                 </span>
                 <span className="flex items-center gap-2">
                   <span className="font-display text-[13px] font-bold">
-                    {priceFor(s.date, s.hour).toLocaleString('en-US')}
+                    {priceForHour(s.date, s.hour).toLocaleString('en-US')}
                   </span>
                   <button
                     type="button"
@@ -398,8 +460,7 @@ function ProceedButtonFull({
 
   const proceed = () => {
     if (disabled) return
-    const itemsParam = cart.map(s => `${s.date}_${s.hour}`).join(',')
-    const target = `/book/confirm?items=${itemsParam}`
+    const target = buildProceedTarget(cart)
     router.push(loggedIn ? target : `/login?next=${encodeURIComponent(target)}`)
   }
 
@@ -409,8 +470,4 @@ function ProceedButtonFull({
       <ArrowRight size={15} />
     </button>
   )
-}
-
-function priceFor(dateISO: string, hour: number) {
-  return priceForHour(dateISO, hour)
 }
