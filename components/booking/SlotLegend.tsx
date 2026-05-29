@@ -17,7 +17,14 @@ export default function SlotLegend({ dense = false }: { dense?: boolean }) {
       {STATES.map((s) => (
         <span key={s} className="inline-flex items-center gap-1.5 font-display text-[11px] font-semibold">
           <span className={`pill-${s} h-3.5 w-3.5 rounded`} style={{ border: '1.5px solid currentColor' }} />
-          <span className={`text-ink ${my}`}>{t(`booking.slot.${s}` as never)}</span>
+          <span className={`text-ink ${my}`}>
+            {t(`booking.slot.${s}` as never)}
+            {s === 'pending' && (
+              <span className="ml-1 font-normal opacity-70">
+                — {t('booking.slot.pendingHint')}
+              </span>
+            )}
+          </span>
         </span>
       ))}
     </div>
