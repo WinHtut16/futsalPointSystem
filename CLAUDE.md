@@ -53,11 +53,19 @@ Lives in the same codebase as the loyalty/points system. Single court, EN/MY, mo
 ### Route Groups
 
 - `app/(auth)/` — public login/register pages (customer + admin auth)
-- `app/(customer)/` — customer-facing dashboard, history, rewards (protected, `customer` role)
+- `app/(customer)/` — customer-facing **unified account** (`/dashboard`), history, rewards (protected, `customer` role)
 - `app/(admin)/` — admin dashboard, customer management, rewards, staff management (protected, `admin`/`superadmin` role)
 - `app/api/` — REST API endpoints; all mutating endpoints verify session and role server-side
 
 `middleware.ts` handles route protection and role-based redirects before any page renders.
+
+### Unified Frontend (booking + loyalty)
+
+This branch merges the booking system and loyalty/points system into one product. Three unification surfaces:
+
+- **Unified customer account** — `app/(customer)/dashboard/page.tsx` (server) is no longer points-only. It fetches points transactions, rewards + pending map, and bookings + slots, builds a merged chronological feed, and renders `components/customer/account/UnifiedAccount.tsx`: a compact header (`AccountHeader` — avatar, name, member-since, **flat** points strip with lifetime earned/redeemed, no tiers) above three tabs — **Bookings** (reuses `BookingHistoryCard` + Book CTA), **Points & Rewards** (flat balance + `RewardsGrid`), **History** (`UnifiedTimeline` — booking events + point txns on one month-grouped rail, filterable all/bookings/points). Points stay live via the same `profiles` realtime + 20s polling as `PointsCard`.
+- **No tiers** — `components/booking/PointsCard.tsx` is a flat gradient balance card with a "10 pts/hour" earn strip. The old Gold/Silver tier + progress bar was removed; do not reintroduce tier UI anywhere.
+- **Bottom-sheet post-login booking flow** — on `/book`, a logged-out customer tapping "Log in to Book" opens `components/booking/BookingLoginSheet.tsx` (mobile bottom-sheet) instead of navigating; the cart stays in `BookingView` React state. On success the sheet closes, a welcome toast shows, and the CTA flips to "Confirm Booking" → existing `/book/confirm` flow. Sign-in reuses the same Supabase browser call as `LoginForm` (no new API). Desktop keeps the full-page `?next=/book/confirm?items=…` + `safeNext` fallback; `LoginForm` shows a "Booking held" banner when `next` targets `/book/confirm`.
 
 ### Loading Skeletons
 
@@ -65,9 +73,9 @@ Both route groups use Next.js `loading.tsx` files (co-located with each page) to
 
 **Pattern:** `animate-pulse` on each card; `bg-gray-200` for prominent elements, `bg-gray-100` for secondary; `rounded-2xl shadow-sm bg-white` for card blocks; `divide-y divide-gray-100` for list cards. No spinner — every skeleton mirrors the real page layout.
 
-**Customer pages** (`app/(customer)/`) — `loading.tsx` adds `px-4 py-6` itself because the customer layout's `<main>` has no padding.
+**Customer pages** (`app/(customer)/`) — `loading.tsx` adds `px-4 py-6` itself because the customer layout's `<main>` has no padding. Exception: `dashboard/loading.tsx` mirrors the unified-account layout (identity row + points strip + tabs + cards) and supplies its own padding to match `UnifiedAccount`.
 
-**Admin pages** (`app/(admin)/`) — `loading.tsx` starts with `<div className="space-y-5">` only, because the admin layout's `<main>` already applies `px-4 py-6 max-w-2xl mx-auto`. Skeleton colors use neutral grays (no green) to match the admin theme.
+**Admin pages** (`app/(admin)/`) — `loading.tsx` starts with `<div className="space-y-5">` only, because the admin content `<main>` (rendered by `AdminShell`) already applies `px-4 py-6 max-w-2xl mx-auto`. Skeleton colors use neutral grays (no green) to match the admin theme.
 
 Admin pages with skeletons: `dashboard`, `customers`, `customers/[id]`, `redemptions`, `rewards`, `staff`, `staff/[id]`.
 
@@ -147,7 +155,7 @@ All tables have Row-Level Security enforced. Key patterns:
 | `lib/supabase/server.ts` | SSR Supabase client + `createServiceClient()` (raw `@supabase/supabase-js`, truly bypasses RLS) |
 | `lib/cached-queries.ts` | `getActiveRewards()` — `unstable_cache` wrapper (tag: `'rewards'`, revalidate: 30s) for the customer-facing rewards list. Filters `is_active=true` AND `is_deleted=false`. Any API route that mutates the `rewards` table **must** call `revalidateTag('rewards', 'default')` (Next.js 16 requires the cacheLife profile as second arg) or customers will see stale data for up to 30 s. |
 | `hooks/useRealtimePoints.ts` | `useRealtimePoints(userId, initialPoints)` — shared hook; same channel + 20s polling pattern as `PointsCard`. Used by `RealtimePointsBadge` on rewards and history pages. |
-| `contexts/PendingRedemptionsContext.tsx` | `PendingRedemptionsProvider` + `usePendingRedemptions()` — single Supabase realtime channel (`'admin-pending-badge'`) + 15s polling fallback for all-time pending redemption count; mounted in `app/(admin)/layout.tsx` wrapping the entire admin UI; consumed by `AdminNav` (badge), `PendingSoundAlert` (sound), and `PendingRedemptionsBanner` (banner). |
+| `contexts/PendingRedemptionsContext.tsx` | `PendingRedemptionsProvider` + `usePendingRedemptions()` — single Supabase realtime channel (`'admin-pending-badge'`) + 15s polling fallback for all-time pending redemption count; mounted in `app/(admin)/layout.tsx` wrapping the entire admin UI; consumed by `AdminShell`'s sidebar (badge on the Requests item), `PendingSoundAlert` (sound), and `PendingRedemptionsBanner` (banner). |
 | `lib/notificationSound.ts` | `playNotificationBeep()` — Web Audio API two-tone beep (880 Hz + 660 Hz with 80 ms offset); SSR-safe (`typeof window` guard); silently swallows `NotAllowedError` (autoplay block) and all other errors. |
 | `lib/holidays.ts` | Myanmar public holiday list + helpers: `isHoliday(isoDate)`, `getHolidayName(isoDate, lang)`, `getSlotTier(isoDate, hour)`. Update `MYANMAR_HOLIDAYS` array annually. Used by `lib/booking.ts` (`isWeekendRate`) and `app/(site)/book/page.tsx` (calendar markers). |
 
@@ -169,7 +177,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 **Components with live subscriptions:**
 | Component | Table | Events | Used in |
 |-----------|-------|---------|---------|
-| `PendingRedemptionsContext` | `redemption_requests` | INSERT, UPDATE | All admin pages (mounted in `app/(admin)/layout.tsx`) — powers AdminNav badge, PendingSoundAlert, PendingRedemptionsBanner |
+| `PendingRedemptionsContext` | `redemption_requests` | INSERT, UPDATE | All admin pages (mounted in `app/(admin)/layout.tsx`) — powers AdminShell sidebar badge, PendingSoundAlert, PendingRedemptionsBanner |
 | `RedemptionsList` | `redemption_requests` | INSERT, UPDATE | Admin redemptions page |
 | `PendingRequestsList` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer history |
 | `RewardsGrid` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer rewards |
@@ -189,9 +197,10 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 
 ### Component Organization
 
-- `components/auth/` — LoginForm, RegisterForm, AdminLoginForm
+- `components/auth/` — LoginForm, RegisterForm, AdminLoginForm, **AuthShell** (shared customer login/register chrome: full-bleed `linear-gradient(160deg, var(--color-primary), var(--color-primary-dark))`, football-pitch SVG watermark at `opacity 0.07`, 84×84 frosted-glass logo container with a 52×52 logo, white card using `var(--r-2xl)` + `var(--shadow-lg)`, `LanguageToggle variant="light"`. Customer `login`/`register` pages render through it; admin auth pages stay unstyled — do not apply AuthShell there)
 - `components/customer/` — PointsCard, RealtimePointsBadge, RewardsGrid, RewardCard, PendingRequestsList, **PendingRequestItem** (shows `requested_at` via `formatDateTime` — Myanmar TZ), **TransactionItem** (shows `created_at` via `formatDateTime` — Myanmar TZ; used on admin dashboard, admin customer detail page, and customer history page), CustomerNav
-- `components/admin/` — **PendingRedemptionsBanner** (reads pending count from `PendingRedemptionsContext`; no own subscription), **PendingSoundAlert** (render-nothing; plays Web Audio beep when pending count increases — initial load is skipped), RedemptionsList, RedemptionRequestCard, AddPointsForm, **AdjustPointsForm** (manual point corrections — positive or negative, mandatory reason field), CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, **AdminNav** (reads `usePendingRedemptions()` — shows amber `bg-amber-400` badge at top-right of "Requests" tab when count > 0; displays `"99+"` when count > 99), LogoutButton
+- `components/customer/account/` — unified account UI: **UnifiedAccount** (tab wrapper: Bookings · Points & Rewards · History), **AccountHeader** (identity + flat live points strip, no tiers), **UnifiedTimeline** (merged booking + points feed, month-grouped, exports the serializable `FeedItem` type built server-side in the dashboard page)
+- `components/admin/` — **PendingRedemptionsBanner** (reads pending count from `PendingRedemptionsContext`; no own subscription), **PendingSoundAlert** (render-nothing; plays Web Audio beep when pending count increases — initial load is skipped), RedemptionsList, RedemptionRequestCard, AddPointsForm, **AdjustPointsForm** (manual point corrections — positive or negative, mandatory reason field), CustomerSearch, RewardForm, RewardAdminRow, ResetPasswordForm, DeleteCustomerButton, CreateAdminForm, StaffResetPasswordForm, DeleteStaffButton, **AdminShell** (the admin layout shell — collapsible grouped sidebar `Dashboard · Booking{Bookings, Court} · Loyalty{Points & Rewards, Requests +badge, Customers} · Content{News, Staff — superadmin-only}` + mobile drawer + topbar; reads `usePendingRedemptions()` for the amber `--color-accent` badge on the Requests item, `"99+"` when count > 99; superadmin-only items hidden by role; replaced the old horizontal `AdminNav`), LogoutButton
 - `components/booking/` — **BookingView** (client state: `cart: CartSlot[]`, `pendingSheetHour: number | null`; builds `?items=` + `?overrides=` URLs), **TimeSlotGrid** (accepts `overrideSelected?: number[]` + `onPendingClick?` props), **SlotTile** (accepts `selectedAsOverride?: boolean` — renders amber override styling; `onPendingClick` fires for pending slots), **PendingSlotSheet** (bottom sheet / modal; appears when user taps a pending slot; `hour` prop drives content; `onConfirm` adds override to cart), **ConfirmFlow** (reads `BookingGroup.overrideHours`, sends `override_request: true` for affected date groups, shows amber priority notice in step 1), **SlotLegend** (shows "tap to request" hint next to pending state), **AdminBookingsList** (shows amber border + "Override Request" badge + conflict warning for pending override bookings)
 - `components/admin/analytics/` — superadmin-only chart components (all `'use client'`): `DashboardPeriodSection` (client wrapper that owns `useTransition` for period navigation; renders period label/selector, 4 period stat cards with skeleton numbers, `PendingRedemptionsBanner`, and `ChartsSection` — prevents full-page `loading.tsx` on month/year change by wrapping `router.replace` in `startTransition`), `ChartsSection` (dynamic-imports charts with `ssr:false`, renders chart cards; takes `month`/`year` props to build the points-chart title; accepts `isPending` prop to replace chart areas with `ChartSkeleton` while a period transition is in progress), `PointsBarChart` (points issued vs redeemed, daily across the selected month), `StatusDonut` (redemption status breakdown for the selected month), `TopRewardsBar` (top 5 rewards by approvals in the selected month), `TopCustomersBar` (top 5 customers by points earned in the selected month), `PeriodSelector` (month + year dropdowns; accepts `onNavigate` callback prop so parent can wrap navigation in `startTransition`; accepts `disabled` prop to lock dropdowns during transition), `PeriodLabel` (renders the selected period as an uppercase "MONTH YEAR" heading). All use Recharts + `useLanguage()` for i18n.
 - `components/ui/` — shared primitives: Button, Card, Input, **PasswordInput** (use for every password field — always has eye-toggle, add `showStrength` prop on new-password fields), Badge, Modal, PasswordStrengthMeter (uses i18n; strength labels in `auth.strengthWeak/Fair/Good/Strong`), T (i18n leaf for server components), LanguageToggle

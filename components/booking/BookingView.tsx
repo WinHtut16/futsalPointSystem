@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X, AlertTriangle } from 'lucide-react'
+import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X, AlertTriangle, Check, Lock } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import BookingLoginSheet from './BookingLoginSheet'
 import {
   dayHours,
   priceForHour,
@@ -68,6 +69,26 @@ export default function BookingView({
   const [selectedDay, setSelectedDay] = useState<number | null>(initialDay)
   const [cart, setCart] = useState<CartSlot[]>([])
   const [pendingSheetHour, setPendingSheetHour] = useState<number | null>(null)
+
+  // Post-login booking flow (mobile bottom-sheet). `loggedIn` is the initial
+  // server value; once a customer signs in via the sheet we flip locally so the
+  // cart is never lost to a navigation/refresh.
+  const [authed, setAuthed] = useState(loggedIn)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [welcomeName, setWelcomeName] = useState<string | null>(null)
+
+  const handleSheetSuccess = (name: string) => {
+    setSheetOpen(false)
+    setAuthed(true)
+    setWelcomeName(name)
+  }
+
+  // auto-dismiss the welcome toast
+  useEffect(() => {
+    if (!welcomeName) return
+    const id = setTimeout(() => setWelcomeName(null), 5000)
+    return () => clearTimeout(id)
+  }, [welcomeName])
 
   const selectDay = (d: number) => {
     setSelectedDay(d)
@@ -277,6 +298,12 @@ export default function BookingView({
 
       {/* Mobile sticky summary */}
       <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-line bg-surface px-4 py-3.5 shadow-[0_-8px_24px_rgba(15,40,28,0.06)] md:hidden">
+        {authed && welcomeName && (
+          <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 font-display text-[11px] font-bold text-primary">
+            <Check size={12} strokeWidth={2.6} />
+            <span className={my}>{t('booking.login.loggedInAs', { name: welcomeName })}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div>
             <div className={`font-display text-[11px] text-ink-muted ${my}`}>
@@ -300,9 +327,43 @@ export default function BookingView({
               )}
             </div>
           </div>
-          <ProceedButton cart={cart} loggedIn={loggedIn} />
+          <ProceedButton
+            cart={cart}
+            authed={authed}
+            justLoggedIn={!!welcomeName}
+            onLoginNeeded={() => setSheetOpen(true)}
+          />
         </div>
       </div>
+
+      {/* Welcome-back toast (after sheet login) */}
+      {welcomeName && (
+        <div
+          className="fixed inset-x-4 top-4 z-30 flex items-center gap-3 rounded-[var(--r-md)] px-3.5 py-3 text-white md:hidden"
+          style={{ background: 'var(--color-primary)', boxShadow: '0 10px 28px -6px rgba(15,40,28,0.45)' }}
+        >
+          <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-white/20">
+            <Check size={16} strokeWidth={2.6} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className={`font-display text-[13.5px] font-bold leading-tight ${my}`}>
+              {t('booking.login.welcome', { name: welcomeName })}
+            </div>
+            <div className={`mt-0.5 text-[11.5px] opacity-90 ${my}`}>{t('booking.login.welcomeSub')}</div>
+          </div>
+          <button type="button" onClick={() => setWelcomeName(null)} aria-label="Dismiss" className="shrink-0 opacity-70">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Bottom-sheet login (mobile-preferred) */}
+      <BookingLoginSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onSuccess={handleSheetSuccess}
+        nextTarget={buildProceedTarget(cart)}
+      />
 
       {/* Pending slot bottom sheet */}
       <PendingSlotSheet
@@ -324,10 +385,14 @@ function buildProceedTarget(cart: CartSlot[]): string {
 
 function ProceedButton({
   cart,
-  loggedIn,
+  authed,
+  justLoggedIn,
+  onLoginNeeded,
 }: {
   cart: CartSlot[]
-  loggedIn: boolean
+  authed: boolean
+  justLoggedIn: boolean
+  onLoginNeeded: () => void
 }) {
   const { t, lang } = useLanguage()
   const router = useRouter()
@@ -336,17 +401,23 @@ function ProceedButton({
 
   const proceed = () => {
     if (disabled) return
-    const target = buildProceedTarget(cart)
-    if (!loggedIn) {
-      router.push(`/login?next=${encodeURIComponent(target)}`)
+    if (!authed) {
+      onLoginNeeded()
       return
     }
-    router.push(target)
+    router.push(buildProceedTarget(cart))
   }
+
+  const label = !authed
+    ? t('booking.book.loginToBook')
+    : justLoggedIn
+      ? t('booking.login.confirmBooking')
+      : t('booking.book.proceed')
 
   return (
     <button type="button" className="fb-btn fb-btn-primary !px-4 !py-3.5" disabled={disabled} onClick={proceed}>
-      <span className={my}>{loggedIn ? t('booking.book.proceed') : t('booking.book.loginToBook')}</span>
+      {!authed && <Lock size={14} />}
+      <span className={my}>{label}</span>
       <ArrowRight size={15} />
     </button>
   )

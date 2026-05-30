@@ -121,6 +121,7 @@ export const bookingEN = {
   'booking.dash.history': 'History',
   'booking.dash.rewards': 'Rewards',
   'booking.dash.points': 'points',
+  'booking.dash.earnRate': 'Earn 10 pts every hour you play',
   'booking.dash.bookings': 'Bookings',
   'booking.dash.noUpcoming': 'No upcoming bookings.',
   'booking.dash.noHistory': 'No past bookings yet.',
@@ -167,6 +168,17 @@ export const bookingEN = {
   'booking.admin.category': 'Category',
   'booking.admin.coverUrl': 'Cover image URL',
   'booking.admin.bodyMd': 'Body (markdown)',
+
+  // Bottom-sheet login (post-login booking flow)
+  'booking.login.title': 'Log in to continue',
+  'booking.login.slotsSaved': 'Your selected slots are saved.',
+  'booking.login.signInContinue': 'Sign In & Continue',
+  'booking.login.bringBack': 'We’ll bring you right back to your booking.',
+  'booking.login.welcome': 'Welcome back, {name}.',
+  'booking.login.welcomeSub': 'Complete your booking below.',
+  'booking.login.confirmBooking': 'Confirm Booking',
+  'booking.login.loggedInAs': 'Logged in as {name}',
+  'booking.login.bookingHeld': 'Booking held',
 
   // Pending override bottom sheet
   'booking.pending.sheetTitle': 'Slot Pending Confirmation',
@@ -305,6 +317,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.dash.history': 'မှတ်တမ်း',
   'booking.dash.rewards': 'ဆုလာဘ်',
   'booking.dash.points': 'ပွိုင့်',
+  'booking.dash.earnRate': '၁ နာရီ ကစားလျှင် ၁၀ ပွိုင့် ရရှိမည်',
   'booking.dash.bookings': 'ဘွတ်ကင်',
   'booking.dash.noUpcoming': 'လာမည့် ဘွတ်ကင် မရှိပါ။',
   'booking.dash.noHistory': 'ယခင် ဘွတ်ကင် မရှိသေးပါ။',
@@ -351,6 +364,17 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.admin.category': 'အမျိုးအစား',
   'booking.admin.coverUrl': 'ပုံ URL',
   'booking.admin.bodyMd': 'အကြောင်းအရာ (markdown)',
+
+  // Bottom-sheet login (post-login booking flow)
+  'booking.login.title': 'ဆက်လုပ်ရန် ဝင်ပါ',
+  'booking.login.slotsSaved': 'သင်ရွေးထားသော အချိန်များ သိမ်းထားပါသည်။',
+  'booking.login.signInContinue': 'ဝင်ပြီး ဆက်လုပ်ရန်',
+  'booking.login.bringBack': 'ဝင်ပြီးတာနဲ့ သင့်ဘွတ်ကင်ဆီ ချက်ချင်း ပြန်ပို့ပါမည်။',
+  'booking.login.welcome': 'ပြန်လည်ကြိုဆိုပါတယ်၊ {name}။',
+  'booking.login.welcomeSub': 'အောက်တွင် ဘွတ်ကင် ဆက်ပြီး အပြီးသတ်ပါ။',
+  'booking.login.confirmBooking': 'ဘွတ်ကင် အတည်ပြု',
+  'booking.login.loggedInAs': '{name} အဖြစ် ဝင်ထား',
+  'booking.login.bookingHeld': 'ဘွတ်ကင် သိမ်းထားသည်',
 
   // Pending override bottom sheet
   'booking.pending.sheetTitle': 'အချိန်ဆိုင်းငံ့နေ',
