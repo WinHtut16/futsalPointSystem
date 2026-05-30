@@ -1,3 +1,135 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================================
+   DESIGN TOKENS — deep pitch-green + warm white + gold
+   Ported from the booking system. Swap --color-primary etc.
+   to retheme without touching components.
+   ============================================================ */
+:root {
+  /* Brand */
+  --color-primary:        oklch(0.34 0.075 156);
+  --color-primary-dark:   oklch(0.24 0.060 156);
+  --color-primary-soft:   oklch(0.94 0.030 156);
+  --color-on-primary:     #ffffff;
+  --color-accent:         oklch(0.78 0.135 78);
+  --color-accent-soft:    oklch(0.95 0.045 80);
+
+  /* Surfaces */
+  --color-background:     oklch(0.985 0.005 95);
+  --color-surface:        #ffffff;
+  --color-surface-alt:    oklch(0.965 0.008 95);
+  --color-line:           oklch(0.90 0.008 95);
+  --color-line-strong:    oklch(0.80 0.010 95);
+
+  /* Text */
+  --color-text-primary:   oklch(0.22 0.015 156);
+  --color-text:           oklch(0.32 0.015 156);
+  --color-text-muted:     oklch(0.55 0.012 156);
+  --color-text-faint:     oklch(0.70 0.010 156);
+
+  /* Slot states — repurposed for transaction types:
+     available = earn (+green), pending = amber, booked = deduct (−red) */
+  --color-slot-available:    oklch(0.62 0.135 152);
+  --color-slot-available-bg: oklch(0.96 0.040 152);
+  --color-slot-pending:      oklch(0.74 0.135 75);
+  --color-slot-pending-bg:   oklch(0.96 0.045 80);
+  --color-slot-booked:       oklch(0.58 0.135 25);
+  --color-slot-booked-bg:    oklch(0.96 0.025 25);
+  --color-slot-closed:       oklch(0.50 0.008 240);
+  --color-slot-closed-bg:    oklch(0.93 0.005 240);
+
+  /* Holiday / teal */
+  --color-holiday:        oklch(0.58 0.085 205);
+  --color-holiday-bg:     oklch(0.95 0.025 205);
+
+  /* Radii */
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  14px;
+  --r-xl:  20px;
+  --r-2xl: 28px;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(15, 40, 28, 0.05), 0 0 0 1px rgba(15, 40, 28, 0.04);
+  --shadow-md: 0 2px 8px rgba(15, 40, 28, 0.06), 0 0 0 1px rgba(15, 40, 28, 0.04);
+  --shadow-lg: 0 12px 32px -8px rgba(15, 40, 28, 0.18), 0 2px 6px rgba(15, 40, 28, 0.06);
+
+  /* Type — resolved from next/font variables injected by app/layout.tsx */
+  --font-display: var(--font-sora), 'Noto Sans Myanmar', system-ui, sans-serif;
+  --font-body:    var(--font-manrope), 'Noto Sans Myanmar', system-ui, sans-serif;
+  --font-mono:    var(--font-jetbrains), ui-monospace, monospace;
+  --font-my:      var(--font-noto-my), var(--font-sora), system-ui, sans-serif;
+}
+
+/* Myanmar script helper */
+.my { font-family: var(--font-my); letter-spacing: 0; }
+
+/* ---- Primitives ---- */
+.fb-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--r-lg);
+}
+
+.fb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  padding: 12px 18px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform .08s ease, background .15s, border-color .15s;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+}
+.fb-btn:active { transform: translateY(1px); }
+.fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fb-btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+.fb-btn-primary:hover:not(:disabled) { background: var(--color-primary-dark); }
+
+.fb-btn-ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-line-strong);
+}
+.fb-btn-ghost:hover:not(:disabled) { background: var(--color-surface-alt); }
+
+.fb-btn-accent { background: var(--color-accent); color: #1a1408; }
+
+.fb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-family: var(--font-display);
+}
+
+.fb-divider { height: 1px; background: var(--color-line); margin: 0; border: 0; }
+
+/* Status pills */
+.pill-available { background: var(--color-slot-available-bg); color: var(--color-slot-available); }
+.pill-pending   { background: var(--color-slot-pending-bg);   color: var(--color-slot-pending); }
+.pill-booked    { background: var(--color-slot-booked-bg);    color: var(--color-slot-booked); }
+.pill-closed    { background: var(--color-slot-closed-bg);    color: var(--color-slot-closed); }
+.pill-holiday   { background: var(--color-holiday-bg);        color: var(--color-holiday); }
+
+/* Page content entrance */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in { animation: page-in 0.15s ease-out; }

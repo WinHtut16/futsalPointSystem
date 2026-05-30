@@ -35,6 +35,24 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 
 **Stack:** Next.js 16 App Router, TypeScript, Supabase (auth + DB), Tailwind CSS, Recharts (charts)
 
+**Fonts (next/font/google, injected as CSS vars in `app/layout.tsx`):** Sora (`--font-sora`, display), Manrope (`--font-manrope`, body), JetBrains Mono (`--font-jetbrains`, mono), Noto Sans Myanmar (`--font-noto-my`).
+
+### Design Tokens
+
+CSS custom properties live in `app/globals.css` (`:root`). Tailwind aliases in `tailwind.config.ts` map to the same vars.
+
+**Colors:** `--color-primary` / `--color-primary-dark` (deep pitch-green, OKLCH) · `--color-surface` (#fff) · `--color-text-primary` / `--color-text` / `--color-text-muted` / `--color-text-faint` · `--color-line` / `--color-line-strong` · `--color-accent` (muted gold). Tailwind: `text-primary`, `bg-surface`, `text-ink`, `text-ink-muted`, `border-line`, etc.
+
+**Radii:** `--r-sm` (6px) → `--r-2xl` (28px). Tailwind: `rounded-r-sm` … `rounded-r-2xl`.
+
+**Shadows:** `--shadow-sm/md/lg` (greenish-tinted). Tailwind: `shadow-fb-sm`, `shadow-fb-md`, `shadow-fb-lg`.
+
+**Font families:** Tailwind `font-display` (Sora), `font-body` (Manrope), `font-fbmono` (JetBrains Mono), `font-my` (Noto Sans Myanmar).
+
+**When to use:** Customer-facing pages and auth pages use design tokens. Admin pages keep neutral Tailwind grays (`bg-gray-50`, `text-gray-*`) to maintain the separate admin visual identity. Don't mix design-token greens into admin UI.
+
+**Auth page pattern (`app/(auth)/login`, `app/(auth)/register`):** Full-bleed `linear-gradient(160deg, var(--color-primary), var(--color-primary-dark))` background · SVG football pitch watermark at `opacity: 0.07` · 84×84 frosted-glass logo container (`bg-white/12`, `border white/22`, `borderRadius: 20`) with 52×52 logo image inside · white form card using `var(--r-2xl)` radius and `var(--shadow-lg)`. Admin auth pages (`app/(auth)/admin/`) are unstyled — do not apply this pattern there.
+
 ### Route Groups
 
 - `app/(auth)/` — public login/register pages (customer + admin auth)

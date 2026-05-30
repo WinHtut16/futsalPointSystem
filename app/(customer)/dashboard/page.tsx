@@ -1,10 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { Gift } from 'lucide-react'
+import { Gift, Receipt } from 'lucide-react'
 import PointsCard from '@/components/customer/PointsCard'
 import TransactionItem from '@/components/customer/TransactionItem'
-import Card from '@/components/ui/Card'
 import T from '@/components/ui/T'
 import Link from 'next/link'
 import type { PointTransaction } from '@/types'
@@ -21,8 +20,10 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(5)
 
+  const txList = (transactions ?? []) as PointTransaction[]
+
   return (
-    <div className="px-4 py-6 space-y-5">
+    <div className="px-4 py-5 space-y-4">
       <PointsCard
         initialPoints={profile.total_points}
         username={profile.username}
@@ -30,34 +31,69 @@ export default async function DashboardPage() {
         userId={profile.id}
       />
 
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-900"><T k="dashboard.recentActivity" /></h2>
-          <Link href="/history" className="text-xs text-brand-600 font-medium hover:underline">
+      {/* Recent Activity */}
+      <div className="fb-card overflow-hidden">
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '14px 16px 2px',
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
+            color: 'var(--color-text-primary)',
+          }}>
+            <T k="dashboard.recentActivity" />
+          </span>
+          <Link href="/history" style={{
+            fontSize: 12, color: 'var(--color-primary)',
+            fontWeight: 600, textDecoration: 'none',
+            fontFamily: 'var(--font-display)',
+          }}>
             <T k="dashboard.viewAll" />
           </Link>
         </div>
-        {transactions && transactions.length > 0 ? (
-          transactions.map((tx) => (
-            <TransactionItem key={tx.id} tx={tx as PointTransaction} />
+
+        {txList.length > 0 ? (
+          txList.map((tx, i) => (
+            <TransactionItem key={tx.id} tx={tx} last={i === txList.length - 1} />
           ))
         ) : (
-          <p className="text-sm text-gray-400 text-center py-6">
-            <T k="dashboard.noActivity" />
-          </p>
+          <div style={{
+            textAlign: 'center', padding: '40px 24px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'var(--color-primary-soft)', color: 'var(--color-primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Receipt size={24} strokeWidth={1.8} />
+            </div>
+            <p style={{
+              fontSize: 13, color: 'var(--color-text-muted)', margin: 0,
+              fontFamily: 'var(--font-display)',
+            }}>
+              <T k="dashboard.noActivity" />
+            </p>
+          </div>
         )}
-      </Card>
+      </div>
 
-      <Card className="text-center">
-        <p className="text-sm text-gray-500 mb-2"><T k="dashboard.spendPoints" /></p>
-        <Link
-          href="/rewards"
-          className="inline-flex items-center gap-2 bg-brand-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-brand-700 transition"
-        >
-          <Gift className="w-4 h-4" />
+      {/* Spend CTA */}
+      <div className="fb-card" style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '14px 16px',
+      }}>
+        <p style={{
+          fontSize: 13, color: 'var(--color-text-muted)', margin: 0,
+          fontFamily: 'var(--font-display)',
+        }}>
+          <T k="dashboard.spendPoints" />
+        </p>
+        <Link href="/rewards" className="fb-btn fb-btn-primary" style={{ padding: '10px 16px', fontSize: 13 }}>
+          <Gift size={14} />
           <T k="dashboard.viewRewards" />
         </Link>
-      </Card>
+      </div>
     </div>
   )
 }

@@ -6,6 +6,7 @@ export const customerEN = {
   'nav.logout': 'Logout',
   // Points card
   'card.yourPoints': 'Your Points',
+  'card.earnRate': 'Earn 10 pts for every hour you play',
   // Dashboard
   'dashboard.recentActivity': 'Recent Activity',
   'dashboard.viewAll': 'View all',
@@ -53,6 +54,7 @@ export const customerMY: { [K in keyof typeof customerEN]: string } = {
   'nav.rewards': 'ဆုလာဘ်',
   'nav.logout': 'ထွက်ရန်',
   'card.yourPoints': 'သင့်လက်ရှိ ပွိုင့်များ',
+  'card.earnRate': '၁ နာရီ ကစားလျှင် ၁၀ ပွိုင့်',
   'dashboard.recentActivity': 'မကြာသေးမှီ လှုပ်ရှားမှုများ',
   'dashboard.viewAll': 'အားလုံးကြည့်ရန်',
   'dashboard.noActivity': 'မှတ်တမ်းမရှိသေးပါ။ ကစားပြီး ပွိုင့်များ ရယူပါ!',

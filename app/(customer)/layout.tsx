@@ -9,16 +9,34 @@ export default async function CustomerLayout({ children }: { children: React.Rea
   if (!profile || profile.role !== 'customer') redirect('/login')
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-brand-600 text-white px-4 py-2 flex items-center justify-between shadow">
-        <div className="flex items-center gap-2">
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-background)' }}>
+      <header style={{
+        background: 'var(--color-primary)',
+        color: 'var(--color-on-primary)',
+        padding: '12px 16px 10px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_white.jpg" alt="Mya Thida" className="h-10 w-10 rounded-lg object-contain bg-white" />
-          <span className="font-bold text-base leading-tight">Mya Thida<br /><span className="text-brand-200 text-xs font-normal">Futsal Field</span></span>
+          <img
+            src="/logo_white.jpg"
+            alt="Mya Thida"
+            style={{ width: 36, height: 36, borderRadius: 9, objectFit: 'contain', background: 'rgba(255,255,255,0.15)' }}
+          />
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
+              Mya Thida
+            </div>
+            <div style={{ fontSize: 10, opacity: 0.6, fontFamily: 'var(--font-display)' }}>
+              Futsal Field
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <LanguageToggle variant="light" />
-          <span className="text-sm text-brand-200">{profile.username}</span>
+          <span style={{ fontSize: 12, opacity: 0.8, fontFamily: 'var(--font-display)' }}>
+            {profile.username}
+          </span>
           <LogoutButton />
         </div>
       </header>

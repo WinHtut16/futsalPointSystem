@@ -2,38 +2,56 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, ClipboardList, Gift } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Home, Receipt, Gift } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { LucideIcon } from 'lucide-react'
 
+const LINKS: { href: string; labelKey: 'nav.home' | 'nav.history' | 'nav.rewards'; Icon: LucideIcon }[] = [
+  { href: '/dashboard', labelKey: 'nav.home', Icon: Home },
+  { href: '/history',   labelKey: 'nav.history', Icon: Receipt },
+  { href: '/rewards',   labelKey: 'nav.rewards', Icon: Gift },
+]
+
 export default function CustomerNav() {
   const pathname = usePathname()
-  const { t } = useLanguage()
-
-  const links: { href: string; label: string; Icon: LucideIcon }[] = [
-    { href: '/dashboard', label: t('nav.home'), Icon: Home },
-    { href: '/history', label: t('nav.history'), Icon: ClipboardList },
-    { href: '/rewards', label: t('nav.rewards'), Icon: Gift },
-  ]
+  const { t, lang } = useLanguage()
+  const isMy = lang === 'my'
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex">
-      {links.map(({ href, label, Icon }) => (
-        <Link
-          key={href}
-          href={href}
-          className={cn(
-            'flex-1 flex flex-col items-center py-2 text-xs transition-colors',
-            pathname === href
-              ? 'text-brand-600 font-semibold'
-              : 'text-gray-500 hover:text-gray-700'
-          )}
-        >
-          <Icon className="w-5 h-5 mb-0.5" />
-          {label}
-        </Link>
-      ))}
+    <nav style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0,
+      display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
+      borderTop: '1px solid var(--color-line)',
+      background: 'var(--color-surface)',
+      padding: '8px 8px 4px',
+      zIndex: 50,
+    }}>
+      {LINKS.map(({ href, labelKey, Icon }) => {
+        const active = pathname === href
+        return (
+          <Link
+            key={href}
+            href={href}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: 4, padding: '6px 0', textDecoration: 'none',
+              color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            }}
+          >
+            <Icon size={20} strokeWidth={active ? 2.3 : 1.8} />
+            <span
+              className={isMy ? 'my' : ''}
+              style={{
+                fontFamily: isMy ? 'var(--font-my)' : 'var(--font-display)',
+                fontSize: 10, fontWeight: active ? 700 : 500,
+                letterSpacing: '0.02em',
+              }}
+            >
+              {t(labelKey)}
+            </span>
+          </Link>
+        )
+      })}
     </nav>
   )
 }
