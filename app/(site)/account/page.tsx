@@ -163,6 +163,7 @@ export default async function AccountPage() {
           earned={earned}
           redeemed={redeemed}
           joinedISO={profile.created_at}
+          phone={profile.phone}
           upcoming={upcoming}
           rewards={rewards}
           userPoints={profile.total_points}

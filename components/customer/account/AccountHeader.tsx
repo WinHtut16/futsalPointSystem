@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Award } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Award, Phone, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
@@ -21,14 +22,23 @@ interface AccountHeaderProps {
   earned: number
   redeemed: number
   joinedISO: string
+  phone?: string | null
 }
 
 // Compact identity + flat points strip (no tiers). Points stay live via the
 // same profiles realtime + 20s polling pattern as PointsCard.
-export default function AccountHeader({ name, userId, initialPoints, earned, redeemed, joinedISO }: AccountHeaderProps) {
+export default function AccountHeader({ name, userId, initialPoints, earned, redeemed, joinedISO, phone }: AccountHeaderProps) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
   const [points, setPoints] = useState(initialPoints)
+  const router = useRouter()
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   const jd = new Date(joinedISO)
   const joinedLabel = !isNaN(jd.getTime())
@@ -72,6 +82,12 @@ export default function AccountHeader({ name, userId, initialPoints, earned, red
             <Award size={12} />
             <span className={my}>{t('account.memberSince', { date: joinedLabel })}</span>
           </div>
+          {phone && (
+            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-muted">
+              <Phone size={12} />
+              <span>{phone}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -105,6 +121,15 @@ export default function AccountHeader({ name, userId, initialPoints, earned, red
           </div>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={handleSignOut}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-[var(--r-md)] border border-line py-2.5 text-[12.5px] font-semibold text-ink-muted transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+      >
+        <LogOut size={14} strokeWidth={2} />
+        <span className={my}>{t('nav.logout')}</span>
+      </button>
     </div>
   )
 }

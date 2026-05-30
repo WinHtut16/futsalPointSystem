@@ -21,6 +21,7 @@ interface UnifiedAccountProps {
   earned: number
   redeemed: number
   joinedISO: string
+  phone?: string | null
   upcoming: DashboardBooking[]
   rewards: Reward[]
   userPoints: number
@@ -53,6 +54,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
         earned={props.earned}
         redeemed={props.redeemed}
         joinedISO={props.joinedISO}
+        phone={props.phone}
       />
 
       {/* segmented tab bar */}
