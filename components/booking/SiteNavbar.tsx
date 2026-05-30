@@ -30,8 +30,9 @@ export default function SiteNavbar({
     <>
       {/* Desktop */}
       <div className="hidden items-center justify-between border-b border-line bg-surface px-8 py-4 md:flex">
-        <Link href="/">
+        <Link href="/" className="flex items-center gap-2.5">
           <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={928} height={844} className="h-9 w-auto object-contain" />
+          <span className="font-display text-[13px] font-bold tracking-widest text-ink-primary">MYA THIDA</span>
         </Link>
         <div className="flex items-center gap-7">
           {navItems.map(({ k, href, key }) => (

@@ -92,6 +92,7 @@ export const bookingEN = {
   'booking.confirm.transferSub': 'Transfer the deposit to our account below, then notify us using one of the two options.',
   'booking.confirm.bankAccount': 'Payment method',
   'booking.confirm.copyAccount': 'Copy account number',
+  'booking.confirm.copied': 'Phone number copied to clipboard',
   'booking.confirm.notifyUs': 'Then notify us',
   'booking.confirm.viberTitle': 'Send proof via Viber',
   'booking.confirm.viberSub': 'Fastest · auto-notifies our team',
@@ -124,6 +125,7 @@ export const bookingEN = {
   'booking.dash.noUpcoming': 'No upcoming bookings.',
   'booking.dash.noHistory': 'No past bookings yet.',
   'booking.dash.details': 'Details',
+  'booking.dash.status': 'Status',
   'booking.dash.cannotCancel': 'Cannot cancel within 12 hours',
 
   // Status (booking-level)
@@ -274,6 +276,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.confirm.transferSub': 'အောက်ပါ ဘဏ်အကောင့်သို့ စပေါ်ငွေလွှဲပြီး အောက်က နည်းလမ်းနှစ်ခုထဲမှ တစ်ခုဖြင့် အကြောင်းကြားပါ။',
   'booking.confirm.bankAccount': 'ပေးချေနည်း',
   'booking.confirm.copyAccount': 'ကူးယူရန်',
+  'booking.confirm.copied': 'ဖုန်းနံပါတ် ကူးပြီးပါပြီ',
   'booking.confirm.notifyUs': 'ပြီးတဲ့အခါ',
   'booking.confirm.viberTitle': 'Viber ဖြင့် အထောက်အထား ပို့ပါ',
   'booking.confirm.viberSub': 'အမြန်ဆုံး · အလိုအလျောက် အကြောင်းကြား',
@@ -306,6 +309,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.dash.noUpcoming': 'လာမည့် ဘွတ်ကင် မရှိပါ။',
   'booking.dash.noHistory': 'ယခင် ဘွတ်ကင် မရှိသေးပါ။',
   'booking.dash.details': 'အသေးစိတ်',
+  'booking.dash.status': 'အဆင့်အတန်း',
   'booking.dash.cannotCancel': '၁၂ နာရီအတွင်း ဖျက်၍မရ',
 
   // Status

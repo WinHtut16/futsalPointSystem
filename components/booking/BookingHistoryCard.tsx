@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, X, Receipt } from 'lucide-react'
+import { Clock, X, Receipt, Calendar, Wallet, Hash } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import Modal from '@/components/ui/Modal'
 
 export type BookingStatus = 'confirmed' | 'pending' | 'closed' | 'cancelled'
 
@@ -34,6 +35,7 @@ export default function BookingHistoryCard({
   const my = lang === 'my' ? 'my' : ''
   const [cancelled, setCancelled] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
   const effective: BookingStatus = cancelled ? 'cancelled' : status
 
   async function cancel() {
@@ -52,47 +54,108 @@ export default function BookingHistoryCard({
   }
 
   return (
-    <div className="fb-card p-4" style={{ opacity: effective === 'cancelled' ? 0.7 : 1 }}>
-      <div className="flex items-start justify-between">
-        <div>
-          <div className={`font-display text-[15px] font-bold text-ink-primary ${my}`}>{dateLabel}</div>
-          <div className="mt-1 flex items-center gap-1.5 text-xs text-ink-muted">
-            <Clock size={12} /> <span className="font-fbmono">{timeLabel}</span>
+    <>
+      <div className="fb-card p-4" style={{ opacity: effective === 'cancelled' ? 0.7 : 1 }}>
+        <div className="flex items-start justify-between">
+          <div>
+            <div className={`font-display text-[15px] font-bold text-ink-primary ${my}`}>{dateLabel}</div>
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-ink-muted">
+              <Clock size={12} /> <span className="font-fbmono">{timeLabel}</span>
+            </div>
+          </div>
+          <span className={`fb-chip ${chip[effective]} px-2.5 py-1`}>
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            <span className={my}>{t(`booking.status.${effective}` as never)}</span>
+          </span>
+        </div>
+
+        <hr className="fb-divider my-3" />
+
+        <div className="flex items-center justify-between">
+          <div className="font-fbmono text-[11px] text-ink-muted">{refCode}</div>
+          <div className="text-xs text-ink-muted">
+            <span className={my}>{t('booking.confirm.deposit')}</span>{' '}
+            <strong className="font-display text-ink-primary">{deposit}</strong>
           </div>
         </div>
-        <span className={`fb-chip ${chip[effective]} px-2.5 py-1`}>
-          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          <span className={my}>{t(`booking.status.${effective}` as never)}</span>
-        </span>
-      </div>
 
-      <hr className="fb-divider my-3" />
+        {effective !== 'cancelled' && effective !== 'closed' && (
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={cancel}
+              disabled={!canCancel || busy}
+              title={!canCancel ? t('booking.dash.cannotCancel') : ''}
+              className="fb-btn fb-btn-ghost flex-1 !py-2.5 !text-xs"
+              style={{ opacity: canCancel ? 1 : 0.5, cursor: canCancel ? 'pointer' : 'not-allowed' }}
+            >
+              <X size={13} /> <span className={my}>{t('common.cancel')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDetails(true)}
+              className="fb-btn fb-btn-ghost flex-1 !py-2.5 !text-xs"
+            >
+              <Receipt size={13} /> <span className={my}>{t('booking.dash.details')}</span>
+            </button>
+          </div>
+        )}
 
-      <div className="flex items-center justify-between">
-        <div className="font-fbmono text-[11px] text-ink-muted">{refCode}</div>
-        <div className="text-xs text-ink-muted">
-          <span className={my}>{t('booking.confirm.deposit')}</span>{' '}
-          <strong className="font-display text-ink-primary">{deposit}</strong>
-        </div>
-      </div>
-
-      {effective !== 'cancelled' && effective !== 'closed' && (
-        <div className="mt-3 flex gap-2">
+        {(effective === 'cancelled' || effective === 'closed') && (
           <button
             type="button"
-            onClick={cancel}
-            disabled={!canCancel || busy}
-            title={!canCancel ? t('booking.dash.cannotCancel') : ''}
-            className="fb-btn fb-btn-ghost flex-1 !py-2.5 !text-xs"
-            style={{ opacity: canCancel ? 1 : 0.5, cursor: canCancel ? 'pointer' : 'not-allowed' }}
+            onClick={() => setShowDetails(true)}
+            className="fb-btn fb-btn-ghost mt-3 w-full !py-2.5 !text-xs"
           >
-            <X size={13} /> <span className={my}>{t('common.cancel')}</span>
-          </button>
-          <button type="button" className="fb-btn fb-btn-ghost flex-1 !py-2.5 !text-xs">
             <Receipt size={13} /> <span className={my}>{t('booking.dash.details')}</span>
           </button>
+        )}
+      </div>
+
+      <Modal
+        open={showDetails}
+        onClose={() => setShowDetails(false)}
+        title={t('booking.dash.details')}
+      >
+        <div className="flex flex-col gap-4">
+          <DetailRow icon={<Hash size={14} />} label={t('booking.confirm.ref')} my={my}>
+            <span className="font-fbmono text-[15px] font-bold tracking-wider text-ink-primary">{refCode}</span>
+          </DetailRow>
+          <hr className="fb-divider" />
+          <DetailRow icon={<Calendar size={14} />} label={t('booking.summary.date')} my={my}>
+            <span className={`font-display text-sm font-semibold text-ink-primary ${my}`}>{dateLabel}</span>
+          </DetailRow>
+          <DetailRow icon={<Clock size={14} />} label={t('booking.confirm.time')} my={my}>
+            <span className="font-fbmono text-sm font-semibold text-ink-primary">{timeLabel}</span>
+          </DetailRow>
+          <DetailRow icon={<Wallet size={14} />} label={t('booking.confirm.deposit')} my={my}>
+            <span className="font-display text-sm font-semibold text-ink-primary">{deposit}</span>
+          </DetailRow>
+          <hr className="fb-divider" />
+          <div className="flex items-center justify-between">
+            <span className={`text-[12px] text-ink-muted ${my}`}>{t('booking.dash.status')}</span>
+            <span className={`fb-chip ${chip[effective]} px-2.5 py-1`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              <span className={my}>{t(`booking.status.${effective}` as never)}</span>
+            </span>
+          </div>
         </div>
-      )}
+      </Modal>
+    </>
+  )
+}
+
+function DetailRow({
+  icon, label, my, children,
+}: {
+  icon: React.ReactNode; label: string; my: string; children: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className={`inline-flex items-center gap-2 text-[12px] text-ink-muted ${my}`}>
+        {icon} {label}
+      </span>
+      {children}
     </div>
   )
 }

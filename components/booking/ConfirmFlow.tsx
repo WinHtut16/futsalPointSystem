@@ -50,6 +50,7 @@ export default function ConfirmFlow({
   const [refs, setRefs] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const total = bookings.reduce((sum, g) =>
     sum + g.hours.reduce((s, h) => s + priceForHour(g.date, h), 0), 0)
@@ -85,6 +86,28 @@ export default function ConfirmFlow({
       setError('Network error. Please try again.')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function copyKbzNumber() {
+    const num = KBZPAY.number.replace(/\s/g, '')
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(num)
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = num
+        ta.style.position = 'fixed'
+        ta.style.left = '-9999px'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // silently ignore — clipboard access denied
     }
   }
 
@@ -219,13 +242,21 @@ export default function ConfirmFlow({
             </div>
             <div className="mt-4 font-fbmono text-[22px] font-bold tracking-wider text-ink-primary">{KBZPAY.number}</div>
             <div className="mt-1.5 text-sm text-ink-muted">{KBZPAY.holder}</div>
-            <button
-              type="button"
-              onClick={() => navigator.clipboard?.writeText(KBZPAY.number.replace(/\s/g, ''))}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-line bg-surface-alt px-3.5 py-2.5 font-display text-xs font-semibold text-ink-primary"
-            >
-              <Copy size={13} /> <span className={my}>{t('booking.confirm.copyAccount')}</span>
-            </button>
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={copyKbzNumber}
+                className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface-alt px-3.5 py-2.5 font-display text-xs font-semibold text-ink-primary"
+              >
+                {copied ? <Check size={13} className="text-primary" /> : <Copy size={13} />}
+                <span className={my}>{t('booking.confirm.copyAccount')}</span>
+              </button>
+              {copied && (
+                <span className="font-display text-[11px] font-semibold text-primary">
+                  {t('booking.confirm.copied')}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className={`mb-2 mt-6 font-display text-[11px] font-bold uppercase tracking-widest text-ink-muted ${my}`}>
