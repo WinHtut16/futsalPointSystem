@@ -9,6 +9,7 @@ import {
   priceForHour,
   tierForHour,
   isWeekendRate,
+  isSlotBookable,
   formatHourRange,
   MAX_SLOTS,
   DEPOSIT_PER_SLOT,
@@ -140,6 +141,7 @@ export default function BookingView({
         if (info.dayClosed || info.closedHours.includes(hour)) state = 'closed'
         else if (info.booked.includes(hour)) state = 'booked'
         else if (info.pending.includes(hour)) state = 'pending'
+        else if (!isSlotBookable(dateISO, hour)) state = 'closed'
         return { hourStart: hour, price: priceForHour(dateISO, hour), state, tier: tierForHour(dateISO, hour) }
       })
     : []

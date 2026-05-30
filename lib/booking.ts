@@ -84,3 +84,17 @@ export function canCancel(bookingDate: string, hourStart: number, now: Date = ne
   const diffHours = (slotStart.getTime() - now.getTime()) / 3_600_000
   return diffHours >= CANCEL_WINDOW_HOURS
 }
+
+// Minimum lead time (hours) required to book a slot.
+export const BOOKING_LEAD_HOURS = 1
+
+// Myanmar is UTC+6:30. Converts a "date + hour" in Myanmar local time to UTC ms.
+const MYANMAR_OFFSET_MS = (6 * 60 + 30) * 60 * 1000
+
+// Returns false when the slot start is less than BOOKING_LEAD_HOURS away —
+// i.e., the slot is in the past or too soon to book.
+export function isSlotBookable(dateISO: string, hourStart: number, now: Date = new Date()): boolean {
+  const { y, m, d } = parseYmd(dateISO)
+  const slotStartUTC = Date.UTC(y, m - 1, d, hourStart, 0, 0) - MYANMAR_OFFSET_MS
+  return slotStartUTC - now.getTime() >= BOOKING_LEAD_HOURS * 3_600_000
+}
