@@ -11,7 +11,7 @@ import BookingHistoryCard from '@/components/booking/BookingHistoryCard'
 import type { DashboardBooking } from '@/components/booking/BookingsDashboard'
 import RewardsGrid from '@/components/customer/RewardsGrid'
 
-type Tab = 'bookings' | 'rewards' | 'history'
+type Tab = 'upcoming' | 'history' | 'rewards'
 type Filter = 'all' | 'bookings' | 'points'
 
 interface UnifiedAccountProps {
@@ -31,13 +31,13 @@ interface UnifiedAccountProps {
 export default function UnifiedAccount(props: UnifiedAccountProps) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
-  const [tab, setTab] = useState<Tab>('bookings')
+  const [tab, setTab] = useState<Tab>('upcoming')
   const [filter, setFilter] = useState<Filter>('all')
 
   const tabs: { k: Tab; label: string }[] = [
-    { k: 'bookings', label: t('account.tab.bookings') },
-    { k: 'rewards', label: t('account.tab.rewards') },
+    { k: 'upcoming', label: t('account.tab.upcoming') },
     { k: 'history', label: t('account.tab.history') },
+    { k: 'rewards', label: t('account.tab.rewards') },
   ]
 
   const filteredFeed = props.feed.filter((it) =>
@@ -77,8 +77,8 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
       </div>
 
       <div className="px-4 pb-6 pt-[18px]">
-        {/* ---------- BOOKINGS ---------- */}
-        {tab === 'bookings' && (
+        {/* ---------- UPCOMING ---------- */}
+        {tab === 'upcoming' && (
           <div>
             <div className="mb-3.5 flex items-center justify-between">
               <div className={`font-display text-[15px] font-bold text-ink-primary ${my}`}>{t('account.upcoming')}</div>

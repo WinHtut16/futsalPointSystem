@@ -1,16 +1,17 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, ChevronLeft } from 'lucide-react'
+import { Calendar, ChevronLeft, User } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { createClient } from '@/lib/supabase/client'
 import BookingLangToggle from './BookingLangToggle'
 
 const navItems = [
   { k: 'home', href: '/', key: 'booking.nav.home' },
   { k: 'booking', href: '/book', key: 'booking.nav.book' },
   { k: 'news', href: '/news', key: 'booking.nav.news' },
-  { k: 'dashboard', href: '/bookings', key: 'booking.nav.account' },
 ] as const
 
 // Responsive top navigation: full bar on desktop, compact top bar on mobile.
@@ -25,6 +26,19 @@ export default function SiteNavbar({
 }) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
+  const [firstName, setFirstName] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const name = (user.user_metadata?.username as string | undefined) ?? user.email?.split('@')[0] ?? ''
+        setFirstName(name.split(' ')[0] || null)
+      }
+    })
+  }, [])
+
+  const accountHref = firstName ? '/account' : '/login'
 
   return (
     <>
@@ -51,6 +65,13 @@ export default function SiteNavbar({
         </div>
         <div className="flex items-center gap-3">
           <BookingLangToggle compact />
+          <Link
+            href={accountHref}
+            className="flex items-center gap-1.5 font-display text-sm font-semibold text-ink-muted transition-colors hover:text-ink-primary"
+          >
+            <User size={17} className={firstName ? 'text-primary' : 'text-ink-muted'} />
+            <span className={my}>{firstName ?? t('booking.nav.login')}</span>
+          </Link>
           <Link href="/book" className="fb-btn fb-btn-primary !px-4 !py-2.5">
             <Calendar size={14} />
             <span className={my}>{t('booking.nav.bookNow')}</span>
@@ -81,7 +102,16 @@ export default function SiteNavbar({
             </span>
           )}
         </div>
-        <BookingLangToggle compact />
+        <div className="flex items-center gap-2">
+          <BookingLangToggle compact />
+          <Link
+            href={accountHref}
+            className="flex h-9 w-9 items-center justify-center rounded-full"
+            aria-label={firstName ? 'My account' : 'Login'}
+          >
+            <User size={19} className={firstName ? 'text-primary' : 'text-ink-muted'} />
+          </Link>
+        </div>
       </div>
     </>
   )

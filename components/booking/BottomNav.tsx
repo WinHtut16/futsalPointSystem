@@ -8,7 +8,7 @@ const items = [
   { k: 'home', href: '/', Ic: Home, key: 'booking.nav.home' },
   { k: 'book', href: '/book', Ic: Calendar, key: 'booking.nav.book' },
   { k: 'news', href: '/news', Ic: Sparkles, key: 'booking.nav.news' },
-  { k: 'me', href: '/bookings', Ic: User, key: 'booking.nav.account' },
+  { k: 'me', href: '/account', Ic: User, key: 'booking.nav.account' },
 ] as const
 
 export default function BottomNav({ active }: { active?: string }) {

@@ -46,12 +46,12 @@ export async function middleware(request: NextRequest) {
       .single()
 
     const isAdminRole = profile?.role === 'admin' || profile?.role === 'superadmin'
-    const destination = isAdminRole ? '/admin/dashboard' : '/dashboard'
+    const destination = isAdminRole ? '/admin/dashboard' : '/account'
     return NextResponse.redirect(new URL(destination, request.url))
   }
 
   // Protect customer routes — role check delegated to layout (saves 1 DB round trip per request)
-  const customerRoutes = ['/dashboard', '/history', '/rewards', '/bookings']
+  const customerRoutes = ['/dashboard', '/history', '/rewards', '/bookings', '/account']
   if (customerRoutes.some((r) => pathname.startsWith(r))) {
     if (!user) {
       return NextResponse.redirect(new URL('/login', request.url))
@@ -71,7 +71,7 @@ export async function middleware(request: NextRequest) {
 
     const isAdminRole = profile?.role === 'admin' || profile?.role === 'superadmin'
     if (!isAdminRole) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL('/account', request.url))
     }
 
     // Staff management and CMS are superadmin-only

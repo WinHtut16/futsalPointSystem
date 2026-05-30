@@ -4,6 +4,7 @@ export const bookingEN = {
   'booking.nav.book': 'Book a slot',
   'booking.nav.news': 'News',
   'booking.nav.account': 'My account',
+  'booking.nav.login': 'Login',
   'booking.nav.bookNow': 'Book now',
 
   // Home — hero + sections
@@ -200,6 +201,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.nav.book': 'ဘွတ်ကင်',
   'booking.nav.news': 'သတင်း',
   'booking.nav.account': 'အကောင့်',
+  'booking.nav.login': 'ဝင်ရောက်',
   'booking.nav.bookNow': 'ဘွတ်ကင်လုပ်ရန်',
 
   // Home

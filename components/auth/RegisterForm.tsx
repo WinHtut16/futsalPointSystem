@@ -113,7 +113,7 @@ export default function RegisterForm() {
       {error && (
         <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
       )}
-      <Button type="submit" size="lg" loading={loading}>
+      <Button type="submit" size="lg" loading={loading} className="!bg-primary hover:!bg-primary-dark">
         {t('auth.createAccount')}
       </Button>
     </form>

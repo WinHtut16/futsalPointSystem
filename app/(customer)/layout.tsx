@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import CustomerNav from '@/components/customer/CustomerNav'
 import LogoutButton from '@/components/customer/LogoutButton'
 import LanguageToggle from '@/components/ui/LanguageToggle'
 
@@ -22,8 +21,7 @@ export default async function CustomerLayout({ children }: { children: React.Rea
           <LogoutButton />
         </div>
       </header>
-      <main className="flex-1 pb-20">{children}</main>
-      <CustomerNav />
+      <main className="flex-1">{children}</main>
     </div>
   )
 }
