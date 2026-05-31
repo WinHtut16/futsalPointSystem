@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Check, X, Phone, Clock, AlertTriangle } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'closed'
 
@@ -18,12 +19,12 @@ export type AdminBooking = {
   hours: number[]
 }
 
-const FILTERS: { k: 'all' | BookingStatus; label: string }[] = [
-  { k: 'all', label: 'All' },
-  { k: 'pending', label: 'Pending' },
-  { k: 'confirmed', label: 'Confirmed' },
-  { k: 'cancelled', label: 'Cancelled' },
-  { k: 'closed', label: 'Closed' },
+const FILTER_KEYS: { k: 'all' | BookingStatus; labelKey: string }[] = [
+  { k: 'all', labelKey: 'booking.admin.all' },
+  { k: 'pending', labelKey: 'booking.status.pending' },
+  { k: 'confirmed', labelKey: 'booking.status.confirmed' },
+  { k: 'cancelled', labelKey: 'booking.status.cancelled' },
+  { k: 'closed', labelKey: 'booking.status.closed' },
 ]
 
 const statusStyle: Record<BookingStatus, string> = {
@@ -31,6 +32,13 @@ const statusStyle: Record<BookingStatus, string> = {
   confirmed: 'bg-green-100 text-green-700',
   cancelled: 'bg-red-100 text-red-600',
   closed: 'bg-gray-200 text-gray-600',
+}
+
+const statusKey: Record<BookingStatus, string> = {
+  pending: 'booking.status.pending',
+  confirmed: 'booking.status.confirmed',
+  cancelled: 'booking.status.cancelled',
+  closed: 'booking.status.closed',
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -42,6 +50,7 @@ function timeLabel(hours: number[]) {
 }
 
 export default function AdminBookingsList({ initial }: { initial: AdminBooking[] }) {
+  const { t } = useLanguage()
   const [rows, setRows] = useState(initial)
   const [filter, setFilter] = useState<'all' | BookingStatus>('all')
   const [busy, setBusy] = useState<string | null>(null)
@@ -82,7 +91,7 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => {
+        {FILTER_KEYS.map((f) => {
           const n = f.k === 'all' ? rows.length : counts[f.k] ?? 0
           return (
             <button
@@ -92,14 +101,14 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
                 filter === f.k ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              {f.label} · {n}
+              {t(f.labelKey as never)} · {n}
             </button>
           )
         })}
       </div>
 
       {visible.length === 0 ? (
-        <p className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">No bookings.</p>
+        <p className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">{t('booking.admin.noBookings')}</p>
       ) : (
         <div className="space-y-3">
           {visible.map((b) => (
@@ -118,11 +127,11 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
                 <div className="flex shrink-0 items-center gap-1.5">
                   {b.override_request && b.status === 'pending' && (
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
-                      Override Request
+                      {t('booking.admin.overrideBadge')}
                     </span>
                   )}
-                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold capitalize ${statusStyle[b.status]}`}>
-                    {b.status}
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusStyle[b.status]}`}>
+                    {t(statusKey[b.status] as never)}
                   </span>
                 </div>
               </div>
@@ -130,9 +139,7 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
               {b.override_request && b.status === 'pending' && (
                 <div className="mt-2.5 flex items-start gap-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-                  <span>
-                    This booking requests a slot that has a pending holder. Confirming will cancel the original booking for that slot.
-                  </span>
+                  <span>{t('booking.admin.overrideWarning')}</span>
                 </div>
               )}
 
@@ -146,7 +153,7 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
               <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
                 <span className="font-mono">{b.ref}</span>
                 <span>
-                  Deposit <strong className="text-gray-800">{b.deposit_total.toLocaleString('en-US')} MMK</strong>
+                  {t('booking.admin.depositLabel')} <strong className="text-gray-800">{b.deposit_total.toLocaleString('en-US')} MMK</strong>
                 </span>
               </div>
 
@@ -162,14 +169,14 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
                     }`}
                   >
                     <Check className="h-3.5 w-3.5" />
-                    {b.deposit_received ? 'Deposit received' : 'Mark deposit received'}
+                    {b.deposit_received ? t('booking.admin.depositReceived') : t('booking.admin.confirmDeposit')}
                   </button>
                   <button
                     onClick={() => act(b.id, 'cancel')}
                     disabled={busy === b.id}
                     className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
                   >
-                    <X className="h-3.5 w-3.5" /> Cancel
+                    <X className="h-3.5 w-3.5" /> {t('booking.admin.cancelBooking')}
                   </button>
                 </div>
               )}

@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export type CmsPostInput = {
   slug: string
@@ -29,6 +30,7 @@ const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 export default function CmsPostForm({ id, initial }: { id?: string; initial?: Partial<CmsPostInput> }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [form, setForm] = useState<CmsPostInput>({ ...EMPTY, ...initial })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -110,27 +112,27 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
           <input className={field} value={form.slug} onChange={(e) => set('slug', e.target.value)} placeholder="member-week" required />
         </label>
         <label className="block">
-          <span className={labelCls}>Category</span>
+          <span className={labelCls}>{t('booking.admin.category')}</span>
           <select className={field} value={form.category} onChange={(e) => set('category', e.target.value as CmsPostInput['category'])}>
-            <option value="news">News</option>
-            <option value="promotion">Promotion</option>
-            <option value="league">League</option>
-            <option value="event">Event</option>
+            <option value="news">{t('booking.news.catNews')}</option>
+            <option value="promotion">{t('booking.news.catPromotion')}</option>
+            <option value="league">{t('booking.news.catLeague')}</option>
+            <option value="event">{t('booking.news.catEvent')}</option>
           </select>
         </label>
       </div>
 
       <label className="block">
-        <span className={labelCls}>Title (EN)</span>
+        <span className={labelCls}>{t('booking.admin.title')} (EN)</span>
         <input className={field} value={form.title} onChange={(e) => set('title', e.target.value)} required />
       </label>
       <label className="block">
-        <span className={labelCls}>Title (MY)</span>
+        <span className={labelCls}>{t('booking.admin.title')} (MY)</span>
         <input className={`${field} font-my`} value={form.title_my} onChange={(e) => set('title_my', e.target.value)} />
       </label>
 
       <label className="block">
-        <span className={labelCls}>Short excerpt (EN)</span>
+        <span className={labelCls}>{t('booking.admin.excerpt')} (EN)</span>
         <textarea
           className={field}
           maxLength={160}
@@ -141,7 +143,7 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
         <span className={helpCls}>{form.excerpt.length}/160</span>
       </label>
       <label className="block">
-        <span className={labelCls}>Short excerpt (MY)</span>
+        <span className={labelCls}>{t('booking.admin.excerpt')} (MY)</span>
         <textarea
           className={`${field} font-my`}
           maxLength={160}
@@ -154,7 +156,7 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
 
       {/* Cover image upload */}
       <div>
-        <span className={labelCls}>Cover image</span>
+        <span className={labelCls}>{t('booking.admin.coverImage')}</span>
 
         {form.manual_image_url && !uploading ? (
           <div className="space-y-2">
@@ -196,7 +198,7 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
             ) : (
               <>
                 <Upload className="h-6 w-6 text-gray-400" />
-                <span>Click to upload image</span>
+                <span>{t('booking.admin.uploadImage')}</span>
                 <span className="text-[11px] text-gray-400">JPG, PNG or WebP · max 5MB</span>
               </>
             )}
@@ -241,17 +243,17 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
 
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={form.published} onChange={(e) => set('published', e.target.checked)} className="h-4 w-4" />
-        <span className="text-sm font-medium text-gray-700">Published</span>
+        <span className="text-sm font-medium text-gray-700">{t('booking.admin.published')}</span>
       </label>
 
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-2">
         <button type="submit" disabled={busy} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50">
-          {id ? 'Save changes' : 'Create post'}
+          {id ? t('booking.admin.saveChanges') : t('booking.admin.createPost')}
         </button>
         <button type="button" onClick={() => router.push('/admin/cms')} className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-          Cancel
+          {t('booking.admin.cancel')}
         </button>
       </div>
     </form>
