@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Calendar, ArrowRight, Zap, Star, Shield, Sun } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -24,12 +25,26 @@ const STEPS = [
   { n: '03', titleKey: 'booking.home.step3Title', bodyKey: 'booking.home.step3Body' },
 ] as const
 
-export default function HomeContent({ posts }: { posts: NewsPost[] }) {
+export default function HomeContent({ posts, loggedOut = false }: { posts: NewsPost[]; loggedOut?: boolean }) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
+  const [showToast, setShowToast] = useState(loggedOut)
+
+  useEffect(() => {
+    if (!loggedOut) return
+    window.history.replaceState({}, '', '/')
+    const timer = setTimeout(() => setShowToast(false), 3000)
+    return () => clearTimeout(timer)
+  }, [loggedOut])
 
   return (
     <>
+      {showToast && (
+        <div className="animate-page-in fixed left-1/2 top-[68px] z-50 -translate-x-1/2 whitespace-nowrap rounded-[var(--r-md)] bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-fb-lg">
+          {t('auth.loggedOutToast')}
+        </div>
+      )}
+
       <SiteNavbar active="home" />
 
       <PitchHero height={460} className="md:h-[520px]">
