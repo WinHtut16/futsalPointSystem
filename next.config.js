@@ -8,6 +8,7 @@ const csp = [
   "font-src 'self'",
   // Supabase REST + Realtime websocket
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  "frame-src 'self' https://www.google.com https://maps.google.com https://maps.googleapis.com https://www.facebook.com https://www.facebook.com/plugins/",
   "frame-ancestors 'none'",
 ].join('; ')
 

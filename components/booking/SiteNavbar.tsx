@@ -12,6 +12,7 @@ const navItems = [
   { k: 'home', href: '/', key: 'booking.nav.home' },
   { k: 'booking', href: '/book', key: 'booking.nav.book' },
   { k: 'news', href: '/news', key: 'booking.nav.news' },
+  { k: 'account', href: '/account', key: 'booking.nav.account' },
 ] as const
 
 // Responsive top navigation: full bar on desktop, compact top bar on mobile.
