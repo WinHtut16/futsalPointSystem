@@ -36,8 +36,7 @@ export default function AccountHeader({ name, userId, initialPoints, earned, red
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    router.push('/?logged_out=1')
   }
 
   const jd = new Date(joinedISO)

@@ -57,7 +57,7 @@ export default function LoginForm() {
 
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
     const next = safeNext(searchParams.get('next'))
-    router.push(isAdmin ? '/admin/dashboard' : next ?? '/dashboard')
+    router.push(isAdmin ? '/admin/dashboard' : next ?? '/account')
     router.refresh()
   }
 
