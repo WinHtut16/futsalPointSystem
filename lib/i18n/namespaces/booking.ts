@@ -193,6 +193,10 @@ export const bookingEN = {
   // Admin
   'booking.admin.overrideBadge': 'Override Request',
   'booking.admin.overrideWarning': 'This booking requests a slot that has a pending holder. Confirming will cancel the original booking for that slot.',
+
+  // Footer
+  'booking.footer.findUs': 'Find Us',
+  'booking.footer.getDirections': 'Get Directions',
 } as const
 
 export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
@@ -390,4 +394,8 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   // Admin
   'booking.admin.overrideBadge': 'Override တောင်းဆိုမှု',
   'booking.admin.overrideWarning': 'ဤဘွတ်ကင်သည် ဆိုင်းငံ့နေသော အချိန်ကို တောင်းဆိုနေသည်။ အတည်ပြုပါက မူလဘွတ်ကင် ပယ်ဖျက်မည်။',
+
+  // Footer
+  'booking.footer.findUs': 'လိပ်စာ',
+  'booking.footer.getDirections': 'လမ်းညွှန်',
 }
