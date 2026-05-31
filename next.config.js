@@ -4,7 +4,7 @@ const csp = [
   // Next.js dev HMR + React hydration require unsafe-inline/unsafe-eval
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https://res.cloudinary.com",
   "font-src 'self'",
   // Supabase REST + Realtime websocket
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
@@ -12,6 +12,11 @@ const csp = [
 ].join('; ')
 
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
+    ],
+  },
   async headers() {
     return [
       {

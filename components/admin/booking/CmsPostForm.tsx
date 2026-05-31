@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Upload, Loader2, X, ChevronDown, ChevronUp } from 'lucide-react'
 
 export type CmsPostInput = {
   slug: string
@@ -24,13 +25,62 @@ const field = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm'
 const labelCls = 'mb-1 block text-xs font-semibold text-gray-600'
 const helpCls = 'mt-1 text-[11px] text-gray-400'
 
+const MAX_BYTES = 5 * 1024 * 1024
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+
 export default function CmsPostForm({ id, initial }: { id?: string; initial?: Partial<CmsPostInput> }) {
   const router = useRouter()
   const [form, setForm] = useState<CmsPostInput>({ ...EMPTY, ...initial })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [showUrlFallback, setShowUrlFallback] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const set = <K extends keyof CmsPostInput>(k: K, v: CmsPostInput[K]) => setForm((f) => ({ ...f, [k]: v }))
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!e.target.files) return
+    // Reset value so the same file can be re-selected after removal
+    e.target.value = ''
+    if (!file) return
+
+    if (!ALLOWED_TYPES.has(file.type)) {
+      setUploadError('Only JPEG, PNG, and WebP images are allowed.')
+      return
+    }
+    if (file.size > MAX_BYTES) {
+      setUploadError('File exceeds the 5 MB limit.')
+      return
+    }
+
+    setUploadError(null)
+    setUploading(true)
+
+    try {
+      const body = new FormData()
+      body.append('file', file)
+      const res = await fetch('/api/cms/upload-image', { method: 'POST', body })
+      const json = await res.json()
+      if (!res.ok) {
+        setUploadError(json.error ?? 'Upload failed, please try again.')
+        return
+      }
+      set('manual_image_url', json.url)
+    } catch {
+      setUploadError('Upload failed, please try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function removeImage() {
+    set('manual_image_url', '')
+    setUploadError(null)
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -117,17 +167,83 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
         <p className={helpCls}>Users will be taken to this link when they click the post.</p>
       </label>
 
-      <label className="block">
-        <span className={labelCls}>Cover image URL</span>
+      {/* Cover image upload */}
+      <div>
+        <span className={labelCls}>Cover image</span>
+
+        {form.manual_image_url && !uploading ? (
+          <div className="space-y-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={form.manual_image_url}
+              alt="Cover preview"
+              className="h-48 w-full rounded-lg object-cover"
+            />
+            <button
+              type="button"
+              onClick={removeImage}
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-red-600"
+            >
+              <X className="h-3.5 w-3.5" /> Remove / Change
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-8 text-sm text-gray-500 transition hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <span>Uploading…</span>
+              </>
+            ) : (
+              <>
+                <Upload className="h-6 w-6 text-gray-400" />
+                <span>Click to upload image</span>
+                <span className="text-[11px] text-gray-400">JPEG, PNG, WebP — max 5 MB</span>
+              </>
+            )}
+          </button>
+        )}
+
         <input
-          className={field}
-          type="url"
-          value={form.manual_image_url}
-          onChange={(e) => set('manual_image_url', e.target.value)}
-          placeholder="Paste an image URL or leave blank"
+          ref={fileInputRef}
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp"
+          className="hidden"
+          onChange={handleFileChange}
         />
-        <p className={helpCls}>If left blank, a default placeholder will be shown.</p>
-      </label>
+
+        {uploadError && (
+          <p className="mt-1.5 text-xs text-red-600">{uploadError}</p>
+        )}
+
+        {/* Fallback: paste URL */}
+        <button
+          type="button"
+          onClick={() => setShowUrlFallback((v) => !v)}
+          className="mt-2 flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600"
+        >
+          {showUrlFallback ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          Or paste image URL
+        </button>
+
+        {showUrlFallback && (
+          <div className="mt-1.5">
+            <input
+              className={field}
+              type="url"
+              value={form.manual_image_url}
+              onChange={(e) => set('manual_image_url', e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
+            <p className={helpCls}>If left blank, a default placeholder will be shown.</p>
+          </div>
+        )}
+      </div>
 
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={form.published} onChange={(e) => set('published', e.target.checked)} className="h-4 w-4" />

@@ -1,7 +1,17 @@
 'use client'
 
+import Image from 'next/image'
+import { CldImage } from 'next-cloudinary'
 import { ExternalLink } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+
+function isCloudinaryUrl(url: string): boolean {
+  try {
+    return new URL(url).hostname === 'res.cloudinary.com'
+  } catch {
+    return false
+  }
+}
 
 export type NewsPost = {
   id: string
@@ -57,8 +67,26 @@ export default function NewsCardGrid({ posts, columns = 3 }: { posts: NewsPost[]
             className="fb-card block overflow-hidden"
           >
             {p.manualImageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.manualImageUrl} alt="" className="h-44 w-full object-cover" />
+              isCloudinaryUrl(p.manualImageUrl) ? (
+                <CldImage
+                  src={p.manualImageUrl}
+                  alt=""
+                  width={800}
+                  height={176}
+                  crop="fill"
+                  gravity="auto"
+                  className="h-44 w-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={p.manualImageUrl}
+                  alt=""
+                  width={800}
+                  height={176}
+                  unoptimized
+                  className="h-44 w-full object-cover"
+                />
+              )
             ) : (
               <div className="flex h-44 w-full items-center justify-center bg-surface-alt">
                 <span
