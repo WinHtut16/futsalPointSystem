@@ -46,6 +46,8 @@ export const authEN = {
   'auth.strengthFair': 'Fair password',
   'auth.strengthGood': 'Good password',
   'auth.strengthStrong': 'Strong password',
+  // Post-logout toast
+  'auth.loggedOutToast': 'You have been logged out',
 } as const
 
 export const authMY: { [K in keyof typeof authEN]: string } = {
@@ -96,4 +98,6 @@ export const authMY: { [K in keyof typeof authEN]: string } = {
   'auth.strengthFair': 'ပုံမှန် စကားဝှက်',
   'auth.strengthGood': 'ကောင်းသော စကားဝှက်',
   'auth.strengthStrong': 'အားကောင်းသော စကားဝှက်',
+  // Post-logout toast
+  'auth.loggedOutToast': 'ထွက်ပြီးပါပြီ',
 }
