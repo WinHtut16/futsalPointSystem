@@ -73,18 +73,14 @@ export default function AdminShell({
           <button
             type="button"
             onClick={() => setDrawer(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-ink-primary md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-ink-primary hover:bg-black/5 transition-colors md:hidden"
             aria-label="Open menu"
           >
             <Menu size={18} />
           </button>
           <div className="md:hidden font-display text-[15px] font-extrabold text-ink-primary">Mya Thida</div>
           <div className="ml-auto flex items-center gap-3">
-            <LanguageToggle variant="light" />
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-ink-primary">{username}</p>
-              <p className="text-xs capitalize text-ink-muted">{role}</p>
-            </div>
+            <LanguageToggle variant="admin" />
             <LogoutButton />
           </div>
         </header>

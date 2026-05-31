@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
 import CustomerSearch from '@/components/admin/CustomerSearch'
-import CustomerRow from '@/components/admin/CustomerRow'
+import CustomersTable from '@/components/admin/CustomersTable'
 import T from '@/components/ui/T'
 import type { Profile } from '@/types'
 
@@ -24,7 +24,7 @@ export default async function CustomersPage({
     dbQuery = dbQuery.ilike('phone', `%${query}%`)
   }
 
-  const { data: customers } = await dbQuery.limit(50)
+  const { data: customers } = await dbQuery.limit(200)
 
   return (
     <div className="space-y-5">
@@ -33,11 +33,7 @@ export default async function CustomersPage({
 
       <Card className="p-0">
         {customers && customers.length > 0 ? (
-          <div className="divide-y divide-gray-100">
-            {customers.map((c) => (
-              <CustomerRow key={c.id} customer={c as Profile} />
-            ))}
-          </div>
+          <CustomersTable customers={customers as Profile[]} />
         ) : (
           <p className="text-sm text-gray-400 text-center py-10">
             {query ? <T k="admin.noCustomersSearch" /> : <T k="admin.noCustomers" />}

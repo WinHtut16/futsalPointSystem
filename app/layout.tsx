@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={fontVars}>
-      <body className="bg-gray-50 text-gray-900 antialiased"><Providers>{children}</Providers></body>
+      <body className="bg-gray-50 text-gray-900 antialiased font-body"><Providers>{children}</Providers></body>
     </html>
   )
 }
