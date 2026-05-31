@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       title_my: body.title_my ?? null,
       excerpt: body.excerpt ?? null,
       excerpt_my: body.excerpt_my ?? null,
-      source_url: body.source_url,
+      source_url: body.source_url ?? null,
       manual_image_url: body.manual_image_url ?? null,
       published: body.published ?? false,
       published_at: body.published ? new Date().toISOString() : null,

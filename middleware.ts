@@ -7,6 +7,13 @@ const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/re
 // (reset-password is excluded — user must be logged in to set a new password)
 const ADMIN_AUTH_ONLY_PATHS = ['/admin/login', '/admin/forgot-password']
 
+// Routes that require a logged-in session (any role)
+const CUSTOMER_AUTH_ROUTES = ['/dashboard', '/history', '/rewards', '/bookings', '/account']
+// Customer-facing routes that an authenticated admin should never land on — redirect to admin panel.
+// Note: /book is listed here but NOT in CUSTOMER_AUTH_ROUTES because it is publicly accessible
+// (unauthenticated visitors see a login-to-book CTA). Only logged-in admins are redirected away.
+const ADMIN_BLOCKED_ROUTES = ['/dashboard', '/bookings', '/book', '/rewards', '/account']
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -36,51 +43,60 @@ export async function middleware(request: NextRequest) {
 
   const isAdminPublicPath = ADMIN_PUBLIC_PATHS.some(p => pathname.startsWith(p))
   const isAdminAuthOnlyPath = ADMIN_AUTH_ONLY_PATHS.some(p => pathname.startsWith(p))
+  const isCustomerAuthRoute = CUSTOMER_AUTH_ROUTES.some(r => pathname === r || pathname.startsWith(r + '/'))
+  const isAdminBlockedRoute = ADMIN_BLOCKED_ROUTES.some(r => pathname === r || pathname.startsWith(r + '/'))
+  const isAdminRoute = pathname.startsWith('/admin') && !isAdminPublicPath
 
-  // Redirect logged-in users away from login/forgot-password (but not reset-password)
-  if (user && (pathname === '/login' || pathname === '/register' || isAdminAuthOnlyPath)) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const isAdminRole = profile?.role === 'admin' || profile?.role === 'superadmin'
-    const destination = isAdminRole ? '/admin/dashboard' : '/account'
-    return NextResponse.redirect(new URL(destination, request.url))
+  // ── Unauthenticated guards (no DB query needed) ──────────────────────────────
+  if (!user) {
+    if (isCustomerAuthRoute) return NextResponse.redirect(new URL('/login', request.url))
+    if (isAdminRoute) return NextResponse.redirect(new URL('/admin/login', request.url))
+    return supabaseResponse
   }
 
-  // Protect customer routes — role check delegated to layout (saves 1 DB round trip per request)
-  const customerRoutes = ['/dashboard', '/history', '/rewards', '/bookings', '/account']
-  if (customerRoutes.some((r) => pathname.startsWith(r))) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+  // ── Role check ───────────────────────────────────────────────────────────────
+  // Customer accounts always use {phone}@akoatp.com — confirmed customer emails skip the
+  // DB query on customer routes to avoid per-request overhead on high-traffic paths.
+  // Staff admin emails end @akoatp-staff.com; superadmin uses a real email — both trigger
+  // the fetch when visiting an admin-blocked route.
+  const isConfirmedCustomerEmail = (user.email ?? '').endsWith('@akoatp.com')
+  const needsRoleCheck =
+    isAdminAuthOnlyPath ||
+    pathname === '/login' ||
+    pathname === '/register' ||
+    isAdminRoute ||
+    (isAdminBlockedRoute && !isConfirmedCustomerEmail)
+
+  let role: string | null = null
+  if (needsRoleCheck) {
+    const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    role = data?.role ?? null
   }
 
-  // Protect admin routes (excluding public admin auth pages)
-  if (pathname.startsWith('/admin') && !isAdminPublicPath) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
-    }
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+  const isAdmin = role === 'admin' || role === 'superadmin'
 
-    const isAdminRole = profile?.role === 'admin' || profile?.role === 'superadmin'
-    if (!isAdminRole) {
-      return NextResponse.redirect(new URL('/account', request.url))
-    }
+  // ── Logged-in user on auth pages → redirect to their home ────────────────────
+  if (pathname === '/login' || pathname === '/register' || isAdminAuthOnlyPath) {
+    return NextResponse.redirect(new URL(isAdmin ? '/admin/dashboard' : '/account', request.url))
+  }
 
-    // Staff management and CMS are superadmin-only
-    if (
-      (pathname.startsWith('/admin/staff') || pathname.startsWith('/admin/cms')) &&
-      profile?.role !== 'superadmin'
-    ) {
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-    }
+  // ── Admin on customer-facing route → admin dashboard ─────────────────────────
+  if (isAdmin && isAdminBlockedRoute) {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+  }
+
+  // ── Non-admin on protected admin route → customer home ───────────────────────
+  if (isAdminRoute && !isAdmin) {
+    return NextResponse.redirect(new URL('/account', request.url))
+  }
+
+  // ── Superadmin-only paths ─────────────────────────────────────────────────────
+  if (
+    isAdminRoute &&
+    (pathname.startsWith('/admin/staff') || pathname.startsWith('/admin/cms')) &&
+    role !== 'superadmin'
+  ) {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
   return supabaseResponse

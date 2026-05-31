@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Upload, Loader2, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Upload, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
 export type CmsPostInput = {
   slug: string
@@ -11,14 +11,13 @@ export type CmsPostInput = {
   title_my: string
   excerpt: string
   excerpt_my: string
-  source_url: string
   manual_image_url: string
   published: boolean
 }
 
 const EMPTY: CmsPostInput = {
   slug: '', category: 'news', title: '', title_my: '', excerpt: '', excerpt_my: '',
-  source_url: '', manual_image_url: '', published: false,
+  manual_image_url: '', published: false,
 }
 
 const field = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm'
@@ -44,16 +43,15 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!e.target.files) return
-    // Reset value so the same file can be re-selected after removal
     e.target.value = ''
     if (!file) return
 
     if (!ALLOWED_TYPES.has(file.type)) {
-      setUploadError('Only JPEG, PNG, and WebP images are allowed.')
+      setUploadError('Only JPG, PNG and WebP images are allowed.')
       return
     }
     if (file.size > MAX_BYTES) {
-      setUploadError('File exceeds the 5 MB limit.')
+      setUploadError('File too large. Maximum size is 5MB.')
       return
     }
 
@@ -66,12 +64,12 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
       const res = await fetch('/api/cms/upload-image', { method: 'POST', body })
       const json = await res.json()
       if (!res.ok) {
-        setUploadError(json.error ?? 'Upload failed, please try again.')
+        setUploadError(json.error ?? 'Upload failed. Please try again.')
         return
       }
       set('manual_image_url', json.url)
     } catch {
-      setUploadError('Upload failed, please try again.')
+      setUploadError('Upload failed. Please try again.')
     } finally {
       setUploading(false)
     }
@@ -154,19 +152,6 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
         <span className={helpCls}>{form.excerpt_my.length}/160</span>
       </label>
 
-      <label className="block">
-        <span className={labelCls}>Facebook / External URL *</span>
-        <input
-          className={field}
-          type="url"
-          value={form.source_url}
-          onChange={(e) => set('source_url', e.target.value)}
-          placeholder="https://www.facebook.com/..."
-          required
-        />
-        <p className={helpCls}>Users will be taken to this link when they click the post.</p>
-      </label>
-
       {/* Cover image upload */}
       <div>
         <span className={labelCls}>Cover image</span>
@@ -179,13 +164,22 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
               alt="Cover preview"
               className="h-48 w-full rounded-lg object-cover"
             />
-            <button
-              type="button"
-              onClick={removeImage}
-              className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-red-600"
-            >
-              <X className="h-3.5 w-3.5" /> Remove / Change
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Change image
+              </button>
+              <button
+                type="button"
+                onClick={removeImage}
+                className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
+              >
+                Remove
+              </button>
+            </div>
           </div>
         ) : (
           <button
@@ -197,13 +191,13 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
             {uploading ? (
               <>
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                <span>Uploading…</span>
+                <span>Uploading...</span>
               </>
             ) : (
               <>
                 <Upload className="h-6 w-6 text-gray-400" />
                 <span>Click to upload image</span>
-                <span className="text-[11px] text-gray-400">JPEG, PNG, WebP — max 5 MB</span>
+                <span className="text-[11px] text-gray-400">JPG, PNG or WebP · max 5MB</span>
               </>
             )}
           </button>
@@ -228,7 +222,7 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
           className="mt-2 flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600"
         >
           {showUrlFallback ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          Or paste image URL
+          {showUrlFallback ? 'Use upload instead' : 'Or use an image URL instead'}
         </button>
 
         {showUrlFallback && (
