@@ -14,18 +14,18 @@ export default async function NewsPage() {
     const supabase = createServiceClient()
     const { data } = await supabase
       .from('cms_posts')
-      .select('id, slug, category, title, title_my, excerpt, excerpt_my, cover_url, published_at')
+      .select('id, category, title, title_my, excerpt, excerpt_my, source_url, manual_image_url, published_at')
       .eq('published', true)
       .order('published_at', { ascending: false })
     posts = (data ?? []).map((p) => ({
       id: p.id,
-      slug: p.slug,
       category: p.category,
       title: p.title,
       titleMy: p.title_my,
       excerpt: p.excerpt,
       excerptMy: p.excerpt_my,
-      coverUrl: p.cover_url,
+      sourceUrl: p.source_url ?? '',
+      manualImageUrl: p.manual_image_url,
       date: fmt(p.published_at),
     }))
   } catch {

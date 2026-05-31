@@ -20,9 +20,8 @@ export default async function EditCmsPostPage({ params }: { params: Promise<{ id
     title_my: data.title_my ?? '',
     excerpt: data.excerpt ?? '',
     excerpt_my: data.excerpt_my ?? '',
-    body_md: data.body_md ?? '',
-    body_my_md: data.body_my_md ?? '',
-    cover_url: data.cover_url ?? '',
+    source_url: data.source_url ?? '',
+    manual_image_url: data.manual_image_url ?? '',
     published: data.published,
   }
 

@@ -108,9 +108,8 @@ export const CmsPostSchema = z.object({
   title_my: safeText(200).nullish(),
   excerpt: safeText(500).nullish(),
   excerpt_my: safeText(500).nullish(),
-  body_md: safeText(20000).nullish(),
-  body_my_md: safeText(20000).nullish(),
-  cover_url: safeText(500).nullish(),
+  source_url: safeText(2000).min(1, 'Facebook / external URL is required.'),
+  manual_image_url: safeText(2000).nullish(),
   published: z.boolean().optional(),
 })
 

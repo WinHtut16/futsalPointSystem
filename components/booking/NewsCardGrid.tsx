@@ -1,19 +1,18 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowUpRight } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export type NewsPost = {
   id: string
-  slug: string
   category: 'news' | 'promotion' | 'league' | 'event'
   title: string
   titleMy?: string | null
   excerpt?: string | null
   excerptMy?: string | null
   date: string
-  coverUrl?: string | null
+  sourceUrl: string
+  manualImageUrl?: string | null
 }
 
 const catChip: Record<NewsPost['category'], string> = {
@@ -50,15 +49,31 @@ export default function NewsCardGrid({ posts, columns = 3 }: { posts: NewsPost[]
         const title = lang === 'my' && p.titleMy ? p.titleMy : p.title
         const excerpt = lang === 'my' && p.excerptMy ? p.excerptMy : p.excerpt
         return (
-          <Link key={p.id} href={`/news/${p.slug}`} className="fb-card block overflow-hidden">
-            {p.coverUrl ? (
+          <a
+            key={p.id}
+            href={p.sourceUrl || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fb-card block overflow-hidden"
+          >
+            {p.manualImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.coverUrl} alt="" className="h-44 w-full object-cover" />
+              <img src={p.manualImageUrl} alt="" className="h-44 w-full object-cover" />
             ) : (
-              <div className="fb-photo h-44 w-full" data-photo={p.category} />
+              <div className="flex h-44 w-full items-center justify-center bg-surface-alt">
+                <span
+                  className={`fb-chip ${catChip[p.category]}`}
+                  style={p.category === 'promotion' || p.category === 'event' ? { color: 'oklch(0.40 0.13 78)' } : undefined}
+                >
+                  {t(catKey[p.category] as never)}
+                </span>
+              </div>
             )}
             <div className="p-5">
-              <span className={`fb-chip ${catChip[p.category]}`} style={p.category === 'promotion' || p.category === 'event' ? { color: 'oklch(0.40 0.13 78)' } : undefined}>
+              <span
+                className={`fb-chip ${catChip[p.category]}`}
+                style={p.category === 'promotion' || p.category === 'event' ? { color: 'oklch(0.40 0.13 78)' } : undefined}
+              >
                 {t(catKey[p.category] as never)}
               </span>
               <div className={`mt-3 font-display text-base font-bold leading-snug text-ink-primary ${my}`}>
@@ -67,10 +82,10 @@ export default function NewsCardGrid({ posts, columns = 3 }: { posts: NewsPost[]
               {excerpt && <div className={`mt-2 text-[13px] leading-snug text-ink-muted ${my}`}>{excerpt}</div>}
               <div className="mt-3 flex items-center justify-between">
                 <span className="font-fbmono text-xs text-ink-muted">{p.date}</span>
-                <ArrowUpRight size={16} className="text-primary" />
+                <ExternalLink size={14} className="text-ink-muted" />
               </div>
             </div>
-          </Link>
+          </a>
         )
       })}
     </div>
