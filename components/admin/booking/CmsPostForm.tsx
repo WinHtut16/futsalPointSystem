@@ -112,7 +112,7 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-2">
-        <button type="submit" disabled={busy} className="rounded-lg bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 disabled:opacity-50">
+        <button type="submit" disabled={busy} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50">
           {id ? 'Save changes' : 'Create post'}
         </button>
         <button type="button" onClick={() => router.push('/admin/cms')} className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">

@@ -25,7 +25,7 @@ export default async function AdminCmsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">CMS posts</h1>
-        <Link href="/admin/cms/new" className="flex items-center gap-1.5 rounded-lg bg-brand-700 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-800">
+        <Link href="/admin/cms/new" className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
           <Plus className="h-4 w-4" /> New post
         </Link>
       </div>

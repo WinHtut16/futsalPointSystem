@@ -104,7 +104,7 @@ export default function ClosureManager({ initial }: { initial: Closure[] }) {
         <button
           type="submit"
           disabled={busy || !date}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-700 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50"
         >
           <Plus className="h-4 w-4" /> Close date / slot
         </button>

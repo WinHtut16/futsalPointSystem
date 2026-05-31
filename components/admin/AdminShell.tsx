@@ -50,10 +50,15 @@ export default function AdminShell({
   const [collapsed, setCollapsed] = useState(false)
   const [drawer, setDrawer] = useState(false)
 
+  const sidebarW = collapsed ? 68 : 248
+
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* desktop sidebar */}
-      <aside className="hidden md:flex">
+      {/* desktop sidebar — fixed full height */}
+      <aside
+        className="hidden md:block fixed inset-y-0 left-0 z-30 transition-[width] duration-200"
+        style={{ width: sidebarW }}
+      >
         <Sidebar role={role} username={username} collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
       </aside>
 
@@ -67,7 +72,10 @@ export default function AdminShell({
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div
+        className="flex min-w-0 flex-1 flex-col transition-[margin] duration-200"
+        style={{ marginLeft: sidebarW }}
+      >
         {/* topbar */}
         <header className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5">
           <button

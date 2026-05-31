@@ -27,6 +27,7 @@ export default function SiteNavbar({
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
   const [firstName, setFirstName] = useState<string | null>(null)
+  const [hydrating, setHydrating] = useState(true)
 
   useEffect(() => {
     const supabase = createClient()
@@ -35,6 +36,7 @@ export default function SiteNavbar({
         const name = (user.user_metadata?.username as string | undefined) ?? user.email?.split('@')[0] ?? ''
         setFirstName(name.split(' ')[0] || null)
       }
+      setHydrating(false)
     })
   }, [])
 
@@ -70,7 +72,7 @@ export default function SiteNavbar({
             className="flex items-center gap-1.5 font-display text-sm font-semibold text-ink-muted transition-colors hover:text-ink-primary"
           >
             <User size={17} className={firstName ? 'text-primary' : 'text-ink-muted'} />
-            <span className={my}>{firstName ?? t('booking.nav.login')}</span>
+            {!hydrating && <span className={my}>{firstName ?? t('booking.nav.login')}</span>}
           </Link>
           <Link href="/book" className="fb-btn fb-btn-primary !px-4 !py-2.5">
             <Calendar size={14} />

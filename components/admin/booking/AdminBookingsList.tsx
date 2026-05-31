@@ -157,7 +157,7 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
                     disabled={busy === b.id}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-colors ${
                       b.deposit_received
-                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        ? 'bg-primary text-white hover:bg-primary-dark'
                         : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                     }`}
                   >

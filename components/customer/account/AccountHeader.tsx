@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Award, Phone, LogOut } from 'lucide-react'
+import { Award, Phone, LogOut, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
@@ -92,7 +92,7 @@ export default function AccountHeader({ name, userId, initialPoints, earned, red
       </div>
 
       <div
-        className="relative mt-3.5 flex items-center justify-between overflow-hidden rounded-[var(--r-lg)] px-4 py-3.5 text-white"
+        className="relative mt-3.5 overflow-hidden rounded-[var(--r-lg)] px-4 pb-3.5 pt-3.5 text-white"
         style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))' }}
       >
         <svg viewBox="0 0 200 100" className="absolute -top-3 right-[-8px] w-[150px] opacity-[0.12]">
@@ -100,32 +100,38 @@ export default function AccountHeader({ name, userId, initialPoints, earned, red
           <line x1="100" y1="10" x2="100" y2="90" stroke="#fff" strokeWidth="0.8" />
           <circle cx="100" cy="50" r="14" stroke="#fff" strokeWidth="0.8" fill="none" />
         </svg>
-        <div className="relative">
-          <div className={`font-display text-[10px] font-bold uppercase tracking-[0.14em] opacity-70 ${my}`}>
-            {t('account.yourPoints')}
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className={`font-display text-[10px] font-bold uppercase tracking-[0.14em] opacity-70 ${my}`}>
+              {t('account.yourPoints')}
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="font-display text-[30px] font-extrabold leading-none tracking-tight">{points.toLocaleString('en-US')}</span>
+              <span className={`text-xs opacity-80 ${my}`}>{t('rewards.pts')}</span>
+            </div>
           </div>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="font-display text-[30px] font-extrabold leading-none tracking-tight">{points.toLocaleString('en-US')}</span>
-            <span className={`text-xs opacity-80 ${my}`}>{t('rewards.pts')}</span>
+          <div className="flex gap-[18px] text-right">
+            <div>
+              <div className="font-display text-[15px] font-extrabold">{earned.toLocaleString('en-US')}</div>
+              <div className={`mt-px text-[9.5px] font-medium opacity-70 ${my}`}>{t('account.earned')}</div>
+            </div>
+            <div className="w-px bg-white/20" />
+            <div>
+              <div className="font-display text-[15px] font-extrabold">{redeemed.toLocaleString('en-US')}</div>
+              <div className={`mt-px text-[9.5px] font-medium opacity-70 ${my}`}>{t('account.redeemed')}</div>
+            </div>
           </div>
         </div>
-        <div className="relative flex gap-[18px] text-right">
-          <div>
-            <div className="font-display text-[15px] font-extrabold">{earned.toLocaleString('en-US')}</div>
-            <div className={`mt-px text-[9.5px] font-medium opacity-70 ${my}`}>{t('account.earned')}</div>
-          </div>
-          <div className="w-px bg-white/20" />
-          <div>
-            <div className="font-display text-[15px] font-extrabold">{redeemed.toLocaleString('en-US')}</div>
-            <div className={`mt-px text-[9.5px] font-medium opacity-70 ${my}`}>{t('account.redeemed')}</div>
-          </div>
+        <div className={`relative mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-[12px] font-medium ${my}`}>
+          <Zap size={13} className="text-accent" />
+          {t('account.earnRate')}
         </div>
       </div>
 
       <button
         type="button"
         onClick={handleSignOut}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-[var(--r-md)] border border-line py-2.5 text-[12.5px] font-semibold text-ink-muted transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-[var(--r-md)] border border-red-200 py-2.5 text-[12.5px] font-semibold text-red-500 transition-colors hover:border-red-300 hover:bg-red-50"
       >
         <LogOut size={14} strokeWidth={2} />
         <span className={my}>{t('nav.logout')}</span>
