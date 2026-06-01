@@ -68,6 +68,24 @@ export const customerEN = {
   'account.filterPoints': 'Points',
   'account.noHistory': 'No activity yet.',
   'account.bookingEvent': 'Booking',
+  // Settings
+  'settings.title': 'Account Settings',
+  'settings.profile': 'Profile Information',
+  'settings.displayName': 'Display Name',
+  'settings.phone': 'Phone Number',
+  'settings.saveChanges': 'Save Changes',
+  'settings.changePassword': 'Change Password',
+  'settings.currentPassword': 'Current Password',
+  'settings.newPassword': 'New Password',
+  'settings.confirmPassword': 'Confirm New Password',
+  'settings.updatePassword': 'Update Password',
+  'settings.passwordMismatch': 'Passwords do not match',
+  'settings.passwordTooShort': 'Password must be at least 8 characters',
+  'settings.profileSaved': 'Profile updated successfully',
+  'settings.passwordSaved': 'Password updated successfully',
+  'settings.dangerZone': 'Danger Zone',
+  'settings.deleteAccount': 'Delete Account',
+  'settings.deleteContact': 'To delete your account please contact us at +95 9 797 272000',
 } as const
 
 export const customerMY: { [K in keyof typeof customerEN]: string } = {
@@ -134,5 +152,23 @@ export const customerMY: { [K in keyof typeof customerEN]: string } = {
   'account.filterPoints': 'ပွိုင့်',
   'account.noHistory': 'မှတ်တမ်း မရှိသေးပါ။',
   'account.bookingEvent': 'ဘွတ်ကင်',
+  // Settings
+  'settings.title': 'အကောင့်သတ်မှတ်ချက်များ',
+  'settings.profile': 'ပရိုဖိုင်အချက်အလက်',
+  'settings.displayName': 'အမည်',
+  'settings.phone': 'ဖုန်းနံပါတ်',
+  'settings.saveChanges': 'သိမ်းရန်',
+  'settings.changePassword': 'စကားဝှက်ပြောင်းရန်',
+  'settings.currentPassword': 'လက်ရှိစကားဝှက်',
+  'settings.newPassword': 'စကားဝှက်အသစ်',
+  'settings.confirmPassword': 'စကားဝှက်အတည်ပြုရန်',
+  'settings.updatePassword': 'စကားဝှက်အပ်ဒိတ်လုပ်ရန်',
+  'settings.passwordMismatch': 'စကားဝှက်များမတူညီပါ',
+  'settings.passwordTooShort': 'စကားဝှက် အနည်းဆုံး ၈ လုံးရှိရမည်',
+  'settings.profileSaved': 'ပရိုဖိုင်အပ်ဒိတ်လုပ်ပြီးပါပြီ',
+  'settings.passwordSaved': 'စကားဝှက်အပ်ဒိတ်လုပ်ပြီးပါပြီ',
+  'settings.dangerZone': 'အန္တရာယ်ရှိသောဇုန်',
+  'settings.deleteAccount': 'အကောင့်ဖျက်ရန်',
+  'settings.deleteContact': 'အကောင့်ဖျက်ရန် +95 9 797 272000 သို့ဆက်သွယ်ပါ',
 }
 

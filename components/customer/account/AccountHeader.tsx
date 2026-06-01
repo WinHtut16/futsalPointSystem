@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Award, Phone, LogOut, Zap } from 'lucide-react'
+import { Award, Phone, LogOut, Settings, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
@@ -88,6 +89,13 @@ export default function AccountHeader({ name, userId, initialPoints, earned, red
             </div>
           )}
         </div>
+        <Link
+          href="/account/settings"
+          aria-label="Account settings"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-black/5 hover:text-ink-muted"
+        >
+          <Settings size={16} />
+        </Link>
       </div>
 
       <div

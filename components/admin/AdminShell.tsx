@@ -218,10 +218,10 @@ function Sidebar({
           {initials(username)}
         </div>
         {!collapsed && (
-          <div className="min-w-0">
+          <Link href="/admin/profile" className="min-w-0 transition-opacity hover:opacity-75">
             <div className="truncate font-display text-[13px] font-bold">{username}</div>
             <div className="text-[11px] capitalize text-white/55">{role}</div>
-          </div>
+          </Link>
         )}
       </div>
     </div>
