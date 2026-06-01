@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Info } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Input from '@/components/ui/Input'
@@ -12,9 +12,10 @@ import Modal from '@/components/ui/Modal'
 interface Props {
   initialName: string
   initialPhone: string
+  initialEmail: string
 }
 
-export default function AccountSettingsForm({ initialName, initialPhone }: Props) {
+export default function AccountSettingsForm({ initialName, initialPhone, initialEmail }: Props) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
 
@@ -23,6 +24,8 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
   // Profile section
   const [name, setName] = useState(initialName)
   const [phone, setPhone] = useState(initialPhone)
+  const [email, setEmail] = useState(initialEmail)
+  const [emailBanner, setEmailBanner] = useState<string | null>(null)
   const [profileError, setProfileError] = useState('')
   const [profileSaving, setProfileSaving] = useState(false)
 
@@ -45,8 +48,10 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
     setProfileError('')
+    setEmailBanner(null)
     setProfileSaving(true)
     try {
+      // Save profile fields (name, phone) via API
       const body: Record<string, string> = { username: name.trim() }
       if (phone.trim()) body.phone = phone.trim()
       const res = await fetch('/api/profile', {
@@ -57,6 +62,28 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
         setProfileError((d as { error?: string }).error ?? 'Failed to save')
+        return
+      }
+
+      // Update email if changed
+      const trimmedEmail = email.trim()
+      if (trimmedEmail !== initialEmail) {
+        if (trimmedEmail) {
+          const supabase = createClient()
+          const { error: emailErr } = await supabase.auth.updateUser({ email: trimmedEmail })
+          if (emailErr) {
+            setProfileError(emailErr.message)
+            return
+          }
+          // Show banner only when a new email was added (initialEmail was empty)
+          if (!initialEmail) {
+            setEmailBanner(trimmedEmail)
+          } else {
+            setToast({ msg: t('settings.profileSaved'), ok: true })
+          }
+        } else {
+          setToast({ msg: t('settings.profileSaved'), ok: true })
+        }
       } else {
         setToast({ msg: t('settings.profileSaved'), ok: true })
       }
@@ -140,7 +167,30 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
             onChange={(e) => setPhone(e.target.value)}
             placeholder="09XXXXXXXXX"
           />
+          <div>
+            <Input
+              id="s-email"
+              label={t('auth.emailForRecovery')}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('auth.enterEmailForReset')}
+              autoComplete="email"
+            />
+            <p className="mt-1 text-xs text-gray-400">{t('auth.emailRecoveryHelper')}</p>
+          </div>
         </div>
+
+        {/* Email confirmation banner */}
+        {emailBanner && (
+          <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5">
+            <Info size={15} className="mt-0.5 shrink-0 text-amber-500" />
+            <p className="text-xs text-amber-700">
+              {t('auth.emailConfirmationSent').replace('[email]', emailBanner)}
+            </p>
+          </div>
+        )}
+
         {profileError && <p className="mt-2 text-xs text-red-500">{profileError}</p>}
         <button
           type="submit"

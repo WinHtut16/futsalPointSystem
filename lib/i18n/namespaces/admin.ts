@@ -189,6 +189,15 @@ export const adminEN = {
   'admin.monthNov': 'November',
   'admin.monthDec': 'December',
 
+  // Temp password modal (customer row → reset password)
+  'admin.resetPassword': 'Reset Password',
+  'admin.tempPasswordTitle': 'Reset Password',
+  'admin.tempPasswordBody': 'Set a temporary password for this customer. Call or message them with this temporary password.',
+  'admin.tempPasswordNote': 'They can change it after logging in from Account Settings.',
+  'admin.setThisPassword': 'Set This Password',
+  'admin.tempPasswordSet': 'Temporary password set.',
+  'admin.tempPasswordDoneNote': 'The customer can log in and change it in their Account Settings.',
+
   // AdjustPointsForm
   'admin.adjustPointsSection': 'Adjust Points',
   'admin.adjustAmountLabel': 'Adjustment Amount (+ to add, − to deduct)',
@@ -354,6 +363,15 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.monthOct': 'အောက်တိုဘာ',
   'admin.monthNov': 'နိုဝင်ဘာ',
   'admin.monthDec': 'ဒီဇင်ဘာ',
+
+  // Temp password modal
+  'admin.resetPassword': 'စကားဝှက်ပြန်လည်သတ်မှတ်ရန်',
+  'admin.tempPasswordTitle': 'စကားဝှက်ပြန်လည်သတ်မှတ်ရန်',
+  'admin.tempPasswordBody': 'ဤဖောက်သည်အတွက် ယာယီစကားဝှက်သတ်မှတ်ပါ။ ဖုန်းဆက်၍ ယာယီစကားဝှက်အသိပေးပါ။',
+  'admin.tempPasswordNote': 'လော့ဂ်အင်ဝင်ပြီး အကောင့်သတ်မှတ်ချက်မှ ပြောင်းလဲနိုင်သည်။',
+  'admin.setThisPassword': 'ဤစကားဝှက်သတ်မှတ်ရန်',
+  'admin.tempPasswordSet': 'ယာယီစကားဝှက်သတ်မှတ်ပြီးပါပြီ။',
+  'admin.tempPasswordDoneNote': 'ဖောက်သည်သည် လော့ဂ်အင်ဝင်ပြီး အကောင့်သတ်မှတ်ချက်မှ ပြောင်းလဲနိုင်သည်။',
 
   // AdjustPointsForm
   'admin.adjustPointsSection': 'အမှတ်ချိန်ညှိရန်',
