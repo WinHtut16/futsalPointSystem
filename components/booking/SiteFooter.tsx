@@ -80,13 +80,11 @@ export default function SiteFooter() {
             <span className={my}>{t('booking.footer.findUs')}</span>
           </p>
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3818.933074902053!2d96.26678117492148!3d16.829675883965503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30c18d5b8f51271b%3A0x7d25d15c3edb529e!2sMya%20Thida%20Futsal%20Field!5e0!3m2!1sen!2sth!4v1780222127573!5m2!1sen!2sth"
-            width="100%"
-            height="240"
-            style={{ border: 0, borderRadius: '8px' }}
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3818.933074902053!2d96.26678117492148!3d16.829675883965503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30c18d5b8f51271b%3A0x7d25d15c3edb529e!2sMya%20Thida%20Futsal%20Field!5e0!3m2!1sen!2sth!4v1780281934835!5m2!1sen!2sth"
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
+            style={{ border: 0, borderRadius: '8px', width: '100%', height: '450px' }}
           />
         </div>
       </div>

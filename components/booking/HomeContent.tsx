@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Calendar, ArrowRight, Zap, Star, Shield, Sun } from 'lucide-react'
+import { Calendar, ArrowRight, Zap, Star, Shield, Sun, LogOut } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import SiteNavbar from './SiteNavbar'
 import BottomNav from './BottomNav'
@@ -40,7 +40,8 @@ export default function HomeContent({ posts, loggedOut = false }: { posts: NewsP
   return (
     <>
       {showToast && (
-        <div className="animate-page-in fixed left-1/2 top-[68px] z-50 -translate-x-1/2 whitespace-nowrap rounded-[var(--r-md)] bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-fb-lg">
+        <div className="animate-page-in fixed left-1/2 top-[68px] z-50 -translate-x-1/2 flex items-center gap-2 whitespace-nowrap rounded-[var(--r-md)] border-l-[3px] border-slot-pending bg-slot-pending-bg px-4 py-2.5 text-sm font-semibold text-amber-800 shadow-fb-lg">
+          <LogOut size={15} className="shrink-0" />
           {t('auth.loggedOutToast')}
         </div>
       )}

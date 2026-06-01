@@ -80,7 +80,7 @@ Both route groups use Next.js `loading.tsx` files (co-located with each page) to
 
 **Admin pages** (`app/(admin)/`) — `loading.tsx` starts with `<div className="space-y-5">` only, because the admin content `<main>` (rendered by `AdminShell`) already applies `px-4 py-6 max-w-2xl mx-auto`. Skeleton colors use neutral grays (no green) to match the admin theme.
 
-Admin pages with skeletons: `dashboard`, `customers`, `customers/[id]`, `redemptions`, `rewards`, `staff`, `staff/[id]`.
+Admin pages with skeletons: `dashboard`, `customers`, `customers/[id]`, `redemptions`, `rewards`, `staff`, `staff/[id]`, `bookings`, `court`, `cms`.
 
 Form-only pages (`rewards/new`, `staff/new`) have no `loading.tsx` — they render immediately with no async DB fetch before display.
 
