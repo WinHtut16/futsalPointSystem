@@ -77,7 +77,8 @@ export const bookingEN = {
   'booking.summary.depositDue': 'Deposit due',
   'booking.summary.perSlot': 'Flat deposit',
   'booking.summary.confirmedAfter': 'Booking is confirmed after deposit transfer.',
-  'booking.summary.slotsDeposit': 'slots · deposit',
+  'booking.summary.slotsDeposit': 'slots',
+  'booking.summary.depositLabel': 'Deposit',
 
   // Confirm flow
   'booking.confirm.title': 'Confirm booking',
@@ -303,7 +304,8 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.summary.depositDue': 'စပေါ်ငွေပေးရမည်',
   'booking.summary.perSlot': 'စပေါ်ငွေ',
   'booking.summary.confirmedAfter': 'စပေါ်ငွေပေးပြီးမှ ဘွတ်ကင် အတည်ဖြစ်ပါသည်။',
-  'booking.summary.slotsDeposit': 'နာရီ · စပေါ်ငွေ',
+  'booking.summary.slotsDeposit': 'အချိန်ကွက်',
+  'booking.summary.depositLabel': 'အပေါင်ငွေ',
 
   // Confirm flow
   'booking.confirm.title': 'ဘွတ်ကင်အတည်ပြုခြင်း',

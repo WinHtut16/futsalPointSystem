@@ -73,8 +73,8 @@ export default function AdminShell({
       )}
 
       <div
-        className="flex min-w-0 flex-1 flex-col transition-[margin] duration-200"
-        style={{ marginLeft: sidebarW }}
+        className="flex min-w-0 flex-1 flex-col transition-[margin] duration-200 md:[margin-left:var(--sidebar-w)]"
+        style={{ '--sidebar-w': `${sidebarW}px` } as React.CSSProperties}
       >
         {/* topbar */}
         <header className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5">

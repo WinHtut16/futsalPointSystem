@@ -309,12 +309,15 @@ export default function BookingView({
             <div className={`font-display text-[11px] text-ink-muted ${my}`}>
               {cart.length} {t('booking.summary.slotsDeposit')}
               {cart.length > 0 && (
-                <span className="ml-1 font-fbmono">· {t('booking.confirm.deposit')} {deposit.toLocaleString('en-US')}</span>
+                <span className="font-fbmono"> · {total.toLocaleString('en-US')} MMK {t('booking.summary.total')}</span>
               )}
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-[22px] font-extrabold tracking-tight text-ink-primary">
-                {total.toLocaleString('en-US')}
+            <div className="flex items-baseline gap-1.5">
+              <span className={`font-display text-[13px] font-semibold text-ink-muted ${my}`}>
+                {t('booking.summary.depositLabel')}:
+              </span>
+              <span className="font-display text-[20px] font-extrabold tracking-tight text-ink-primary">
+                {deposit.toLocaleString('en-US')}
               </span>
               <span className="font-fbmono text-[11px] text-ink-muted">MMK</span>
               {cart.some(s => s.override) && (
