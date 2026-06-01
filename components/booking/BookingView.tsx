@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X, AlertTriangle, Check, Lock } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import BookingLoginSheet from './BookingLoginSheet'
@@ -187,16 +188,25 @@ export default function BookingView({
     <div className="pb-36 md:pb-0">
       {/* Court summary */}
       <div className="px-4 pt-3.5 md:px-0">
-        <div className="fb-card flex items-center gap-3 p-3.5">
-          <div className="fb-photo h-14 w-14 shrink-0 rounded-[10px]" data-photo="court 1" />
-          <div className="flex-1">
-            <div className={`font-display text-sm font-bold text-ink-primary ${my}`}>
-              {t('booking.book.courtName')}
-            </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] text-ink-muted">
-              <MapPin size={11} /> <span className={my}>{t('booking.book.location')}</span>
-              <span className="mx-1">·</span>
-              <Sun size={11} /> <span className={my}>{t('booking.book.roofed')}</span>
+        <div className="fb-card overflow-hidden">
+          <div className="relative h-40 w-full md:h-52">
+            <Image
+              src="/images/court1.jpg"
+              alt="Mya Thida Futsal Court"
+              fill
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 px-4 pb-4">
+              <div className={`font-display text-sm font-bold text-white ${my}`}>
+                {t('booking.book.courtName')}
+              </div>
+              <div className="mt-0.5 flex items-center gap-1 text-[11px] text-white/80">
+                <MapPin size={11} /> <span className={my}>{t('booking.book.location')}</span>
+                <span className="mx-1">·</span>
+                <Sun size={11} /> <span className={my}>{t('booking.book.roofed')}</span>
+              </div>
             </div>
           </div>
         </div>

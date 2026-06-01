@@ -173,3 +173,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-page-in { animation: page-in 0.15s ease-out; }
+
+/* Hide scrollbar while preserving scroll functionality */
+.scrollbar-hide { scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }

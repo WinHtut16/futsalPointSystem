@@ -65,7 +65,7 @@ export default function ClosureManager({ initial }: { initial: Closure[] }) {
   return (
     <div className="space-y-5">
       <form onSubmit={add} className="space-y-3 rounded-2xl bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-3 md:grid md:grid-cols-2">
           <label className="block">
             <span className="mb-1 block text-xs font-semibold text-gray-600">{t('booking.admin.closureDate')}</span>
             <input

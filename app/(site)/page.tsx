@@ -20,7 +20,7 @@ async function getPosts(): Promise<NewsPost[]> {
       .select('id, category, title, title_my, excerpt, excerpt_my, source_url, manual_image_url, published_at')
       .eq('published', true)
       .order('published_at', { ascending: false })
-      .limit(3)
+      .limit(5)
     if (error || !data || data.length === 0) return SAMPLE_POSTS
     return data.map((p) => ({
       id: p.id,

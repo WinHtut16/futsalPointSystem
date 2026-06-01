@@ -57,7 +57,7 @@ export default function SiteFooter() {
         </div>
 
         {/* Middle: quick links */}
-        <div className="mt-8 md:mt-0">
+        <div className="hidden md:block mt-8 md:mt-0">
           <nav className="flex flex-col gap-2.5 text-sm">
             <Link href="/" className="opacity-75 transition-opacity hover:opacity-100">
               <span className={my}>{t('booking.nav.home')}</span>

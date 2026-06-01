@@ -10,7 +10,8 @@ import SiteFooter from './SiteFooter'
 import PitchHero from './PitchHero'
 import SectionLabel from './SectionLabel'
 import { PricingTable } from './Pricing'
-import NewsCardGrid, { type NewsPost } from './NewsCardGrid'
+import NewsCarousel from './NewsCarousel'
+import type { NewsPost } from './NewsCardGrid'
 
 const FEATURES = [
   { Ic: Zap, titleKey: 'booking.home.featEasyTitle', bodyKey: 'booking.home.featEasyBody' },
@@ -123,7 +124,7 @@ export default function HomeContent({ posts, loggedOut = false }: { posts: NewsP
             action={t('booking.news.viewAll')}
             href="/news"
           />
-          <NewsCardGrid posts={posts} columns={3} />
+          <NewsCarousel posts={posts} />
         </section>
 
         <div className="hidden md:block">
