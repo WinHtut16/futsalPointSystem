@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { Phone, MapPin, Clock, MessageCircle, ExternalLink } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
@@ -10,7 +11,7 @@ export default function SiteFooter() {
   const btnCls = 'flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-2 text-xs transition-colors hover:bg-white/20'
   return (
     <footer className="mt-12 bg-primary-dark px-5 py-8 text-white md:px-16 md:py-12">
-      <div className="mx-auto max-w-6xl md:grid md:grid-cols-[3fr_2fr] md:gap-10">
+      <div className="mx-auto max-w-6xl md:grid md:grid-cols-[7fr_4fr_9fr] md:gap-10">
         {/* Left: brand + contact */}
         <div>
           <Image src="/logo_white.jpg" alt="Mya Thida Futsal" width={884} height={856} className="h-8 w-auto object-contain" />
@@ -53,6 +54,27 @@ export default function SiteFooter() {
               <span className={my}>{t('booking.footer.getDirections')}</span>
             </a>
           </div>
+        </div>
+
+        {/* Middle: quick links — desktop only */}
+        <div className="hidden md:flex md:flex-col md:self-start">
+          <p className="mb-3 text-xs font-medium uppercase tracking-wide opacity-60">
+            <span className={my}>{t('booking.footer.quickLinks')}</span>
+          </p>
+          <nav className="flex flex-col gap-2.5 text-sm">
+            <Link href="/" className="opacity-70 transition-opacity hover:opacity-100">
+              <span className={my}>{t('booking.nav.home')}</span>
+            </Link>
+            <Link href="/book" className="opacity-70 transition-opacity hover:opacity-100">
+              <span className={my}>{t('booking.nav.book')}</span>
+            </Link>
+            <Link href="/news" className="opacity-70 transition-opacity hover:opacity-100">
+              <span className={my}>{t('booking.nav.news')}</span>
+            </Link>
+            <Link href="/account" className="opacity-70 transition-opacity hover:opacity-100">
+              <span className={my}>{t('booking.nav.account')}</span>
+            </Link>
+          </nav>
         </div>
 
         {/* Right: map embed — desktop only */}

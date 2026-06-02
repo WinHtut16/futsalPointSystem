@@ -221,6 +221,7 @@ export const bookingEN = {
   'booking.admin.overrideWarning': 'This booking requests a slot that has a pending holder. Confirming will cancel the original booking for that slot.',
 
   // Footer
+  'booking.footer.quickLinks': 'Quick Links',
   'booking.footer.findUs': 'Find Us',
   'booking.footer.getDirections': 'Get Directions',
 } as const
@@ -448,6 +449,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.admin.overrideWarning': 'ဤဘွတ်ကင်သည် ဆိုင်းငံ့နေသော အချိန်ကို တောင်းဆိုနေသည်။ အတည်ပြုပါက မူလဘွတ်ကင် ပယ်ဖျက်မည်။',
 
   // Footer
+  'booking.footer.quickLinks': 'လင့်ကြောင်းများ',
   'booking.footer.findUs': 'လိပ်စာ',
   'booking.footer.getDirections': 'လမ်းညွှန်',
 }
