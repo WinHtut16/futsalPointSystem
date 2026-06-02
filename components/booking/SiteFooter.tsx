@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Phone, MapPin, Clock, MessageCircle, ExternalLink } from 'lucide-react'
+import { Phone, MapPin, Clock, MessageCircle, ExternalLink, Bus } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function SiteFooter() {
@@ -24,6 +24,10 @@ export default function SiteFooter() {
             </span>
             <span className="flex items-center gap-2">
               <Clock size={13} /> <span className={my}>{t('booking.home.openHours')}</span>
+            </span>
+            <span className="flex items-center gap-2">
+              <Bus size={13} />
+              <span className="font-fbmono">2 · 3 · 6 · 60 · 133 · 144</span>
             </span>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">

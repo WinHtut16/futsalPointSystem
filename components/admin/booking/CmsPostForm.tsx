@@ -132,26 +132,27 @@ export default function CmsPostForm({ id, initial }: { id?: string; initial?: Pa
       </label>
 
       <label className="block">
-        <span className={labelCls}>{t('booking.admin.excerpt')} (EN)</span>
+        <span className={labelCls}>{t('booking.admin.excerpt')} (MY) <span className="text-gray-400 font-normal">— paste Facebook post here</span></span>
+        <textarea
+          className={`${field} font-my`}
+          maxLength={2000}
+          rows={8}
+          value={form.excerpt_my}
+          onChange={(e) => set('excerpt_my', e.target.value)}
+          placeholder="Facebook post မှ ကူးထည့်ပါ…"
+        />
+        <span className={helpCls}>{form.excerpt_my.length}/2000</span>
+      </label>
+      <label className="block">
+        <span className={labelCls}>{t('booking.admin.excerpt')} (EN) <span className="text-gray-400 font-normal">— optional</span></span>
         <textarea
           className={field}
-          maxLength={160}
-          rows={2}
+          maxLength={2000}
+          rows={4}
           value={form.excerpt}
           onChange={(e) => set('excerpt', e.target.value)}
         />
-        <span className={helpCls}>{form.excerpt.length}/160</span>
-      </label>
-      <label className="block">
-        <span className={labelCls}>{t('booking.admin.excerpt')} (MY)</span>
-        <textarea
-          className={`${field} font-my`}
-          maxLength={160}
-          rows={2}
-          value={form.excerpt_my}
-          onChange={(e) => set('excerpt_my', e.target.value)}
-        />
-        <span className={helpCls}>{form.excerpt_my.length}/160</span>
+        <span className={helpCls}>{form.excerpt.length}/2000</span>
       </label>
 
       {/* Cover image upload */}
