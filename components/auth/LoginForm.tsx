@@ -200,7 +200,8 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => setShowForgot(true)}
-          className="mt-1.5 text-xs text-primary hover:underline"
+          className="mt-1.5 text-xs hover:underline hover:opacity-80"
+          style={{ color: 'var(--color-slot-pending)' }}
         >
           {t('auth.forgotPassword')}
         </button>
