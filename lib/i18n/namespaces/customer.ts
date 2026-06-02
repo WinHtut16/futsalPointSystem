@@ -86,6 +86,7 @@ export const customerEN = {
   'settings.dangerZone': 'Danger Zone',
   'settings.deleteAccount': 'Delete Account',
   'settings.deleteContact': 'To delete your account please contact us at +95 9 797 272000',
+  'settings.emailConfirmed': 'Email address confirmed successfully',
 } as const
 
 export const customerMY: { [K in keyof typeof customerEN]: string } = {
@@ -170,5 +171,6 @@ export const customerMY: { [K in keyof typeof customerEN]: string } = {
   'settings.dangerZone': 'အန္တရာယ်ရှိသောဇုန်',
   'settings.deleteAccount': 'အကောင့်ဖျက်ရန်',
   'settings.deleteContact': 'အကောင့်ဖျက်ရန် +95 9 797 272000 သို့ဆက်သွယ်ပါ',
+  'settings.emailConfirmed': 'အီးမေးလ်လိပ်စာ အတည်ပြုပြီးပါပြီ',
 }
 

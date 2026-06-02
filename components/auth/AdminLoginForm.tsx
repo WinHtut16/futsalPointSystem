@@ -84,7 +84,7 @@ export default function AdminLoginForm() {
         {t('auth.signIn')}
       </Button>
       <p className="text-center text-sm text-gray-500">
-        <Link href="/admin/forgot-password" className="text-primary font-medium hover:underline">
+        <Link href="/admin/forgot-password" className="font-medium hover:underline hover:opacity-80" style={{ color: 'var(--color-slot-pending)' }}>
           {t('auth.forgotPassword')}
         </Link>
       </p>

@@ -77,6 +77,7 @@ export default function AdminResetPasswordPage() {
             <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={928} height={844} className="rounded-xl object-contain" style={{ width: 52, height: 52 }} />
           </div>
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{t('auth.adminResetPasswordTitle')}</h1>
+          <p className="mt-1 text-sm text-white/75">{t('auth.setNewPasswordSub')}</p>
         </div>
         <div className="bg-white p-6" style={{ borderRadius: 'var(--r-2xl)', boxShadow: 'var(--shadow-lg)' }}>
           {success ? (

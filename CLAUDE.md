@@ -135,7 +135,7 @@ Two paths: email reset (Path A) and admin-set temp password (Path B).
 3. "Set This Password" → `POST /api/admin/reset-customer-password` (service role, IDOR guard — customer-only target, password never logged or stored by us).
 4. Customer logs in with temp password → changes it in Account Settings → Change Password section.
 
-**Email for recovery (Account Settings):** `AccountSettingsForm` has an optional email field in the Profile Information section. Saves via `supabase.auth.updateUser({ email })` only when changed. `@akoatp.com` derived auth emails are always stripped server-side and never pre-filled. On first email add, shows an amber confirmation banner. Never surface this field at registration or make it required.
+**Email for recovery (Account Settings):** `AccountSettingsForm` has an optional email field in the Profile Information section. Saves via `supabase.auth.updateUser({ email }, { emailRedirectTo })` only when changed. `emailRedirectTo` points to `/auth/callback?next=/account/settings?confirmed=email` (URL-encoded) so after the user clicks the Supabase confirmation link they land back on settings with a "Email address confirmed successfully" toast. `@akoatp.com` derived auth emails are always stripped server-side and never pre-filled. On first email add, shows an amber confirmation banner. Never surface this field at registration or make it required. **Email changes via `updateUser` go through Supabase email-confirmation flow — `/auth/callback` must call `exchangeCodeForSession(code)` or `verifyOtp({ token_hash, type })` to restore the session; without it the session is lost.**
 
 ### Admin Forgot Password Flow
 

@@ -71,6 +71,7 @@ export default function LoginForm() {
     e.preventDefault()
     setForgotLoading(true)
     const supabase = createClient()
+    // Ensure NEXT_PUBLIC_SITE_URL is set correctly in Vercel environment variables for each deployment
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin
     await supabase.auth.resetPasswordForEmail(forgotEmail, {
       redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,

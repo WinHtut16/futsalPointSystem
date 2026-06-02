@@ -18,6 +18,7 @@ export default function AdminForgotPasswordPage() {
     setError('')
     setLoading(true)
     const supabase = createClient()
+    // Ensure NEXT_PUBLIC_SITE_URL is set correctly in Vercel environment variables for each deployment
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/admin/reset-password`,
     })

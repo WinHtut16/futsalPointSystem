@@ -21,6 +21,15 @@ export default function AccountSettingsForm({ initialName, initialPhone, initial
 
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
 
+  // Show "Email confirmed" toast when user returns from Supabase email-change confirmation link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('confirmed') === 'email') {
+      setToast({ msg: t('settings.emailConfirmed'), ok: true })
+      window.history.replaceState({}, '', '/account/settings')
+    }
+  }, [])
+
   // Profile section
   const [name, setName] = useState(initialName)
   const [phone, setPhone] = useState(initialPhone)
@@ -70,7 +79,12 @@ export default function AccountSettingsForm({ initialName, initialPhone, initial
       if (trimmedEmail !== initialEmail) {
         if (trimmedEmail) {
           const supabase = createClient()
-          const { error: emailErr } = await supabase.auth.updateUser({ email: trimmedEmail })
+          // Ensure NEXT_PUBLIC_SITE_URL is set correctly in Vercel environment variables for each deployment
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin
+          const { error: emailErr } = await supabase.auth.updateUser(
+            { email: trimmedEmail },
+            { emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent('/account/settings?confirmed=email')}` }
+          )
           if (emailErr) {
             setProfileError(emailErr.message)
             return
