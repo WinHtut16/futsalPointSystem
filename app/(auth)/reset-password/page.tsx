@@ -43,6 +43,8 @@ export default function CustomerResetPasswordPage() {
     const supabase = createClient()
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) { setError(updateError.message); setLoading(false); return }
+    // Normalize auth email to phone-based email so login works after reset
+    await fetch('/api/auth/normalize-customer-email', { method: 'POST' })
     setSuccess(true)
     setTimeout(() => router.push('/account'), 2000)
   }
