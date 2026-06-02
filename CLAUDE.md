@@ -115,31 +115,17 @@ Server-side guards in `lib/auth.ts`:
 - `requireAnyAdmin()` — `admin` or `superadmin`
 - `requireSuperAdmin()` — `superadmin` only
 
-### Customer Forgot Password / Reset Flow
+### Customer Password Reset Flow
 
-Two paths: email reset (Path A) and admin-set temp password (Path B).
+Customer self-service forgot-password is removed. Customers cannot reset their own password via email — the Supabase auth identity uses a derived `{phone}@akoatp.com` address that cannot receive mail, making email-based reset fundamentally incompatible with phone-based login.
 
-**Path A — Customer has email saved:**
-1. Customer taps "Forgot password?" on the login page (`/login` → inline `LoginForm` section, no navigation).
-2. `LoginForm` shows a **phone input first** (STATE A). On submit: `POST /api/auth/check-reset-eligibility` with `{ phone }`.
-3. If the phone maps to a customer with a real email (not `@akoatp.com`) → STATE B.1: shows masked email (`j***@gmail.com`) + "Send Reset Link" button → `POST /api/auth/send-customer-reset` with `{ phone }` → server calls `supabase.auth.resetPasswordForEmail(realEmail, { redirectTo: SITE_URL + '/auth/callback?next=/reset-password' })`. Always returns `{ success: true }` on the client.
-4. If the customer has no real email → STATE B.2: shows amber warning + Phone + Viber contact buttons (admin sets temp password).
-5. If phone not found → stays on STATE A with "No account found" error.
-6. Email link → `/auth/callback?...&next=/reset-password` → session cookies set → redirect to `/reset-password`.
-7. `app/(auth)/reset-password/page.tsx` (customer): checks `getSession()`, renders password form, calls `supabase.auth.updateUser({ password })`, then `POST /api/auth/normalize-customer-email` (normalizes auth email back to `{phone}@akoatp.com` via admin API — required so login with phone works after reset). Does **NOT** sign out globally — customer stays logged in, redirects to `/account` on success.
-8. Expired/invalid link → callback redirects to `/reset-password?error=link_expired`.
-
-**`auth/callback` error redirect is dynamic:** `next.includes('/admin')` → `/admin/reset-password?error=link_expired`; otherwise → `/reset-password?error=link_expired`.
-
-**Phone normalization in check-reset-eligibility + send-customer-reset:** `+959xxxxxxx` → `09xxxxxxx` (strip `+95`, prepend `0`); plain `09xxxxxxx` passes through. Profiles store phones in `09xxxxxxx` format. `lib/auth/hasRealEmail.ts` holds `hasRealEmail(email)` (returns false if ends with `@akoatp.com`) and `maskEmail(email)` (first char + `***@domain`).
-
-**Path B — Admin sets temp password:**
+**Only path — Admin sets temp password:**
 1. Admin opens customer row on the customers list → "Reset Password" button (KeyRound icon, label hidden on mobile).
 2. `TempPasswordModal` auto-generates `MYF{last4digits}-{rand4}` temp password (e.g. `MYF2000-4821`). Copy + Regenerate buttons.
 3. "Set This Password" → `POST /api/admin/reset-customer-password` (service role, IDOR guard — customer-only target, password never logged or stored by us).
 4. Customer logs in with temp password → changes it in Account Settings → Change Password section.
 
-**Email for recovery (Account Settings):** `AccountSettingsForm` has an optional email field in the Profile Information section. Saves via `supabase.auth.updateUser({ email }, { emailRedirectTo })` only when changed. `emailRedirectTo` points to `/auth/callback?next=/account/settings?confirmed=email` (URL-encoded) so after the user clicks the Supabase confirmation link they land back on settings with a "Email address confirmed successfully" toast. `@akoatp.com` derived auth emails are always stripped server-side and never pre-filled. On first email add, shows an amber confirmation banner. Never surface this field at registration or make it required. **Email changes via `updateUser` go through Supabase email-confirmation flow — `/auth/callback` must call `exchangeCodeForSession(code)` or `verifyOtp({ token_hash, type })` to restore the session; without it the session is lost.**
+**`auth/callback` error redirect:** always `/admin/reset-password?error=link_expired` (customer reset path no longer exists).
 
 ### Admin Forgot Password Flow
 
@@ -179,7 +165,6 @@ All tables have Row-Level Security enforced. Key patterns:
 | File | Purpose |
 |------|---------|
 | `lib/auth.ts` | `getCurrentUser()`, `requireRole()`, `requireAnyAdmin()`, `requireSuperAdmin()` — server-side auth helpers |
-| `lib/auth/hasRealEmail.ts` | `hasRealEmail(email)` — returns false if email ends with `@akoatp.com` (derived auth email). `maskEmail(email)` — first char + `***@domain`. Used by the customer forgot-password API routes. |
 | `lib/schemas.ts` | Zod schemas + `badRequest()` / `parseJson()` helpers used by every API route |
 | `lib/points.ts` | `calculatePoints()` — 10 points per hour |
 | `lib/utils.ts` | `formatDate(dateStr)` — date-only display in Myanmar/Yangon timezone (e.g. `"24 May 2025"`); `formatDateTime(dateStr)` — date + time with AM/PM in Myanmar timezone (e.g. `"24 May 2025, 10:45 am"`). Both use `timeZone: 'Asia/Yangon'` (UTC+6:30). Always use these helpers for any date/time display — never format raw timestamps without them. `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email. |
@@ -252,9 +237,6 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 | Route | Role | Action |
 |-------|------|--------|
 | `POST /api/auth/register` | public | Create customer account |
-| `POST /api/auth/check-reset-eligibility` | public | Look up customer by phone → returns `{ found, hasEmail, maskedEmail }`. Service role server-side, never exposes real email. |
-| `POST /api/auth/send-customer-reset` | public | Verify phone has real email → fires Supabase password reset email. Returns `{ success: true }` silently when phone not found (security). 400 when account has no email. |
-| `POST /api/auth/normalize-customer-email` | authenticated customer (session) | After password reset: updates auth email to `{phone}@akoatp.com` via admin API so phone-based login works. No-op if already normalized or not a customer. |
 | `PATCH /api/profile` | any authenticated user | Update own profile — `username` + `phone` (Myanmar format); uses service role client (RLS on profiles is dropped); reuses `CustomerProfileUpdateSchema` |
 | `GET/POST /api/customers` | admin/superadmin | List / search customers |
 | `GET/PUT/DELETE /api/customers/[id]` | admin/superadmin | Customer detail, password reset, delete |

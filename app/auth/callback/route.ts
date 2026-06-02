@@ -51,9 +51,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Redirect to the appropriate reset-password error page.
-  const errorRedirect = next.includes('/admin')
-    ? '/admin/reset-password?error=link_expired'
-    : '/reset-password?error=link_expired'
-  return NextResponse.redirect(new URL(errorRedirect, origin))
+  return NextResponse.redirect(new URL('/admin/reset-password?error=link_expired', origin))
 }
