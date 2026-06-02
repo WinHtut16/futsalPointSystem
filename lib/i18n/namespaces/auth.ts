@@ -67,6 +67,13 @@ export const authEN = {
   'auth.emailConfirmationSent': 'A confirmation email has been sent. Please verify it to activate password recovery.',
   // Post-logout toast
   'auth.loggedOutToast': 'You have been logged out',
+  // Customer forgot password — phone-first flow
+  'auth.enterPhoneForReset': 'Enter your phone number',
+  'auth.continueReset': 'Continue',
+  'auth.resetLinkWillSend': 'Reset link will be sent to your email',
+  'auth.noEmailForReset': 'You have not added an email to your account yet.',
+  'auth.contactForReset': 'Contact us and our admin will set a temporary password. You can change it after logging in from Account Settings.',
+  'auth.phoneNotFound': 'No account found with this phone number.',
 } as const
 
 export const authMY: { [K in keyof typeof authEN]: string } = {
@@ -138,4 +145,11 @@ export const authMY: { [K in keyof typeof authEN]: string } = {
   'auth.emailConfirmationSent': 'အတည်ပြုချက်အီးမေးလ်ပို့ပြီးပါပြီ။ စကားဝှက်ပြန်လည်ရယူနိုင်ရန် အတည်ပြုပါ။',
   // Post-logout toast
   'auth.loggedOutToast': 'ထွက်ပြီးပါပြီ',
+  // Customer forgot password — phone-first flow
+  'auth.enterPhoneForReset': 'ဖုန်းနံပါတ်ထည့်ပါ',
+  'auth.continueReset': 'ဆက်လက်လုပ်ဆောင်ရန်',
+  'auth.resetLinkWillSend': 'သင်၏အီးမေးလ်သို့ပြန်လည်သတ်မှတ်ရန်လင့်ပို့ပါမည်',
+  'auth.noEmailForReset': 'သင်၏အကောင့်တွင် အီးမေးလ်မထည့်ရသေးပါ။',
+  'auth.contactForReset': 'ကျွန်ုပ်တို့ထံဆက်သွယ်ပါ၊ အက်ဒမင်မှ ယာယီစကားဝှက်သတ်မှတ်ပေးပါမည်။ ဝင်ပြီးနောက် Account Settings မှ ပြောင်းနိုင်သည်။',
+  'auth.phoneNotFound': 'ဤဖုန်းနံပါတ်ဖြင့် အကောင့်မတွေ့ပါ။',
 }

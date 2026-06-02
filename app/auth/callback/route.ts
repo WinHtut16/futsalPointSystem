@@ -51,10 +51,9 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Redirect to the appropriate reset-password error page. For customer resets
-  // (next=/reset-password) use the customer page; otherwise use the admin page.
-  const errorRedirect = next === '/reset-password'
-    ? '/reset-password?error=link_expired'
-    : '/admin/reset-password?error=link_expired'
+  // Redirect to the appropriate reset-password error page.
+  const errorRedirect = next.includes('/admin')
+    ? '/admin/reset-password?error=link_expired'
+    : '/login?error=link_expired'
   return NextResponse.redirect(new URL(errorRedirect, origin))
 }

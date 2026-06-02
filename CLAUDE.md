@@ -121,13 +121,17 @@ Two paths: email reset (Path A) and admin-set temp password (Path B).
 
 **Path A — Customer has email saved:**
 1. Customer taps "Forgot password?" on the login page (`/login` → inline `LoginForm` section, no navigation).
-2. `LoginForm` shows two options: email reset + contact admin buttons (Phone + Viber deep link).
-3. On email submit: `supabase.auth.resetPasswordForEmail(email, { redirectTo: SITE_URL + '/auth/callback?next=/reset-password' })`. Always shows "reset link sent" regardless of outcome (security — no "email not found").
-4. Email link → `/auth/callback?...&next=/reset-password` → session cookies set → redirect to `/reset-password`.
-5. `app/(auth)/reset-password/page.tsx` (customer): checks `getSession()`, renders password form, calls `supabase.auth.updateUser({ password })`. Does **NOT** sign out globally — customer stays logged in, redirects to `/account` on success.
-6. Expired/invalid link → callback redirects to `/reset-password?error=link_expired` (read via `window.location.search`).
+2. `LoginForm` shows a **phone input first** (STATE A). On submit: `POST /api/auth/check-reset-eligibility` with `{ phone }`.
+3. If the phone maps to a customer with a real email (not `@akoatp.com`) → STATE B.1: shows masked email (`j***@gmail.com`) + "Send Reset Link" button → `POST /api/auth/send-customer-reset` with `{ phone }` → server calls `supabase.auth.resetPasswordForEmail(realEmail, { redirectTo: SITE_URL + '/auth/callback?next=/reset-password' })`. Always returns `{ success: true }` on the client.
+4. If the customer has no real email → STATE B.2: shows amber warning + Phone + Viber contact buttons (admin sets temp password).
+5. If phone not found → stays on STATE A with "No account found" error.
+6. Email link → `/auth/callback?...&next=/reset-password` → session cookies set → redirect to `/reset-password`.
+7. `app/(auth)/reset-password/page.tsx` (customer): checks `getSession()`, renders password form, calls `supabase.auth.updateUser({ password })`. Does **NOT** sign out globally — customer stays logged in, redirects to `/account` on success.
+8. Expired/invalid link → callback redirects to `/login?error=link_expired`.
 
-**`auth/callback` error redirect is now dynamic:** `next === '/reset-password'` → `/reset-password?error=link_expired`; otherwise → `/admin/reset-password?error=link_expired`. Both pages are in `ADMIN_PUBLIC_PATHS` equivalents — accessible without auth.
+**`auth/callback` error redirect is dynamic:** `next.includes('/admin')` → `/admin/reset-password?error=link_expired`; otherwise → `/login?error=link_expired`.
+
+**Phone normalization in check-reset-eligibility + send-customer-reset:** `+959xxxxxxx` → `09xxxxxxx` (strip `+95`, prepend `0`); plain `09xxxxxxx` passes through. Profiles store phones in `09xxxxxxx` format. `lib/auth/hasRealEmail.ts` holds `hasRealEmail(email)` (returns false if ends with `@akoatp.com`) and `maskEmail(email)` (first char + `***@domain`).
 
 **Path B — Admin sets temp password:**
 1. Admin opens customer row on the customers list → "Reset Password" button (KeyRound icon, label hidden on mobile).
@@ -175,6 +179,7 @@ All tables have Row-Level Security enforced. Key patterns:
 | File | Purpose |
 |------|---------|
 | `lib/auth.ts` | `getCurrentUser()`, `requireRole()`, `requireAnyAdmin()`, `requireSuperAdmin()` — server-side auth helpers |
+| `lib/auth/hasRealEmail.ts` | `hasRealEmail(email)` — returns false if email ends with `@akoatp.com` (derived auth email). `maskEmail(email)` — first char + `***@domain`. Used by the customer forgot-password API routes. |
 | `lib/schemas.ts` | Zod schemas + `badRequest()` / `parseJson()` helpers used by every API route |
 | `lib/points.ts` | `calculatePoints()` — 10 points per hour |
 | `lib/utils.ts` | `formatDate(dateStr)` — date-only display in Myanmar/Yangon timezone (e.g. `"24 May 2025"`); `formatDateTime(dateStr)` — date + time with AM/PM in Myanmar timezone (e.g. `"24 May 2025, 10:45 am"`). Both use `timeZone: 'Asia/Yangon'` (UTC+6:30). Always use these helpers for any date/time display — never format raw timestamps without them. `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email. |
@@ -247,6 +252,8 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 | Route | Role | Action |
 |-------|------|--------|
 | `POST /api/auth/register` | public | Create customer account |
+| `POST /api/auth/check-reset-eligibility` | public | Look up customer by phone → returns `{ found, hasEmail, maskedEmail }`. Service role server-side, never exposes real email. |
+| `POST /api/auth/send-customer-reset` | public | Verify phone has real email → fires Supabase password reset email. Returns `{ success: true }` silently when phone not found (security). 400 when account has no email. |
 | `PATCH /api/profile` | any authenticated user | Update own profile — `username` + `phone` (Myanmar format); uses service role client (RLS on profiles is dropped); reuses `CustomerProfileUpdateSchema` |
 | `GET/POST /api/customers` | admin/superadmin | List / search customers |
 | `GET/PUT/DELETE /api/customers/[id]` | admin/superadmin | Customer detail, password reset, delete |
