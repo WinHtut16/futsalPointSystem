@@ -1,7 +1,6 @@
 'use client'
 
 import { Fragment, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
   Check, Calendar, Clock, Wallet, Shield, CreditCard, ArrowRight,
@@ -43,7 +42,6 @@ export default function ConfirmFlow({
   bookings: BookingGroup[]
 }) {
   const { t, lang } = useLanguage()
-  const router = useRouter()
   const my = lang === 'my' ? 'my' : ''
 
   const [step, setStep] = useState(1)
@@ -348,9 +346,9 @@ export default function ConfirmFlow({
             <a href={VIBER_URL} className="fb-btn fb-btn-ghost flex-1">
               <MessageCircle size={14} /> <span className={my}>{t('booking.confirm.openViber')}</span>
             </a>
-            <button type="button" onClick={() => router.push('/bookings')} className="fb-btn fb-btn-primary flex-1">
+            <a href="/account" className="fb-btn fb-btn-primary flex-1">
               <span className={my}>{t('booking.confirm.viewBookings')}</span> <ArrowRight size={14} />
-            </button>
+            </a>
           </div>
         </div>
       )}

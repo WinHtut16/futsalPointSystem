@@ -48,6 +48,7 @@ Lives in the same codebase as the loyalty/points system. Single court, EN/MY, mo
 - **CMS image upload:** `CmsPostForm` uploads cover images via `POST /api/cms/upload-image` (server-side Cloudinary, `next-cloudinary` package). The returned `secure_url` is stored as `manual_image_url`. `NewsCardGrid` renders Cloudinary URLs via `<CldImage>` (automatic optimization + transformation) and non-Cloudinary URLs via Next.js `<Image unoptimized>`. Helper `isCloudinaryUrl(url)` distinguishes the two. `res.cloudinary.com` is in `next.config.js` `images.remotePatterns` and CSP `img-src`.
 - **News post detail:** Clicking a card in `NewsCardGrid` (or `NewsCarousel` on the homepage) opens an in-app detail view — a bottom sheet on mobile (slide-up, drag-to-dismiss ≥80px, backdrop tap) and a centered modal on desktop (X button, backdrop tap). No external navigation on card click. EN/MY title/excerpt resolved same as on the card (`titleMy`/`excerptMy` when `lang === 'my'`, fallback to EN).
 - **Admin component i18n:** `CmsPostList`, `CmsPostForm`, `AdminBookingsList`, and `ClosureManager` all use `useLanguage()` for translatable strings. All keys are in `lib/i18n/namespaces/booking.ts` under `booking.admin.*`.
+- **Post-booking navigation on mobile:** The "View Bookings" button in `ConfirmFlow` step 3 uses `<a href="/account">` — **not** `router.push()`. Using `router.push("/bookings")` caused a two-hop RSC navigation: `/bookings` server component calls `redirect("/account")` immediately. On mobile browsers, session cookie propagation between the two RSC hops is unreliable — middleware sees no session on the second hop and redirects to `/login`. A plain `<a href>` does a single browser navigation with all cookies included. Do not change this to `router.push`.
 - **Points integration:** confirming a booking (admin flips `deposit_received` → true) awards `calculatePoints(totalHours)` (10 pts/hr) via the existing `add_points_transaction` RPC with `p_transaction_type='booking'`; `bookings.points_awarded` guards against double-award.
 - **Payment details (ConfirmFlow Step 2):** KBZ Pay — number `09 5190 865`, account name `Aung Thura Phyo`. Logo at `public/images/kbz-pay.webp` (copied from `figures/kbz-logo.webp`). Displayed in `components/booking/ConfirmFlow.tsx`.
 - **Court image:** `public/images/court1.jpg` (copied from `figures/court1.jpg`) — used as the full-width hero banner in `BookingView`'s court card (`h-40 md:h-52`, `object-cover`, dark gradient overlay, court name overlaid white at bottom-left). Do not remove or rename this file.
@@ -186,7 +187,7 @@ Live UI updates use a two-tier pattern: Supabase Realtime `postgres_changes` sub
 ALTER TABLE <table> REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE <table>;
 ```
-Tables currently enabled: `redemption_requests`, `profiles`.
+Tables currently enabled: `redemption_requests`, `profiles`, `bookings` (enabled in `booking-system-migration.sql`).
 
 **Column filter caveat:** `filter: id=eq.{uuid}` on `profiles` silently drops events. Subscribe unfiltered and check `payload.new.id === userId` client-side instead.
 
@@ -197,6 +198,7 @@ Tables currently enabled: `redemption_requests`, `profiles`.
 |-----------|-------|---------|---------|
 | `PendingRedemptionsContext` | `redemption_requests` | INSERT, UPDATE | All admin pages (mounted in `app/(admin)/layout.tsx`) — powers AdminShell sidebar badge, PendingSoundAlert, PendingRedemptionsBanner |
 | `PendingBookingsContext` | `bookings` | INSERT, UPDATE | All admin pages (mounted in `app/(admin)/layout.tsx`) — powers AdminShell sidebar badge on Bookings item |
+| `AdminBookingsList` | `bookings` | INSERT, UPDATE | Admin bookings page — INSERT fetches full row (customer + slots) by ID and inserts at correct `booking_date` position; UPDATE patches `status`/`deposit_received` in place; 20s poll fallback |
 | `RedemptionsList` | `redemption_requests` | INSERT, UPDATE | Admin redemptions page |
 | `PendingRequestsList` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer history |
 | `RewardsGrid` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer rewards |

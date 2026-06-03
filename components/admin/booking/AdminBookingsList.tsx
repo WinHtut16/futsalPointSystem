@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Check, X, Phone, Clock, AlertTriangle } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { createClient } from '@/lib/supabase/client'
 
 type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'closed'
 
@@ -17,6 +18,32 @@ export type AdminBooking = {
   override_request: boolean
   customer: { username: string | null; phone: string | null } | null
   hours: number[]
+}
+
+const POLL_MS = 20_000
+const SELECT_QUERY =
+  'id, ref, status, booking_date, deposit_total, deposit_received, override_request, customer:profiles(username, phone), booking_slots(hour_start)'
+
+type RawRow = Record<string, unknown>
+
+function parseRow(b: RawRow): AdminBooking {
+  const rawCustomer = b.customer
+  const customer = Array.isArray(rawCustomer)
+    ? (rawCustomer as RawRow[])[0]
+    : (rawCustomer as RawRow | null)
+  return {
+    id: b.id as string,
+    ref: b.ref as string,
+    status: b.status as AdminBooking['status'],
+    booking_date: b.booking_date as string,
+    deposit_total: (b.deposit_total as number) ?? 0,
+    deposit_received: (b.deposit_received as boolean) ?? false,
+    override_request: (b.override_request as boolean) ?? false,
+    customer: customer
+      ? { username: customer.username as string | null, phone: customer.phone as string | null }
+      : null,
+    hours: ((b.booking_slots as { hour_start: number }[]) ?? []).map((s) => s.hour_start),
+  }
 }
 
 const FILTER_KEYS: { k: 'all' | BookingStatus; labelKey: string }[] = [
@@ -54,6 +81,66 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
   const [rows, setRows] = useState(initial)
   const [filter, setFilter] = useState<'all' | BookingStatus>('all')
   const [busy, setBusy] = useState<string | null>(null)
+
+  const fetchAll = useCallback(async () => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('bookings')
+      .select(SELECT_QUERY)
+      .order('booking_date', { ascending: false })
+      .limit(200)
+    if (data) setRows((data as RawRow[]).map(parseRow))
+  }, [])
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    const channel = supabase
+      .channel('admin-bookings-list')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'bookings' },
+        async (payload) => {
+          const newId = (payload.new as { id: string }).id
+          const { data } = await supabase
+            .from('bookings')
+            .select(SELECT_QUERY)
+            .eq('id', newId)
+            .single()
+          if (data) {
+            const booking = parseRow(data as RawRow)
+            setRows((prev) => {
+              // Maintain booking_date descending order
+              const idx = prev.findIndex((b) => b.booking_date <= booking.booking_date)
+              if (idx === -1) return [...prev, booking]
+              return [...prev.slice(0, idx), booking, ...prev.slice(idx)]
+            })
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'bookings' },
+        (payload) => {
+          const u = payload.new as { id: string; status: string; deposit_received: boolean }
+          setRows((prev) =>
+            prev.map((b) =>
+              b.id === u.id
+                ? { ...b, status: u.status as BookingStatus, deposit_received: u.deposit_received }
+                : b
+            )
+          )
+        }
+      )
+      .subscribe()
+
+    const timer = setInterval(fetchAll, POLL_MS)
+
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(timer)
+    }
+  }, [fetchAll])
 
   async function act(id: string, action: 'confirm' | 'unconfirm' | 'cancel' | 'close') {
     setBusy(id)
