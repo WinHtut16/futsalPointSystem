@@ -76,8 +76,8 @@ function NewsDetail({
   const { t } = useLanguage()
   const sheetRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef(0)
-  const title = lang === 'my' && post.titleMy ? post.titleMy : post.title
-  const excerpt = lang === 'my' && post.excerptMy ? post.excerptMy : post.excerpt
+  const title = lang === 'my' ? (post.titleMy || post.title) : (post.title || post.titleMy)
+  const excerpt = lang === 'my' ? (post.excerptMy || post.excerpt) : (post.excerpt || post.excerptMy)
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartY.current = e.touches[0].clientY
@@ -190,7 +190,7 @@ export default function NewsCarousel({ posts }: { posts: NewsPost[] }) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative md:px-10">
       {/* Prev/Next arrows — desktop only */}
       {showDots && (
         <>
@@ -198,7 +198,7 @@ export default function NewsCarousel({ posts }: { posts: NewsPost[] }) {
             type="button"
             onClick={() => scrollTo(Math.max(0, active - 1))}
             disabled={active === 0}
-            className="absolute -left-5 top-[40%] z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-fb-md transition-opacity disabled:opacity-30 md:flex"
+            className="absolute left-0 top-[40%] z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-fb-md transition-opacity disabled:opacity-30 md:flex"
             aria-label="Previous"
           >
             <ChevronLeft size={18} className="text-ink" />
@@ -207,7 +207,7 @@ export default function NewsCarousel({ posts }: { posts: NewsPost[] }) {
             type="button"
             onClick={() => scrollTo(Math.min(posts.length - 1, active + 1))}
             disabled={active === posts.length - 1}
-            className="absolute -right-5 top-[40%] z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-fb-md transition-opacity disabled:opacity-30 md:flex"
+            className="absolute right-0 top-[40%] z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-fb-md transition-opacity disabled:opacity-30 md:flex"
             aria-label="Next"
           >
             <ChevronRight size={18} className="text-ink" />
@@ -223,8 +223,8 @@ export default function NewsCarousel({ posts }: { posts: NewsPost[] }) {
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {posts.map((p) => {
-          const title = lang === 'my' && p.titleMy ? p.titleMy : p.title
-          const excerpt = lang === 'my' && p.excerptMy ? p.excerptMy : p.excerpt
+          const title = lang === 'my' ? (p.titleMy || p.title) : (p.title || p.titleMy)
+          const excerpt = lang === 'my' ? (p.excerptMy || p.excerpt) : (p.excerpt || p.excerptMy)
           return (
             <div
               key={p.id}
@@ -248,7 +248,7 @@ export default function NewsCarousel({ posts }: { posts: NewsPost[] }) {
                 <div className={`mt-3 font-display text-base font-bold leading-snug text-ink-primary ${my}`}>
                   {title}
                 </div>
-                {excerpt && <div className={`mt-2 text-[13px] leading-snug text-ink-muted ${my}`}>{excerpt}</div>}
+                {excerpt && <div className={`mt-2 line-clamp-3 text-[13px] leading-snug text-ink-muted ${my}`}>{excerpt}</div>}
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-fbmono text-xs text-ink-muted">{p.date}</span>
                   <span className="flex items-center gap-0.5 text-xs font-semibold text-primary">

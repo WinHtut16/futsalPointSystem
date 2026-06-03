@@ -103,8 +103,8 @@ export default function NewsCardGrid({ posts, columns = 3 }: { posts: NewsPost[]
     <>
       <div className={`grid grid-cols-1 gap-4 ${grid}`}>
         {posts.map((p) => {
-          const title = lang === 'my' && p.titleMy ? p.titleMy : p.title
-          const excerpt = lang === 'my' && p.excerptMy ? p.excerptMy : p.excerpt
+          const title = lang === 'my' ? (p.titleMy || p.title) : (p.title || p.titleMy)
+          const excerpt = lang === 'my' ? (p.excerptMy || p.excerpt) : (p.excerpt || p.excerptMy)
           return (
             <div
               key={p.id}
@@ -133,7 +133,7 @@ export default function NewsCardGrid({ posts, columns = 3 }: { posts: NewsPost[]
                 <div className={`mt-3 font-display text-base font-bold leading-snug text-ink-primary ${my}`}>
                   {title}
                 </div>
-                {excerpt && <div className={`mt-2 text-[13px] leading-snug text-ink-muted ${my}`}>{excerpt}</div>}
+                {excerpt && <div className={`mt-2 line-clamp-3 text-[13px] leading-snug text-ink-muted ${my}`}>{excerpt}</div>}
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-fbmono text-xs text-ink-muted">{p.date}</span>
                   <span className="flex items-center gap-0.5 text-xs font-semibold text-primary">
@@ -177,8 +177,8 @@ function NewsPostDetail({
   const sheetRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef(0)
 
-  const title = lang === 'my' && post.titleMy ? post.titleMy : post.title
-  const excerpt = lang === 'my' && post.excerptMy ? post.excerptMy : post.excerpt
+  const title = lang === 'my' ? (post.titleMy || post.title) : (post.title || post.titleMy)
+  const excerpt = lang === 'my' ? (post.excerptMy || post.excerpt) : (post.excerpt || post.excerptMy)
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartY.current = e.touches[0].clientY

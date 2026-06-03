@@ -66,14 +66,14 @@ export default function ClosureManager({ initial }: { initial: Closure[] }) {
     <div className="space-y-5">
       <form onSubmit={add} className="space-y-3 rounded-2xl bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 md:grid md:grid-cols-2">
-          <label className="block">
+          <label className="block min-w-0">
             <span className="mb-1 block text-xs font-semibold text-gray-600">{t('booking.admin.closureDate')}</span>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="w-full max-w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
           </label>
           <label className="block">
