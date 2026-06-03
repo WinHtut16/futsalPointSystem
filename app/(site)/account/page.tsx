@@ -30,6 +30,7 @@ type BookingRow = {
   booking_date: string
   deposit_total: number
   ref: string
+  booking_slots: { hour_start: number }[]
 }
 
 export default async function AccountPage() {
@@ -37,8 +38,11 @@ export default async function AccountPage() {
   if (!profile) redirect('/login?next=/account')
 
   const supabase = await createClient()
+  const svc = createServiceClient()
 
-  const [{ data: txns }, rewards, { data: pendingRequests }] = await Promise.all([
+  // All queries in parallel: txns, rewards, pending redemptions, bookings+slots in one join.
+  // Bookings query uses a relational join so slot hours are embedded — no second round trip.
+  const [{ data: txns }, rewards, { data: pendingRequests }, bookingsRes] = await Promise.all([
     supabase
       .from('point_transactions')
       .select('*, reward:rewards(name)')
@@ -50,6 +54,12 @@ export default async function AccountPage() {
       .select('id, reward_id')
       .eq('customer_id', profile.id)
       .eq('status', 'pending'),
+    svc
+      .from('bookings')
+      .select('id, status, booking_date, deposit_total, ref, booking_slots(hour_start)')
+      .eq('customer_id', profile.id)
+      .order('booking_date', { ascending: false })
+      .then((r) => r, () => ({ data: null, error: null })),
   ])
 
   const transactions = (txns ?? []) as PointTransaction[]
@@ -67,29 +77,11 @@ export default async function AccountPage() {
   let upcoming: DashboardBooking[] = []
   const bookingFeed: FeedItem[] = []
   try {
-    const svc = createServiceClient()
-    const { data: bookings } = await svc
-      .from('bookings')
-      .select('id, status, booking_date, deposit_total, ref')
-      .eq('customer_id', profile.id)
-      .order('booking_date', { ascending: false })
-
-    const rows = (bookings ?? []) as BookingRow[]
-    const ids = rows.map((r) => r.id)
-    const hoursByBooking: Record<string, number[]> = {}
-    if (ids.length > 0) {
-      const { data: slots } = await svc
-        .from('booking_slots')
-        .select('booking_id, hour_start')
-        .in('booking_id', ids)
-      for (const s of slots ?? []) {
-        ;(hoursByBooking[s.booking_id as string] ??= []).push(s.hour_start as number)
-      }
-    }
+    const rows = (bookingsRes.data ?? []) as BookingRow[]
 
     const today = todayYangon()
     for (const r of rows) {
-      const hours = (hoursByBooking[r.id] ?? []).sort((a, b) => a - b)
+      const hours = (r.booking_slots ?? []).map((s) => s.hour_start).sort((a, b) => a - b)
       const timeLabel =
         hours.length > 0 ? `${pad(hours[0])}:00 – ${pad(hours[hours.length - 1] + 1)}:00` : '—'
       const earliest = hours.length > 0 ? hours[0] : 0
