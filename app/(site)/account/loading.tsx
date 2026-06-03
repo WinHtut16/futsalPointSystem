@@ -1,10 +1,11 @@
 import SiteNavbar from '@/components/booking/SiteNavbar'
+import BottomNav from '@/components/booking/BottomNav'
 
 export default function AccountLoading() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteNavbar active="account" />
-      <div className="mx-auto w-full max-w-2xl flex-1 animate-pulse pb-8">
+      <div className="mx-auto w-full max-w-2xl flex-1 animate-pulse pb-24 md:pb-8">
         {/* Identity row */}
         <div className="px-4 pt-4">
           <div className="flex items-center gap-3">
@@ -39,6 +40,7 @@ export default function AccountLoading() {
           ))}
         </div>
       </div>
+      <BottomNav active="me" />
     </div>
   )
 }

@@ -80,7 +80,8 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
   const { t } = useLanguage()
   const [rows, setRows] = useState(initial)
   const [filter, setFilter] = useState<'all' | BookingStatus>('all')
-  const [busy, setBusy] = useState<string | null>(null)
+  const [busyMap, setBusyMap] = useState<Record<string, string>>({})
+  const [errorMap, setErrorMap] = useState<Record<string, string | null>>({})
 
   const fetchAll = useCallback(async () => {
     const supabase = createClient()
@@ -143,7 +144,8 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
   }, [fetchAll])
 
   async function act(id: string, action: 'confirm' | 'unconfirm' | 'cancel' | 'close') {
-    setBusy(id)
+    setBusyMap((prev) => ({ ...prev, [id]: action }))
+    setErrorMap((prev) => ({ ...prev, [id]: null }))
     try {
       const res = await fetch(`/api/bookings/${id}`, {
         method: 'PATCH',
@@ -163,9 +165,17 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
               : b
           )
         )
+      } else {
+        setErrorMap((prev) => ({ ...prev, [id]: json.error ?? t('booking.admin.actionFailed') }))
       }
+    } catch {
+      setErrorMap((prev) => ({ ...prev, [id]: t('booking.admin.actionFailed') }))
     } finally {
-      setBusy(null)
+      setBusyMap((prev) => {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      })
     }
   }
 
@@ -245,26 +255,55 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
               </div>
 
               {b.status !== 'cancelled' && b.status !== 'closed' && (
-                <div className="mt-3 flex items-center gap-2">
-                  <button
-                    onClick={() => act(b.id, b.deposit_received ? 'unconfirm' : 'confirm')}
-                    disabled={busy === b.id}
-                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-colors ${
-                      b.deposit_received
-                        ? 'bg-primary text-white hover:bg-primary-dark'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    {b.deposit_received ? t('booking.admin.depositReceived') : t('booking.admin.confirmDeposit')}
-                  </button>
-                  <button
-                    onClick={() => act(b.id, 'cancel')}
-                    disabled={busy === b.id}
-                    className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
-                  >
-                    <X className="h-3.5 w-3.5" /> {t('booking.admin.cancelBooking')}
-                  </button>
+                <div className="mt-3 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => act(b.id, b.deposit_received ? 'unconfirm' : 'confirm')}
+                      disabled={!!busyMap[b.id]}
+                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-colors ${
+                        b.deposit_received
+                          ? 'bg-primary text-white hover:bg-primary-dark'
+                          : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                      } ${!!busyMap[b.id] && busyMap[b.id] !== 'confirm' && busyMap[b.id] !== 'unconfirm' ? 'opacity-50' : ''}`}
+                    >
+                      {busyMap[b.id] === 'confirm' || busyMap[b.id] === 'unconfirm' ? (
+                        <>
+                          <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                            <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          {b.deposit_received ? t('booking.admin.receiving') : t('booking.admin.confirming')}
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-3.5 w-3.5" />
+                          {b.deposit_received ? t('booking.admin.depositReceived') : t('booking.admin.confirmDeposit')}
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => act(b.id, 'cancel')}
+                      disabled={!!busyMap[b.id]}
+                      className={`flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 ${!!busyMap[b.id] && busyMap[b.id] !== 'cancel' ? 'opacity-50' : ''}`}
+                    >
+                      {busyMap[b.id] === 'cancel' ? (
+                        <>
+                          <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                            <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          {t('booking.admin.cancelling')}
+                        </>
+                      ) : (
+                        <>
+                          <X className="h-3.5 w-3.5" /> {t('booking.admin.cancelBooking')}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {errorMap[b.id] && (
+                    <p className="text-xs text-red-500">{errorMap[b.id]}</p>
+                  )}
                 </div>
               )}
             </div>
