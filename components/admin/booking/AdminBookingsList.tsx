@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Check, X, Phone, Clock, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { Check, X, Phone, Clock, AlertTriangle, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
@@ -20,7 +21,6 @@ export type AdminBooking = {
   hours: number[]
 }
 
-const POLL_MS = 20_000
 const SELECT_QUERY =
   'id, ref, status, booking_date, deposit_total, deposit_received, override_request, customer:profiles(username, phone), booking_slots(hour_start)'
 
@@ -76,23 +76,113 @@ function timeLabel(hours: number[]) {
   return `${pad(sorted[0])}:00 – ${pad(sorted[sorted.length - 1] + 1)}:00`
 }
 
-export default function AdminBookingsList({ initial }: { initial: AdminBooking[] }) {
+interface AdminBookingsListProps {
+  initial: AdminBooking[]
+  total: number
+  page: number
+  totalPages: number
+  pageSize: number
+  currentStatus: string
+  currentSearch: string
+  currentFrom: string
+  currentTo: string
+}
+
+export default function AdminBookingsList({
+  initial,
+  total,
+  page,
+  totalPages,
+  pageSize,
+  currentStatus,
+  currentSearch,
+  currentFrom,
+  currentTo,
+}: AdminBookingsListProps) {
   const { t } = useLanguage()
+  const router = useRouter()
+
   const [rows, setRows] = useState(initial)
-  const [filter, setFilter] = useState<'all' | BookingStatus>('all')
   const [busyMap, setBusyMap] = useState<Record<string, string>>({})
   const [errorMap, setErrorMap] = useState<Record<string, string | null>>({})
+  const [hasNewBookings, setHasNewBookings] = useState(false)
 
-  const fetchAll = useCallback(async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('bookings')
-      .select(SELECT_QUERY)
-      .order('booking_date', { ascending: false })
-      .limit(200)
-    if (data) setRows((data as RawRow[]).map(parseRow))
-  }, [])
+  // Local controlled values for search / date inputs (debounced push to URL)
+  const [searchInput, setSearchInput] = useState(currentSearch)
+  const [fromInput, setFromInput] = useState(currentFrom)
+  const [toInput, setToInput] = useState(currentTo)
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Reset local state when server props change (new navigation)
+  useEffect(() => {
+    setRows(initial)
+    setHasNewBookings(false)
+  }, [initial])
+
+  useEffect(() => { setSearchInput(currentSearch) }, [currentSearch])
+  useEffect(() => { setFromInput(currentFrom) }, [currentFrom])
+  useEffect(() => { setToInput(currentTo) }, [currentTo])
+
+  // Build URL with updated params, always resetting page to 1 on filter change.
+  function buildUrl(overrides: Record<string, string>) {
+    const merged: Record<string, string> = {
+      status: currentStatus,
+      search: currentSearch,
+      from: currentFrom,
+      to: currentTo,
+      page: '1',
+      ...overrides,
+    }
+    const p = new URLSearchParams()
+    if (merged.status && merged.status !== 'all') p.set('status', merged.status)
+    if (merged.search) p.set('search', merged.search)
+    if (merged.from) p.set('from', merged.from)
+    if (merged.to) p.set('to', merged.to)
+    if (merged.page && merged.page !== '1') p.set('page', merged.page)
+    const qs = p.toString()
+    return `/admin/bookings${qs ? `?${qs}` : ''}`
+  }
+
+  function navigate(overrides: Record<string, string>) {
+    router.push(buildUrl(overrides))
+  }
+
+  function handleStatusFilter(k: string) {
+    navigate({ status: k, page: '1' })
+  }
+
+  function handleSearchChange(value: string) {
+    setSearchInput(value)
+    if (searchDebounce.current) clearTimeout(searchDebounce.current)
+    searchDebounce.current = setTimeout(() => {
+      navigate({ search: value, page: '1' })
+    }, 400)
+  }
+
+  function handleFromChange(value: string) {
+    setFromInput(value)
+    navigate({ from: value, page: '1' })
+  }
+
+  function handleToChange(value: string) {
+    setToInput(value)
+    navigate({ to: value, page: '1' })
+  }
+
+  function handleClearFilters() {
+    setSearchInput('')
+    setFromInput('')
+    setToInput('')
+    router.push('/admin/bookings')
+  }
+
+  function handlePageChange(newPage: number) {
+    navigate({ page: String(newPage) })
+  }
+
+  const hasFilters = currentSearch || currentFrom || currentTo || (currentStatus && currentStatus !== 'all')
+
+  // Real-time subscription: patch in-place for updates, prepend for inserts.
   useEffect(() => {
     const supabase = createClient()
 
@@ -110,12 +200,18 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
             .single()
           if (data) {
             const booking = parseRow(data as RawRow)
-            setRows((prev) => {
-              // Maintain booking_date descending order
-              const idx = prev.findIndex((b) => b.booking_date <= booking.booking_date)
-              if (idx === -1) return [...prev, booking]
-              return [...prev.slice(0, idx), booking, ...prev.slice(idx)]
-            })
+            // Only prepend if on page 1 and matches current status filter.
+            const matchesFilter =
+              currentStatus === 'all' || booking.status === currentStatus
+            if (page === 1 && matchesFilter) {
+              setRows((prev) => {
+                const idx = prev.findIndex((b) => b.booking_date <= booking.booking_date)
+                if (idx === -1) return [...prev, booking]
+                return [...prev.slice(0, idx), booking, ...prev.slice(idx)]
+              })
+            } else if (matchesFilter) {
+              setHasNewBookings(true)
+            }
           }
         }
       )
@@ -135,13 +231,8 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
       )
       .subscribe()
 
-    const timer = setInterval(fetchAll, POLL_MS)
-
-    return () => {
-      supabase.removeChannel(channel)
-      clearInterval(timer)
-    }
-  }, [fetchAll])
+    return () => { supabase.removeChannel(channel) }
+  }, [currentStatus, page])
 
   async function act(id: string, action: 'confirm' | 'unconfirm' | 'cancel' | 'close') {
     setBusyMap((prev) => ({ ...prev, [id]: action }))
@@ -160,7 +251,8 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
               ? {
                   ...b,
                   status: json.status as BookingStatus,
-                  deposit_received: action === 'confirm' ? true : action === 'unconfirm' ? false : b.deposit_received,
+                  deposit_received:
+                    action === 'confirm' ? true : action === 'unconfirm' ? false : b.deposit_received,
                 }
               : b
           )
@@ -179,44 +271,119 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
     }
   }
 
-  const counts = rows.reduce<Record<string, number>>((acc, b) => {
-    acc[b.status] = (acc[b.status] ?? 0) + 1
-    return acc
-  }, {})
-  const visible = filter === 'all' ? rows : rows.filter((b) => b.status === filter)
+  const fromIdx = (page - 1) * pageSize + 1
+  const toIdx = Math.min(page * pageSize, total)
 
   return (
     <div className="space-y-4">
+      {/* Status filter tabs */}
       <div className="flex flex-wrap gap-2">
-        {FILTER_KEYS.map((f) => {
-          const n = f.k === 'all' ? rows.length : counts[f.k] ?? 0
-          return (
-            <button
-              key={f.k}
-              onClick={() => setFilter(f.k)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                filter === f.k ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {t(f.labelKey as never)} · {n}
-            </button>
-          )
-        })}
+        {FILTER_KEYS.map((f) => (
+          <button
+            key={f.k}
+            onClick={() => handleStatusFilter(f.k)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+              currentStatus === f.k || (f.k === 'all' && (!currentStatus || currentStatus === 'all'))
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {t(f.labelKey as never)}
+          </button>
+        ))}
       </div>
 
-      {visible.length === 0 ? (
-        <p className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">{t('booking.admin.noBookings')}</p>
+      {/* Search + date range row */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="relative min-w-[180px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder={t('booking.admin.searchPlaceholder' as never)}
+            className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm placeholder-gray-400 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+              {t('booking.admin.dateFrom' as never)}
+            </label>
+            <input
+              type="date"
+              value={fromInput}
+              onChange={(e) => handleFromChange(e.target.value)}
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div className="mt-4 text-gray-400">–</div>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+              {t('booking.admin.dateTo' as never)}
+            </label>
+            <input
+              type="date"
+              value={toInput}
+              onChange={(e) => handleToChange(e.target.value)}
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+        </div>
+
+        {hasFilters && (
+          <button
+            onClick={handleClearFilters}
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm hover:bg-gray-50"
+          >
+            {t('booking.admin.clearFilters' as never)}
+          </button>
+        )}
+      </div>
+
+      {/* New bookings banner (when on page > 1 and insert arrived) */}
+      {hasNewBookings && (
+        <button
+          onClick={() => navigate({ page: '1' })}
+          className="w-full rounded-xl bg-amber-50 px-4 py-2.5 text-center text-sm font-semibold text-amber-800 hover:bg-amber-100"
+        >
+          {t('booking.admin.newOnThisPage' as never)} — click to go to page 1
+        </button>
+      )}
+
+      {/* Count + pagination info */}
+      {total > 0 && (
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <span>
+            {t('booking.admin.showing' as never, { from: String(fromIdx), to: String(toIdx), total: String(total) })}
+          </span>
+          <span>{t('booking.admin.pageOf' as never, { page: String(page), total: String(totalPages) })}</span>
+        </div>
+      )}
+
+      {/* Bookings list */}
+      {rows.length === 0 ? (
+        <p className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
+          {t('booking.admin.noBookings')}
+        </p>
       ) : (
         <div className="space-y-3">
-          {visible.map((b) => (
+          {rows.map((b) => (
             <div
               key={b.id}
               className="rounded-2xl bg-white p-4 shadow-sm"
-              style={b.override_request && b.status === 'pending' ? { borderLeft: '3px solid #f59e0b' } : undefined}
+              style={
+                b.override_request && b.status === 'pending'
+                  ? { borderLeft: '3px solid #f59e0b' }
+                  : undefined
+              }
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-gray-900">{b.customer?.username ?? 'Unknown'}</p>
+                  <p className="truncate font-semibold text-gray-900">
+                    {b.customer?.username ?? 'Unknown'}
+                  </p>
                   <p className="flex items-center gap-1 text-xs text-gray-400">
                     <Phone className="h-3 w-3" /> {b.customer?.phone ?? '—'}
                   </p>
@@ -227,7 +394,9 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
                       {t('booking.admin.overrideBadge')}
                     </span>
                   )}
-                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusStyle[b.status]}`}>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusStyle[b.status]}`}
+                  >
                     {t(statusKey[b.status] as never)}
                   </span>
                 </div>
@@ -250,7 +419,10 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
               <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
                 <span className="font-mono">{b.ref}</span>
                 <span>
-                  {t('booking.admin.depositLabel')} <strong className="text-gray-800">{b.deposit_total.toLocaleString('en-US')} MMK</strong>
+                  {t('booking.admin.depositLabel')}{' '}
+                  <strong className="text-gray-800">
+                    {b.deposit_total.toLocaleString('en-US')} MMK
+                  </strong>
                 </span>
               </div>
 
@@ -264,33 +436,75 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
                         b.deposit_received
                           ? 'bg-primary text-white hover:bg-primary-dark'
                           : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                      } ${!!busyMap[b.id] && busyMap[b.id] !== 'confirm' && busyMap[b.id] !== 'unconfirm' ? 'opacity-50' : ''}`}
+                      } ${
+                        !!busyMap[b.id] &&
+                        busyMap[b.id] !== 'confirm' &&
+                        busyMap[b.id] !== 'unconfirm'
+                          ? 'opacity-50'
+                          : ''
+                      }`}
                     >
                       {busyMap[b.id] === 'confirm' || busyMap[b.id] === 'unconfirm' ? (
                         <>
-                          <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
-                            <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          <svg
+                            className="h-3.5 w-3.5 animate-spin"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              className="opacity-25"
+                            />
+                            <path
+                              fill="currentColor"
+                              className="opacity-75"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                            />
                           </svg>
-                          {b.deposit_received ? t('booking.admin.receiving') : t('booking.admin.confirming')}
+                          {b.deposit_received
+                            ? t('booking.admin.receiving')
+                            : t('booking.admin.confirming')}
                         </>
                       ) : (
                         <>
                           <Check className="h-3.5 w-3.5" />
-                          {b.deposit_received ? t('booking.admin.depositReceived') : t('booking.admin.confirmDeposit')}
+                          {b.deposit_received
+                            ? t('booking.admin.depositReceived')
+                            : t('booking.admin.confirmDeposit')}
                         </>
                       )}
                     </button>
                     <button
                       onClick={() => act(b.id, 'cancel')}
                       disabled={!!busyMap[b.id]}
-                      className={`flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 ${!!busyMap[b.id] && busyMap[b.id] !== 'cancel' ? 'opacity-50' : ''}`}
+                      className={`flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 ${
+                        !!busyMap[b.id] && busyMap[b.id] !== 'cancel' ? 'opacity-50' : ''
+                      }`}
                     >
                       {busyMap[b.id] === 'cancel' ? (
                         <>
-                          <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
-                            <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          <svg
+                            className="h-3.5 w-3.5 animate-spin"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              className="opacity-25"
+                            />
+                            <path
+                              fill="currentColor"
+                              className="opacity-75"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                            />
                           </svg>
                           {t('booking.admin.cancelling')}
                         </>
@@ -308,6 +522,64 @@ export default function AdminBookingsList({ initial }: { initial: AdminBooking[]
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page <= 1}
+            className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            {t('booking.admin.prevPage' as never)}
+          </button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+              let p2: number
+              if (totalPages <= 7) {
+                p2 = i + 1
+              } else if (page <= 4) {
+                p2 = i < 5 ? i + 1 : i === 5 ? -1 : totalPages
+              } else if (page >= totalPages - 3) {
+                p2 = i === 0 ? 1 : i === 1 ? -1 : totalPages - 6 + i
+              } else {
+                p2 = i === 0 ? 1 : i === 1 ? -1 : i === 5 ? -1 : i === 6 ? totalPages : page + i - 3
+              }
+              if (p2 === -1) {
+                return (
+                  <span key={`ellipsis-${i}`} className="px-1 text-gray-400">
+                    …
+                  </span>
+                )
+              }
+              return (
+                <button
+                  key={p2}
+                  onClick={() => handlePageChange(p2)}
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
+                    p2 === page
+                      ? 'bg-gray-900 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {p2}
+                </button>
+              )
+            })}
+          </div>
+
+          <button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages}
+            className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {t('booking.admin.nextPage' as never)}
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       )}
     </div>

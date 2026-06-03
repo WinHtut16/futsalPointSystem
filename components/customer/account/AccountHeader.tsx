@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Award, Phone, LogOut, Settings, Zap } from 'lucide-react'
+import { Award, Phone, LogOut, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
@@ -128,10 +128,6 @@ export default function AccountHeader({ name, userId, initialPoints, earned, red
               <div className={`mt-px text-[9.5px] font-medium opacity-70 ${my}`}>{t('account.redeemed')}</div>
             </div>
           </div>
-        </div>
-        <div className={`relative mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-[12px] font-medium ${my}`}>
-          <Zap size={13} className="text-accent" />
-          {t('account.earnRate')}
         </div>
       </div>
 

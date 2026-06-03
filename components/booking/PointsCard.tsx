@@ -1,6 +1,5 @@
 'use client'
 
-import { Zap } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 function initials(name: string) {
@@ -40,10 +39,6 @@ export default function PointsCard({ name, points }: { name: string; points: num
         <span className={`text-[13px] opacity-80 ${my}`}>{t('booking.dash.points')}</span>
       </div>
 
-      <div className={`relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-[12px] font-medium ${my}`}>
-        <Zap size={13} className="text-accent" />
-        {t('booking.dash.earnRate')}
-      </div>
     </div>
   )
 }

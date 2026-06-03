@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { Plus, Star, Zap } from 'lucide-react'
+import { Plus, Star } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Reward } from '@/types'
 import AccountHeader from './AccountHeader'
@@ -26,7 +26,8 @@ interface UnifiedAccountProps {
   rewards: Reward[]
   userPoints: number
   initialPendingMap: Record<string, string>
-  feed: FeedItem[]
+  initialFeeds: { all: FeedItem[]; bookings: FeedItem[]; points: FeedItem[] }
+  initialHasMore: { all: boolean; bookings: boolean; points: boolean }
 }
 
 export default function UnifiedAccount(props: UnifiedAccountProps) {
@@ -35,15 +36,48 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
   const [tab, setTab] = useState<Tab>('upcoming')
   const [filter, setFilter] = useState<Filter>('all')
 
+  // Per-filter feed state
+  const [feeds, setFeeds] = useState(props.initialFeeds)
+  const [hasMore, setHasMore] = useState(props.initialHasMore)
+  const [pages, setPages] = useState<{ all: number; bookings: number; points: number }>({
+    all: 0,
+    bookings: 0,
+    points: 0,
+  })
+  const [loading, setLoading] = useState(false)
+
   const tabs: { k: Tab; label: string }[] = [
     { k: 'upcoming', label: t('account.tab.upcoming') },
     { k: 'history', label: t('account.tab.history') },
     { k: 'rewards', label: t('account.tab.rewards') },
   ]
 
-  const filteredFeed = props.feed.filter((it) =>
-    filter === 'all' ? true : filter === 'bookings' ? it.kind === 'booking' : it.kind !== 'booking'
-  )
+  function changeFilter(newFilter: Filter) {
+    setFilter(newFilter)
+  }
+
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore[filter]) return
+    setLoading(true)
+    const nextPage = pages[filter] + 1
+    try {
+      const res = await fetch(
+        `/api/account/history?filter=${filter}&page=${nextPage}`
+      )
+      if (!res.ok) return
+      const { items, hasMore: moreItems } = (await res.json()) as {
+        items: FeedItem[]
+        hasMore: boolean
+      }
+      setFeeds((prev) => ({ ...prev, [filter]: [...prev[filter], ...items] }))
+      setHasMore((prev) => ({ ...prev, [filter]: moreItems }))
+      setPages((prev) => ({ ...prev, [filter]: nextPage }))
+    } finally {
+      setLoading(false)
+    }
+  }, [filter, hasMore, loading, pages])
+
+  const currentFeed = feeds[filter]
 
   return (
     <div>
@@ -112,9 +146,6 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
                   <span className="font-display text-2xl font-extrabold tracking-tight text-ink-primary">{props.userPoints.toLocaleString('en-US')}</span>
                   <span className={`text-xs text-ink-muted ${my}`}>{t('account.pointsAvailable')}</span>
                 </div>
-                <div className={`mt-0.5 flex items-center gap-1.5 text-[11.5px] text-ink-muted ${my}`}>
-                  <Zap size={12} className="text-primary" /> {t('account.earnRate')}
-                </div>
               </div>
             </div>
 
@@ -145,7 +176,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
                   <button
                     key={k}
                     type="button"
-                    onClick={() => setFilter(k)}
+                    onClick={() => changeFilter(k)}
                     className={`whitespace-nowrap rounded-full px-3.5 py-1.5 font-display text-xs font-semibold ${my} ${
                       on ? 'bg-ink-primary text-white' : 'border border-line bg-surface text-ink-muted'
                     }`}
@@ -155,7 +186,37 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
                 )
               })}
             </div>
-            <UnifiedTimeline items={filteredFeed} />
+
+            <UnifiedTimeline items={currentFeed} />
+
+            {hasMore[filter] && (
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={loadMore}
+                  disabled={loading}
+                  className="flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 font-display text-[13px] font-semibold text-ink-muted transition-colors hover:bg-black/5 disabled:opacity-60"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                        <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span className={my}>{t('account.loadingMore')}</span>
+                    </>
+                  ) : (
+                    <span className={my}>{t('account.loadMore')}</span>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {!hasMore[filter] && currentFeed.length > 0 && (
+              <p className={`mt-5 text-center font-display text-[11px] text-ink-faint ${my}`}>
+                {t('account.allLoaded')}
+              </p>
+            )}
           </div>
         )}
       </div>

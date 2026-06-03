@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Calendar, ArrowRight, Zap, Star, Shield, Sun, LogOut } from 'lucide-react'
+import { Calendar, ArrowRight, Star, Shield, Sun, LogOut } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import SiteNavbar from './SiteNavbar'
 import BottomNav from './BottomNav'
@@ -14,7 +14,7 @@ import NewsCarousel from './NewsCarousel'
 import type { NewsPost } from './NewsCardGrid'
 
 const FEATURES = [
-  { Ic: Zap, titleKey: 'booking.home.featEasyTitle', bodyKey: 'booking.home.featEasyBody' },
+  { Ic: Calendar, titleKey: 'booking.home.featEasyTitle', bodyKey: 'booking.home.featEasyBody' },
   { Ic: Star, titleKey: 'booking.home.featPointsTitle', bodyKey: 'booking.home.featPointsBody' },
   { Ic: Shield, titleKey: 'booking.home.featFeesTitle', bodyKey: 'booking.home.featFeesBody' },
   { Ic: Sun, titleKey: 'booking.home.featOpenTitle', bodyKey: 'booking.home.featOpenBody' },

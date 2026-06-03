@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { BookingActionSchema, IdParamSchema, badRequest, parseJson } from '@/lib/schemas'
-import { calculatePoints } from '@/lib/points'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser()
@@ -19,7 +18,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const supabase = createServiceClient()
   const { data: booking } = await supabase
     .from('bookings')
-    .select('id, customer_id, status, deposit_received, points_awarded, override_request, booking_date')
+    .select('id, customer_id, status, deposit_received, override_request, booking_date')
     .eq('id', id)
     .single()
 
@@ -98,32 +97,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .eq('id', id)
     if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 })
 
-    // Award loyalty points once (10 pts/hr; each slot = 1 hour).
-    let pointsAwarded = booking.points_awarded
-    if (booking.points_awarded === 0) {
-      const { count } = await supabase
-        .from('booking_slots')
-        .select('id', { count: 'exact', head: true })
-        .eq('booking_id', id)
-      const hours = count ?? 0
-      const points = calculatePoints(hours)
-      if (points > 0) {
-        const { error: rpcErr } = await supabase.rpc('add_points_transaction', {
-          p_customer_id: booking.customer_id,
-          p_points_delta: points,
-          p_transaction_type: 'booking',
-          p_hours_played: hours,
-          p_reward_id: null,
-          p_note: `Booking ${id}`,
-          p_created_by: user.id,
-        })
-        if (!rpcErr) {
-          await supabase.from('bookings').update({ points_awarded: points }).eq('id', id)
-          pointsAwarded = points
-        }
-      }
-    }
-    return NextResponse.json({ status: 'confirmed', points_awarded: pointsAwarded })
+    return NextResponse.json({ status: 'confirmed' })
   }
 
   if (action === 'unconfirm') {

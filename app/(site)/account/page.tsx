@@ -4,13 +4,13 @@ import { getCurrentUser } from '@/lib/auth'
 import { getActiveRewards } from '@/lib/cached-queries'
 import { formatDate } from '@/lib/utils'
 import { canCancel } from '@/lib/booking'
+import { buildBookingFeedItem, buildTxnFeedItem, mergeFeed, type FeedBookingRow, type FeedTxnRow } from '@/lib/account-feed'
 import SiteNavbar from '@/components/booking/SiteNavbar'
 import BottomNav from '@/components/booking/BottomNav'
 import UnifiedAccount from '@/components/customer/account/UnifiedAccount'
 import type { DashboardBooking } from '@/components/booking/BookingsDashboard'
 import type { BookingStatus } from '@/components/booking/BookingHistoryCard'
 import type { FeedItem } from '@/components/customer/account/UnifiedTimeline'
-import type { PointTransaction } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,14 +25,7 @@ function todayYangon(): string {
   }).format(new Date())
 }
 
-type BookingRow = {
-  id: string
-  status: BookingStatus
-  booking_date: string
-  deposit_total: number
-  ref: string
-  booking_slots: { hour_start: number }[]
-}
+const FEED_LIMIT = 20
 
 export default async function AccountPage() {
   const profile = await getCurrentUser()
@@ -41,109 +34,108 @@ export default async function AccountPage() {
   const supabase = await createClient()
   const svc = createServiceClient()
 
-  // All queries in parallel: txns, rewards, pending redemptions, bookings+slots in one join.
-  // Bookings query uses a relational join so slot hours are embedded — no second round trip.
-  const [{ data: txns }, rewards, { data: pendingRequests }, bookingsRes] = await Promise.all([
-    supabase
-      .from('point_transactions')
-      .select('*, reward:rewards(name)')
-      .eq('customer_id', profile.id)
-      .order('created_at', { ascending: false }),
-    getActiveRewards(),
-    supabase
-      .from('redemption_requests')
-      .select('id, reward_id')
-      .eq('customer_id', profile.id)
-      .eq('status', 'pending'),
-    svc
-      .from('bookings')
-      .select('id, status, booking_date, deposit_total, ref, booking_slots(hour_start)')
-      .eq('customer_id', profile.id)
-      .order('booking_date', { ascending: false })
-      .then((r) => r, () => ({ data: null, error: null })),
-  ])
+  const today = todayYangon()
 
-  const transactions = (txns ?? []) as PointTransaction[]
+  // Run all queries in parallel.
+  // Stats: all txns (lightweight — just points_delta) for earned/redeemed totals.
+  // Upcoming: only future pending/confirmed bookings (no limit needed — small set).
+  // Feed: first 21 from each source for the paginated history feed.
+  const [statsRes, upcomingRes, histBookingsRes, histTxnsRes, rewards, pendingRequests] =
+    await Promise.all([
+      supabase
+        .from('point_transactions')
+        .select('points_delta')
+        .eq('customer_id', profile.id),
 
+      svc
+        .from('bookings')
+        .select('id, status, booking_date, deposit_total, ref, booking_slots(hour_start)')
+        .eq('customer_id', profile.id)
+        .in('status', ['pending', 'confirmed'])
+        .gte('booking_date', today)
+        .order('booking_date', { ascending: true })
+        .then((r) => r, () => ({ data: null, error: null })),
+
+      svc
+        .from('bookings')
+        .select('id, ref, status, booking_date, deposit_total, booking_slots(hour_start)')
+        .eq('customer_id', profile.id)
+        .order('booking_date', { ascending: false })
+        .limit(FEED_LIMIT + 1)
+        .then((r) => r, () => ({ data: null, error: null })),
+
+      supabase
+        .from('point_transactions')
+        .select('id, created_at, points_delta, transaction_type, hours_played, note, reward:rewards(name)')
+        .eq('customer_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(FEED_LIMIT + 1),
+
+      getActiveRewards(),
+
+      supabase
+        .from('redemption_requests')
+        .select('id, reward_id')
+        .eq('customer_id', profile.id)
+        .eq('status', 'pending'),
+    ])
+
+  // Stats
   let earned = 0
   let redeemed = 0
-  for (const tx of transactions) {
+  for (const tx of statsRes.data ?? []) {
     if (tx.points_delta >= 0) earned += tx.points_delta
     else redeemed += -tx.points_delta
   }
 
   const initialPendingMap: Record<string, string> = {}
-  pendingRequests?.forEach((r) => { initialPendingMap[r.reward_id] = r.id })
+  pendingRequests.data?.forEach((r) => { initialPendingMap[r.reward_id] = r.id })
 
+  // Upcoming bookings
   let upcoming: DashboardBooking[] = []
-  const bookingFeed: FeedItem[] = []
   try {
-    const rows = (bookingsRes.data ?? []) as BookingRow[]
-
-    const today = todayYangon()
-    for (const r of rows) {
+    const rows = (upcomingRes.data ?? []) as FeedBookingRow[]
+    upcoming = rows.map((r) => {
       const hours = (r.booking_slots ?? []).map((s) => s.hour_start).sort((a, b) => a - b)
       const timeLabel =
         hours.length > 0 ? `${pad(hours[0])}:00 – ${pad(hours[hours.length - 1] + 1)}:00` : '—'
       const earliest = hours.length > 0 ? hours[0] : 0
-      const cancellable =
-        (r.status === 'confirmed' || r.status === 'pending') && canCancel(r.booking_date, earliest)
-      const depositLabel = r.deposit_total
-        ? `${r.deposit_total.toLocaleString('en-US')} MMK`
-        : '—'
-
-      if ((r.status === 'pending' || r.status === 'confirmed') && r.booking_date >= today) {
-        upcoming.push({
-          id: r.id,
-          status: r.status,
-          dateLabel: formatDate(r.booking_date),
-          timeLabel,
-          refCode: r.ref,
-          deposit: depositLabel,
-          canCancel: cancellable,
-        })
-      }
-      bookingFeed.push({
-        kind: 'booking',
-        ts: r.booking_date,
-        status: r.status,
-        timeLabel,
+      return {
+        id: r.id,
+        status: r.status as BookingStatus,
         dateLabel: formatDate(r.booking_date),
-        meta: r.ref,
-      })
-    }
-    upcoming = upcoming.sort((a, b) => a.dateLabel.localeCompare(b.dateLabel))
+        timeLabel,
+        refCode: r.ref,
+        deposit: r.deposit_total ? `${r.deposit_total.toLocaleString('en-US')} MMK` : '—',
+        canCancel:
+          (r.status === 'confirmed' || r.status === 'pending') &&
+          canCancel(r.booking_date, earliest),
+      }
+    })
   } catch {
-    // Booking tables not migrated in this environment — degrade gracefully.
+    // Booking tables not yet migrated — degrade gracefully.
   }
 
-  const txnFeed: FeedItem[] = transactions.map((tx): FeedItem => {
-    const kind: 'earn' | 'redeem' | 'adjust' =
-      tx.transaction_type === 'earn'
-        ? 'earn'
-        : tx.transaction_type === 'redeem'
-          ? 'redeem'
-          : 'adjust'
-    const detail =
-      kind === 'redeem'
-        ? (tx.reward?.name ?? '')
-        : kind === 'earn'
-          ? tx.hours_played
-            ? `${tx.hours_played}h`
-            : ''
-          : (tx.note ?? '')
-    return {
-      kind,
-      ts: tx.created_at,
-      dateLabel: formatDate(tx.created_at),
-      delta: tx.points_delta,
-      detail,
-    }
-  })
+  // Feed items for history tab
+  const histBookings = (histBookingsRes.data ?? []) as FeedBookingRow[]
+  const histTxns = (histTxnsRes.data ?? []) as unknown as FeedTxnRow[]
 
-  const feed: FeedItem[] = [...bookingFeed, ...txnFeed].sort(
-    (a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime()
-  )
+  const bookingFeedItems = histBookings.map(buildBookingFeedItem)
+  const txnFeedItems = histTxns.map(buildTxnFeedItem)
+
+  // Per-filter initial pages
+  const allMerged: FeedItem[] = mergeFeed(bookingFeedItems, txnFeedItems)
+
+  const initialFeeds = {
+    all: allMerged.slice(0, FEED_LIMIT),
+    bookings: bookingFeedItems.slice(0, FEED_LIMIT),
+    points: txnFeedItems.slice(0, FEED_LIMIT),
+  }
+  const initialHasMore = {
+    all: allMerged.length > FEED_LIMIT,
+    bookings: bookingFeedItems.length > FEED_LIMIT,
+    points: txnFeedItems.length > FEED_LIMIT,
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -161,7 +153,8 @@ export default async function AccountPage() {
           rewards={rewards}
           userPoints={profile.total_points}
           initialPendingMap={initialPendingMap}
-          feed={feed}
+          initialFeeds={initialFeeds}
+          initialHasMore={initialHasMore}
         />
       </div>
       <BottomNav active="me" />
