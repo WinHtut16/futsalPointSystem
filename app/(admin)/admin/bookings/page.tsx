@@ -10,13 +10,17 @@ export default async function AdminBookingsPage() {
   let list: AdminBooking[] = []
   try {
     const supabase = createServiceClient()
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('bookings')
       .select(
-        'id, ref, status, booking_date, deposit_total, deposit_received, override_request, customer:profiles!customer_id(username, phone), booking_slots(hour_start)'
+        'id, ref, status, booking_date, deposit_total, deposit_received, override_request, customer:profiles(username, phone), booking_slots(hour_start)'
       )
       .order('booking_date', { ascending: false })
       .limit(200)
+
+    if (error) {
+      console.error('[AdminBookingsPage] query error:', error.message, error.details)
+    }
 
     list = (data ?? []).map((b) => {
       const customer = Array.isArray(b.customer) ? b.customer[0] : b.customer
@@ -32,8 +36,8 @@ export default async function AdminBookingsPage() {
         hours: ((b.booking_slots as { hour_start: number }[]) ?? []).map((s) => s.hour_start),
       }
     })
-  } catch {
-    // Booking tables not migrated yet.
+  } catch (err) {
+    console.error('[AdminBookingsPage] unexpected error:', err)
   }
 
   return (

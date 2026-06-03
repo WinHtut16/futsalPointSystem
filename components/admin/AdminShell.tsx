@@ -11,16 +11,17 @@ import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { usePendingRedemptions } from '@/contexts/PendingRedemptionsContext'
+import { usePendingBookings } from '@/contexts/PendingBookingsContext'
 import LanguageToggle from '@/components/ui/LanguageToggle'
 import LogoutButton from '@/components/admin/LogoutButton'
 
-type NavItem = { href: string; labelKey: string; Icon: LucideIcon; badge?: boolean; superadmin?: boolean }
+type NavItem = { href: string; labelKey: string; Icon: LucideIcon; badge?: boolean; bookingBadge?: boolean; superadmin?: boolean }
 type NavGroup = { labelKey?: string; items: NavItem[] }
 
 const NAV: NavGroup[] = [
   { items: [{ href: '/admin/dashboard', labelKey: 'admin.navDashboard', Icon: LayoutDashboard }] },
   { labelKey: 'admin.groupBooking', items: [
-    { href: '/admin/bookings', labelKey: 'admin.navBookings', Icon: CalendarCheck },
+    { href: '/admin/bookings', labelKey: 'admin.navBookings', Icon: CalendarCheck, bookingBadge: true },
     { href: '/admin/court', labelKey: 'admin.navCourt', Icon: LayoutGrid },
   ] },
   { labelKey: 'admin.groupLoyalty', items: [
@@ -117,6 +118,8 @@ function Sidebar({
   const pathname = usePathname()
   const { count } = usePendingRedemptions()
   const badgeText = count > 99 ? '99+' : String(count)
+  const { count: bookingCount } = usePendingBookings()
+  const bookingBadgeText = bookingCount > 99 ? '99+' : String(bookingCount)
 
   return (
     <div
@@ -196,6 +199,15 @@ function Sidebar({
                         >
                           {badgeText}
                           <span className="sr-only"> pending requests</span>
+                        </span>
+                      )}
+                      {it.bookingBadge && bookingCount > 0 && (
+                        <span
+                          className="absolute -right-[7px] -top-1.5 flex min-w-[15px] items-center justify-center rounded-full px-1 font-display text-[9px] font-extrabold"
+                          style={{ height: 15, background: 'var(--color-accent)', color: '#1a1408' }}
+                        >
+                          {bookingBadgeText}
+                          <span className="sr-only"> pending bookings</span>
                         </span>
                       )}
                     </span>
