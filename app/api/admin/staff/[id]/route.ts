@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireSuperAdmin } from '@/lib/auth'
-import { IdParamSchema, StaffPasswordUpdateSchema, badRequest, parseJson } from '@/lib/schemas'
+import { IdParamSchema, StaffPasswordUpdateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -53,7 +53,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { error } = await supabase.auth.admin.updateUserById(id, { password: parsed.data.password })
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -84,7 +84,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const { error } = await supabase.auth.admin.deleteUser(id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

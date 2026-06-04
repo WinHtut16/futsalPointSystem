@@ -34,3 +34,19 @@ export function phoneToEmail(phone: string): string {
 export function usernameToAdminEmail(username: string): string {
   return `${username.toLowerCase().trim()}@akoatp-staff.com`
 }
+
+export function safeRedirect(next: string | null | undefined, fallback: string = '/'): string {
+  if (!next) return fallback
+  if (
+    next.startsWith('http://') ||
+    next.startsWith('https://') ||
+    next.startsWith('//') ||
+    next.startsWith('\\') ||
+    next.includes('\n') ||
+    next.includes('\r')
+  ) {
+    return fallback
+  }
+  if (!next.startsWith('/')) return fallback
+  return next
+}

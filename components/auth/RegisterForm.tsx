@@ -3,17 +3,13 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { phoneToEmail, normalizePhone } from '@/lib/utils'
+import { phoneToEmail, normalizePhone, safeRedirect } from '@/lib/utils'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
 import { calcStrength } from '@/components/ui/PasswordStrengthMeter'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
-function safeNext(next: string | null): string | null {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.includes('\\')) return null
-  return next
-}
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -70,8 +66,7 @@ export default function RegisterForm() {
       return
     }
 
-    const next = safeNext(searchParams.get('next'))
-    router.push(next ?? '/dashboard')
+    router.push(safeRedirect(searchParams.get('next'), '/dashboard'))
     router.refresh()
   }
 

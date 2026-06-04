@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin, requireSuperAdmin } from '@/lib/auth'
-import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, parseJson } from '@/lib/schemas'
+import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -37,7 +37,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     revalidateTag('rewards', 'default')
     return NextResponse.json(data)
   } catch {
@@ -58,7 +58,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
       .from('rewards')
       .update({ is_deleted: true, is_active: false, updated_at: new Date().toISOString() })
       .eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     revalidateTag('rewards', 'default')
     return NextResponse.json({ success: true })
   } catch {

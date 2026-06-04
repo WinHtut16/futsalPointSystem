@@ -53,7 +53,10 @@ export async function POST(request: NextRequest) {
       ],
     }) as { secure_url: string }
   } catch (err) {
-    console.error('Cloudinary upload error:', err)
+    console.error('Cloudinary upload error:', {
+      message: err instanceof Error ? err.message : 'Unknown error',
+      http_code: (err as { http_code?: number })?.http_code ?? null,
+    })
     return NextResponse.json({ error: 'Upload failed. Please try again.' }, { status: 502 })
   }
 

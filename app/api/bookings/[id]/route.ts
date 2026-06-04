@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
-import { BookingActionSchema, IdParamSchema, badRequest, parseJson } from '@/lib/schemas'
+import { BookingActionSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser()
@@ -38,7 +38,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .from('bookings')
       .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
       .eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json({ status: 'cancelled' })
   }
 
@@ -50,52 +50,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Cannot confirm a cancelled or closed booking.' }, { status: 409 })
     }
 
-    // If this is an override booking: cancel conflicting pending bookings FIRST,
-    // so their slots become active=false before we set this booking to confirmed
-    // (which triggers the sync trigger to set our slots active=true).
     if (booking.override_request) {
-      const { data: mySlots } = await supabase
-        .from('booking_slots')
-        .select('hour_start')
-        .eq('booking_id', id)
-
-      const hours = (mySlots ?? []).map((s: { hour_start: number }) => s.hour_start)
-
-      if (hours.length > 0) {
-        const { data: conflictSlots } = await supabase
-          .from('booking_slots')
-          .select('booking_id')
-          .eq('active', true)
-          .in('hour_start', hours)
-          .neq('booking_id', id)
-
-        if (conflictSlots && conflictSlots.length > 0) {
-          const conflictIds = [
-            ...new Set((conflictSlots as { booking_id: string }[]).map((s) => s.booking_id)),
-          ]
-          const { data: conflictBookings } = await supabase
-            .from('bookings')
-            .select('id')
-            .in('id', conflictIds)
-            .eq('booking_date', booking.booking_date)
-            .eq('status', 'pending')
-
-          if (conflictBookings && conflictBookings.length > 0) {
-            const { error: cancelErr } = await supabase
-              .from('bookings')
-              .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-              .in('id', (conflictBookings as { id: string }[]).map((b) => b.id))
-            if (cancelErr) return NextResponse.json({ error: cancelErr.message }, { status: 500 })
-          }
-        }
+      // Atomic RPC: cancels conflicting pending bookings + confirms override in one transaction.
+      // Prevents orphaned state if the server crashes between the two operations.
+      const { error: rpcErr } = await supabase.rpc('confirm_override_booking', {
+        p_booking_id: id,
+        p_admin_id: user.id,
+      })
+      if (rpcErr?.message === 'booking_not_found') {
+        return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })
       }
+      if (rpcErr) return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+      return NextResponse.json({ status: 'confirmed' })
     }
 
     const { error: updErr } = await supabase
       .from('bookings')
       .update({ status: 'confirmed', deposit_received: true, confirmed_at: new Date().toISOString() })
       .eq('id', id)
-    if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 })
+    if (updErr) return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
 
     return NextResponse.json({ status: 'confirmed' })
   }
@@ -105,13 +78,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .from('bookings')
       .update({ status: 'pending', deposit_received: false })
       .eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json({ status: 'pending' })
   }
 
   if (action === 'close') {
     const { error } = await supabase.from('bookings').update({ status: 'closed' }).eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json({ status: 'closed' })
   }
 

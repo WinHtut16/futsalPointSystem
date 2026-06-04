@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { buildBookingFeedItem, buildTxnFeedItem, mergeFeed, type FeedBookingRow, type FeedTxnRow } from '@/lib/account-feed'
+import { serverError } from '@/lib/schemas'
 
 const LIMIT = 20
 
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
       .order('booking_date', { ascending: false })
       .range(offset, offset + LIMIT)
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
 
     const rows = (data ?? []) as FeedBookingRow[]
     const hasMore = rows.length > LIMIT
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + LIMIT)
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
 
     const txns = (data ?? []) as unknown as FeedTxnRow[]
     const hasMore = txns.length > LIMIT

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
-import { AdjustPointsSchema, badRequest, parseJson } from '@/lib/schemas'
+import { AdjustPointsSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     // Verify target is a customer
     const { data: customer } = await supabase
       .from('profiles')
-      .select('id, role, total_points')
+      .select('id, role')
       .eq('id', customer_id)
       .single()
 
@@ -24,16 +24,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Customer not found.' }, { status: 404 })
     }
 
-    // Guard: cannot reduce balance below zero
-    if (customer.total_points + points_delta < 0) {
-      return NextResponse.json(
-        {
-          error: `Balance cannot go below zero. Current balance: ${customer.total_points} pts.`,
-        },
-        { status: 400 }
-      )
-    }
-
+    // Balance guard is enforced atomically inside the RPC (FOR UPDATE row-lock).
+    // A pre-check SELECT here would be racy under concurrent adjustments.
     const { error } = await supabase.rpc('add_points_transaction', {
       p_customer_id: customer_id,
       p_points_delta: points_delta,
@@ -42,9 +34,16 @@ export async function POST(request: NextRequest) {
       p_reward_id: null,
       p_note: reason,
       p_created_by: admin.id,
+      p_min_balance: 0,
     })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error?.message?.includes('insufficient_balance')) {
+      return NextResponse.json(
+        { error: 'Adjustment would drive balance below zero.' },
+        { status: 400 }
+      )
+    }
+    if (error) return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
 
     const { data: updated } = await supabase
       .from('profiles')

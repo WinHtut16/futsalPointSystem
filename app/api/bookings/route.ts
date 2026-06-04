@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
-import { CreateBookingSchema, badRequest, parseJson } from '@/lib/schemas'
+import { CreateBookingSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 import { priceForHour, tierForHour } from '@/lib/booking'
 
 function todayYangon(): string {
@@ -42,32 +42,47 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // For override requests: only allow if the conflicting slot has a PENDING holder,
-  // not a CONFIRMED one. A confirmed slot is truly taken.
+  // For override requests: require a PENDING booking holds every requested slot on
+  // this date. Rejects free slots (no pending holder = no valid override) and
+  // confirmed/closed slots (truly taken). Filters by booking_date to avoid matching
+  // active slots on other dates that share the same hour_start.
   if (override_request) {
-    const { data: activeSlots } = await supabase
+    const { data: activeSlots, error: slotsErr } = await supabase
       .from('booking_slots')
       .select('booking_id, hour_start')
+      .eq('booking_date', booking_date)
       .eq('active', true)
       .in('hour_start', slots)
 
-    if (activeSlots && activeSlots.length > 0) {
-      const bookingIds = activeSlots.map((s) => s.booking_id as string)
-      const { data: existingBookings } = await supabase
-        .from('bookings')
-        .select('id, status, booking_date')
-        .in('id', bookingIds)
-        .eq('booking_date', booking_date)
+    if (slotsErr) return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
 
-      const hasConfirmed = existingBookings?.some(
-        (b) => b.status === 'confirmed' || b.status === 'closed'
+    // Every requested override slot must have an active booking holding it.
+    const foundHours = new Set((activeSlots ?? []).map((s) => s.hour_start as number))
+    const missingHour = slots.find((h) => !foundHours.has(h))
+    if (missingHour !== undefined) {
+      return NextResponse.json(
+        { error: `No pending booking exists for ${booking_date} at ${missingHour}:00 — override not valid.` },
+        { status: 400 }
       )
-      if (hasConfirmed) {
-        return NextResponse.json(
-          { error: 'This slot is already confirmed. Please pick another time.' },
-          { status: 409 }
-        )
-      }
+    }
+
+    const bookingIds = (activeSlots ?? []).map((s) => s.booking_id as string)
+    const { data: existingBookings, error: bookingsErr } = await supabase
+      .from('bookings')
+      .select('id, status')
+      .in('id', bookingIds)
+      .eq('booking_date', booking_date)
+
+    if (bookingsErr) return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+
+    const hasConfirmed = existingBookings?.some(
+      (b) => b.status === 'confirmed' || b.status === 'closed'
+    )
+    if (hasConfirmed) {
+      return NextResponse.json(
+        { error: 'This slot is already confirmed. Please pick another time.' },
+        { status: 409 }
+      )
     }
   }
 
@@ -101,7 +116,7 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       )
     }
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(error.message)
   }
 
   const booking = Array.isArray(data) ? data[0] : data

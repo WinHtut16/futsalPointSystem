@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/auth'
-import { RedeemSchema, badRequest, parseJson } from '@/lib/schemas'
+import { RedeemSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Reward is out of stock.' }, { status: 400 })
       if (error.message === 'insufficient_points')
         return NextResponse.json({ error: 'Not enough points.' }, { status: 400 })
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return serverError(error.message)
     }
 
     const { data: updated } = await supabase

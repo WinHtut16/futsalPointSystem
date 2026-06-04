@@ -7,6 +7,7 @@ import {
   CustomerProfileUpdateSchema,
   badRequest,
   parseJson,
+  serverError,
 } from '@/lib/schemas'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -64,7 +65,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       const { error } = await supabase.auth.admin.updateUserById(id, {
         password: parsed.data.password,
       })
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      if (error) return serverError(error.message)
       return NextResponse.json({ success: true })
     }
 
@@ -75,7 +76,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json(data)
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -103,7 +104,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const { error } = await supabase.auth.admin.deleteUser(id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

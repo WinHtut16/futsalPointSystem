@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
-import { ClosureCreateSchema, badRequest, parseJson } from '@/lib/schemas'
+import { ClosureCreateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   let admin
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     if (error.code === '23505') {
       return NextResponse.json({ error: 'That date/slot is already closed.' }, { status: 409 })
     }
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(error.message)
   }
   return NextResponse.json(data)
 }
@@ -48,6 +48,6 @@ export async function DELETE(request: NextRequest) {
 
   const supabase = createServiceClient()
   const { error } = await supabase.from('court_closures').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return serverError(error.message)
   return NextResponse.json({ ok: true })
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireSuperAdmin } from '@/lib/auth'
-import { CmsPostSchema, IdParamSchema, badRequest, parseJson } from '@/lib/schemas'
+import { CmsPostSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (error.code === '23505') {
       return NextResponse.json({ error: 'That slug is already in use.' }, { status: 409 })
     }
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(error.message)
   }
   return NextResponse.json({ id })
 }
@@ -69,6 +69,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   const supabase = createServiceClient()
   const { error } = await supabase.from('cms_posts').delete().eq('id', idParse.data.id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return serverError(error.message)
   return NextResponse.json({ ok: true })
 }

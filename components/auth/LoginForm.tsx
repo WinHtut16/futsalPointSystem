@@ -5,17 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { phoneToEmail } from '@/lib/utils'
+import { phoneToEmail, safeRedirect } from '@/lib/utils'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
-// Only allow same-origin relative redirects (block //host and \ bypasses).
-function safeNext(next: string | null): string | null {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.includes('\\')) return null
-  return next
-}
 
 export default function LoginForm() {
   const router = useRouter()
@@ -56,8 +51,7 @@ export default function LoginForm() {
       .single()
 
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
-    const next = safeNext(searchParams.get('next'))
-    router.push(isAdmin ? '/admin/dashboard' : next ?? '/account')
+    router.push(isAdmin ? '/admin/dashboard' : safeRedirect(searchParams.get('next'), '/account'))
     router.refresh()
   }
 

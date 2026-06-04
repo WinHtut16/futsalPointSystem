@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
-import { IdParamSchema, RedemptionActionSchema, badRequest, parseJson } from '@/lib/schemas'
+import { IdParamSchema, RedemptionActionSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function PATCH(
   request: NextRequest,
@@ -65,7 +65,7 @@ export async function PATCH(
             return NextResponse.json({ error: 'Reward is now out of stock.' }, { status: 400 })
           if (rpcError.message === 'insufficient_points')
             return NextResponse.json({ error: 'Customer no longer has enough points.' }, { status: 400 })
-          return NextResponse.json({ error: rpcError.message }, { status: 500 })
+          return serverError(rpcError.message)
         }
 
         return NextResponse.json({ success: true })

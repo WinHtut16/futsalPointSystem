@@ -155,6 +155,17 @@ export const StaffPasswordUpdateSchema = z.object({ password }).strict()
 
 export const IdParamSchema = z.object({ id: uuid })
 
+export function serverError(detail?: string): NextResponse {
+  if (detail) console.error('[server error]', detail)
+  return NextResponse.json(
+    {
+      error: 'An unexpected error occurred',
+      ...(process.env.NODE_ENV !== 'production' && detail ? { detail } : {}),
+    },
+    { status: 500 }
+  )
+}
+
 export function badRequest(error: z.ZodError) {
   const first = error.issues[0]
   return NextResponse.json(

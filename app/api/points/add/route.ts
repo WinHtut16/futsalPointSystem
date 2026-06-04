@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
 import { calculatePoints } from '@/lib/points'
-import { AddPointsSchema, badRequest, parseJson } from '@/lib/schemas'
+import { AddPointsSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       p_created_by: admin.id,
     })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
 
     const { data: updated } = await supabase
       .from('profiles')

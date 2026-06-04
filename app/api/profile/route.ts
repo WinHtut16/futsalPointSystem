@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { CustomerProfileUpdateSchema, badRequest, parseJson } from '@/lib/schemas'
+import { CustomerProfileUpdateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function PATCH(req: Request) {
   const supabase = await createClient()
@@ -13,7 +13,7 @@ export async function PATCH(req: Request) {
 
   const svc = createServiceClient()
   const { error } = await svc.from('profiles').update(parsed.data).eq('id', user.id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return serverError(error.message)
 
   return NextResponse.json({ ok: true })
 }

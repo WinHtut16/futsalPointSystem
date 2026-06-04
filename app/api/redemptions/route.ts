@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser, requireRole } from '@/lib/auth'
-import { RedeemSchema, badRequest, parseJson } from '@/lib/schemas'
+import { RedeemSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function GET() {
   try {
@@ -17,7 +17,7 @@ export async function GET() {
         .eq('status', 'pending')
         .order('requested_at', { ascending: true })
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      if (error) return serverError(error.message)
       return NextResponse.json(data)
     }
 
@@ -27,7 +27,7 @@ export async function GET() {
       .eq('customer_id', user.id)
       .order('requested_at', { ascending: false })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json(data)
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
           { error: 'You already have a pending request for this reward.' },
           { status: 409 }
         )
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return serverError(error.message)
     }
 
     return NextResponse.json(data, { status: 201 })

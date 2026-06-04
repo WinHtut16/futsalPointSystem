@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
+import { safeRedirect } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
-  // Only allow same-origin relative paths; reject absolute URLs, //evil.com, \bypasses
-  const rawNext = searchParams.get('next') ?? ''
-  const next = /^\/[^/\\]/.test(rawNext) ? rawNext : '/admin/login'
+  const next = safeRedirect(searchParams.get('next'), '/admin/login')
 
   // Build redirect response first so setAll can attach session cookies directly to it.
   // Using createClient() from lib/supabase/server.ts won't work here: that client calls

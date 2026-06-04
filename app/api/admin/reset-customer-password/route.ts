@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
 import { z } from 'zod'
-import { badRequest, parseJson } from '@/lib/schemas'
+import { badRequest, parseJson, serverError } from '@/lib/schemas'
 
 const ResetCustomerPasswordSchema = z.object({
   userId: z.string().uuid(),
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase.auth.admin.updateUserById(userId, {
       password: tempPassword,
     })
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
 
     return NextResponse.json({ success: true })
   } catch {

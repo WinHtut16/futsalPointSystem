@@ -9,7 +9,7 @@ npm run dev           # Start dev server at localhost:3000
 npm run build         # Production build
 npm run start         # Start production server
 npm run lint          # Run ESLint
-npm test              # Vitest unit tests (258 tests, no DB required)
+npm test              # Vitest unit tests (268 tests, no DB required)
 npm run test:e2e      # Playwright E2E tests (requires .env.e2e + running server)
 npm run test:e2e:ui   # Playwright with interactive UI
 npm run test:e2e:debug  # Playwright with step-by-step debugger
@@ -18,7 +18,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 **First-time setup:**
 1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://mya-thida-futsal.vercel.app` in Vercel env vars). Also add `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` for CMS image uploads.
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → **`cms-simplify-migration.sql`**
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → `cms-simplify-migration.sql` → `rls-bookings-fix.sql` → `rls-profiles-insert-fix.sql` → `rls-transactions-fix.sql` → `points-adjust-atomic-fix.sql` → **`confirm-override-atomic-migration.sql`**
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -166,9 +166,9 @@ All tables have Row-Level Security enforced. Key patterns:
 | File | Purpose |
 |------|---------|
 | `lib/auth.ts` | `getCurrentUser()`, `requireRole()`, `requireAnyAdmin()`, `requireSuperAdmin()` — server-side auth helpers |
-| `lib/schemas.ts` | Zod schemas + `badRequest()` / `parseJson()` helpers used by every API route |
+| `lib/schemas.ts` | Zod schemas + `badRequest()` / `parseJson()` / `serverError(detail?)` helpers used by every API route. `serverError` logs `detail` server-side and returns generic `{ error: 'An unexpected error occurred' }` (with `detail` also returned in non-production for debugging). Always use `serverError(error.message)` for 500 responses — never expose `error.message` directly to clients. |
 | `lib/points.ts` | `calculatePoints()` — 10 points per hour |
-| `lib/utils.ts` | `formatDate(dateStr)` — date-only display in Myanmar/Yangon timezone (e.g. `"24 May 2025"`); `formatDateTime(dateStr)` — date + time with AM/PM in Myanmar timezone (e.g. `"24 May 2025, 10:45 am"`). Both use `timeZone: 'Asia/Yangon'` (UTC+6:30). Always use these helpers for any date/time display — never format raw timestamps without them. `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email. |
+| `lib/utils.ts` | `formatDate(dateStr)` — date-only display in Myanmar/Yangon timezone (e.g. `"24 May 2025"`); `formatDateTime(dateStr)` — date + time with AM/PM in Myanmar timezone (e.g. `"24 May 2025, 10:45 am"`). Both use `timeZone: 'Asia/Yangon'` (UTC+6:30). Always use these helpers for any date/time display — never format raw timestamps without them. `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email. `safeRedirect(next, fallback)` — validates `?next=` params before use; rejects absolute URLs, protocol-relative (`//`), backslash, and newline injection; returns `fallback` (default `'/'`) if invalid. Use in every place that redirects based on a user-supplied param. |
 | `lib/supabase/client.ts` | Browser Supabase client (for client components) |
 | `lib/supabase/server.ts` | SSR Supabase client + `createServiceClient()` (raw `@supabase/supabase-js`, truly bypasses RLS) |
 | `lib/cached-queries.ts` | `getActiveRewards()` — `unstable_cache` wrapper (tag: `'rewards'`, revalidate: 30s) for the customer-facing rewards list. Filters `is_active=true` AND `is_deleted=false`. Any API route that mutates the `rewards` table **must** call `revalidateTag('rewards', 'default')` (Next.js 16 requires the cacheLife profile as second arg) or customers will see stale data for up to 30 s. |
