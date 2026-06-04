@@ -5,6 +5,7 @@ import AdminShell from '@/components/admin/AdminShell'
 import { PendingRedemptionsProvider } from '@/contexts/PendingRedemptionsContext'
 import { PendingBookingsProvider } from '@/contexts/PendingBookingsContext'
 import PendingSoundAlert from '@/components/admin/PendingSoundAlert'
+import PendingBookingsSoundAlert from '@/components/admin/PendingBookingsSoundAlert'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await getCurrentUser()
@@ -32,6 +33,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           {children}
         </AdminShell>
         <PendingSoundAlert />
+        <PendingBookingsSoundAlert />
       </PendingBookingsProvider>
     </PendingRedemptionsProvider>
   )
