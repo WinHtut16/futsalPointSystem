@@ -17,12 +17,13 @@ export type AdminBooking = {
   deposit_total: number
   deposit_received: boolean
   override_request: boolean
+  updated_at: string
   customer: { username: string | null; phone: string | null } | null
   hours: number[]
 }
 
 const SELECT_QUERY =
-  'id, ref, status, booking_date, deposit_total, deposit_received, override_request, customer:profiles(username, phone), booking_slots(hour_start)'
+  'id, ref, status, booking_date, deposit_total, deposit_received, override_request, updated_at, customer:profiles(username, phone), booking_slots(hour_start)'
 
 type RawRow = Record<string, unknown>
 
@@ -39,6 +40,7 @@ function parseRow(b: RawRow): AdminBooking {
     deposit_total: (b.deposit_total as number) ?? 0,
     deposit_received: (b.deposit_received as boolean) ?? false,
     override_request: (b.override_request as boolean) ?? false,
+    updated_at: (b.updated_at as string) ?? new Date(0).toISOString(),
     customer: customer
       ? { username: customer.username as string | null, phone: customer.phone as string | null }
       : null,
@@ -219,13 +221,16 @@ export default function AdminBookingsList({
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'bookings' },
         (payload) => {
-          const u = payload.new as { id: string; status: string; deposit_received: boolean }
+          const u = payload.new as { id: string; status: string; deposit_received: boolean; updated_at: string }
           setRows((prev) =>
-            prev.map((b) =>
-              b.id === u.id
-                ? { ...b, status: u.status as BookingStatus, deposit_received: u.deposit_received }
-                : b
-            )
+            prev.map((b) => {
+              if (b.id !== u.id) return b
+              // Discard stale out-of-order events.
+              const incomingTime = new Date(u.updated_at).getTime()
+              const currentTime  = new Date(b.updated_at).getTime()
+              if (incomingTime < currentTime) return b
+              return { ...b, status: u.status as BookingStatus, deposit_received: u.deposit_received, updated_at: u.updated_at }
+            })
           )
         }
       )

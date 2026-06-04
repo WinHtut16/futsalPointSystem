@@ -80,8 +80,8 @@ export function depositFor(_slotCount: number): number {
 // true when the slot start is CANCEL_WINDOW_HOURS or more in the future.
 export function canCancel(bookingDate: string, hourStart: number, now: Date = new Date()): boolean {
   const { y, m, d } = parseYmd(bookingDate)
-  const slotStart = new Date(Date.UTC(y, m - 1, d, hourStart, 0, 0))
-  const diffHours = (slotStart.getTime() - now.getTime()) / 3_600_000
+  const slotStartUTC = Date.UTC(y, m - 1, d, hourStart, 0, 0) - MYANMAR_OFFSET_MS
+  const diffHours = (slotStartUTC - now.getTime()) / 3_600_000
   return diffHours >= CANCEL_WINDOW_HOURS
 }
 

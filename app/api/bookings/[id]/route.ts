@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { BookingActionSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
+import { canCancel } from '@/lib/booking'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser()
@@ -34,11 +35,40 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (booking.status !== 'pending' && booking.status !== 'confirmed') {
       return NextResponse.json({ error: 'This booking can no longer be cancelled.' }, { status: 409 })
     }
-    const { error } = await supabase
+
+    if (!isAdmin) {
+      const { data: slots, error: slotsError } = await supabase
+        .from('booking_slots')
+        .select('hour_start')
+        .eq('booking_id', id)
+        .order('hour_start', { ascending: true })
+        .limit(1)
+
+      if (slotsError || !slots || slots.length === 0) {
+        return NextResponse.json({ error: 'Booking slots not found.' }, { status: 404 })
+      }
+
+      if (!canCancel(booking.booking_date, slots[0].hour_start)) {
+        return NextResponse.json(
+          { error: 'Cancellation window has closed. Contact staff to cancel.' },
+          { status: 409 }
+        )
+      }
+    }
+
+    const { data: cancelled, error } = await supabase
       .from('bookings')
       .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
       .eq('id', id)
+      .in('status', ['pending', 'confirmed'])
+      .select('id')
     if (error) return serverError(error.message)
+    if (!cancelled || cancelled.length === 0) {
+      return NextResponse.json(
+        { error: 'Booking is no longer pending or confirmed — it may have already been cancelled.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json({ status: 'cancelled' })
   }
 
@@ -64,27 +94,53 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ status: 'confirmed' })
     }
 
-    const { error: updErr } = await supabase
+    const { data: confirmed, error: updErr } = await supabase
       .from('bookings')
       .update({ status: 'confirmed', deposit_received: true, confirmed_at: new Date().toISOString() })
       .eq('id', id)
+      .in('status', ['pending'])
+      .select('id')
     if (updErr) return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
-
+    if (!confirmed || confirmed.length === 0) {
+      return NextResponse.json(
+        { error: 'Booking is no longer pending — it may have been cancelled.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json({ status: 'confirmed' })
   }
 
   if (action === 'unconfirm') {
-    const { error } = await supabase
+    const { data: unconfirmed, error } = await supabase
       .from('bookings')
       .update({ status: 'pending', deposit_received: false })
       .eq('id', id)
+      .eq('status', 'confirmed')
+      .select('id')
     if (error) return serverError(error.message)
+    if (!unconfirmed || unconfirmed.length === 0) {
+      return NextResponse.json(
+        { error: 'Booking is not confirmed — cannot unconfirm.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json({ status: 'pending' })
   }
 
   if (action === 'close') {
-    const { error } = await supabase.from('bookings').update({ status: 'closed' }).eq('id', id)
+    const { data: closed, error } = await supabase
+      .from('bookings')
+      .update({ status: 'closed' })
+      .eq('id', id)
+      .in('status', ['pending', 'confirmed'])
+      .select('id')
     if (error) return serverError(error.message)
+    if (!closed || closed.length === 0) {
+      return NextResponse.json(
+        { error: 'Booking cannot be closed in its current state.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json({ status: 'closed' })
   }
 

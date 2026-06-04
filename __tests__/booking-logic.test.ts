@@ -102,19 +102,21 @@ describe('depositFor', () => {
 })
 
 describe('canCancel', () => {
+  // now = midnight UTC = 06:30 Myanmar
   const now = new Date('2026-06-06T00:00:00.000Z')
 
-  it('allows cancel when slot is 12+ hours away', () => {
-    // 14:00 UTC on the same day is 14h after midnight UTC
-    expect(canCancel('2026-06-06', 14, now)).toBe(true)
+  it('allows cancel when slot is 12+ hours away (Myanmar-timezone-aware)', () => {
+    // slot 19 Myanmar = 19:00 MMT - 6:30 = 12:30 UTC → 12.5h from midnight UTC
+    expect(canCancel('2026-06-06', 19, now)).toBe(true)
   })
 
-  it('blocks cancel within the 12-hour window', () => {
-    // 10:00 UTC is only 10h away
-    expect(canCancel('2026-06-06', 10, now)).toBe(false)
+  it('blocks cancel within the 12-hour window (Myanmar-timezone-aware)', () => {
+    // slot 18 Myanmar = 18:00 MMT - 6:30 = 11:30 UTC → 11.5h from midnight UTC
+    expect(canCancel('2026-06-06', 18, now)).toBe(false)
   })
 
   it('blocks cancel for a slot already in the past', () => {
+    // later = 20:00 UTC; slot 8 Myanmar = 08:00 MMT - 6:30 = 01:30 UTC → past
     const later = new Date('2026-06-06T20:00:00.000Z')
     expect(canCancel('2026-06-06', 8, later)).toBe(false)
   })

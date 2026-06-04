@@ -58,7 +58,7 @@ export default function ConfirmFlow({
   async function createBookings() {
     setSubmitting(true)
     setError(null)
-    const newRefs: string[] = []
+    const createdRefs: { date: string; bookingId: string; ref: string }[] = []
     try {
       for (const g of bookings) {
         const hasOverride = g.overrideHours && g.overrideHours.length > 0
@@ -73,12 +73,31 @@ export default function ConfirmFlow({
         })
         const json = await res.json()
         if (!res.ok) {
-          setError(json.error ?? 'Something went wrong.')
+          // Partial failure — attempt to auto-cancel all bookings created so far.
+          const cancelErrors: string[] = []
+          for (const created of createdRefs) {
+            const cancelRes = await fetch(`/api/bookings/${created.bookingId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'cancel' }),
+            })
+            if (!cancelRes.ok) cancelErrors.push(created.ref)
+          }
+
+          if (cancelErrors.length > 0) {
+            setError(
+              `Booking partially failed. Please contact staff to cancel: ${cancelErrors.join(', ')}`
+            )
+          } else {
+            setError(
+              `Could not book ${g.date} — ${json.error ?? 'the slot may have been taken'}. Your other dates were not charged. Please try again.`
+            )
+          }
           return
         }
-        newRefs.push(json.ref)
+        createdRefs.push({ date: g.date, bookingId: json.id, ref: json.ref })
       }
-      setRefs(newRefs)
+      setRefs(createdRefs.map((c) => c.ref))
       setStep(2)
     } catch {
       setError('Network error. Please try again.')

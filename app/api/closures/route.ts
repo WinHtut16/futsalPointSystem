@@ -16,6 +16,51 @@ export async function POST(request: NextRequest) {
   const { closure_date, hour_start, reason } = parsed.data
 
   const supabase = createServiceClient()
+
+  // Check for existing pending/confirmed bookings that would conflict.
+  const { data: dateBookings, error: bookingsErr } = await supabase
+    .from('bookings')
+    .select('id, ref')
+    .eq('booking_date', closure_date)
+    .in('status', ['pending', 'confirmed'])
+
+  if (bookingsErr) return serverError(bookingsErr.message)
+
+  if (dateBookings && dateBookings.length > 0) {
+    if (hour_start !== null && hour_start !== undefined) {
+      // Slot-specific closure: check if any of those bookings hold this hour.
+      const bookingIds = dateBookings.map((b) => b.id)
+      const { data: slotConflicts, error: slotsErr } = await supabase
+        .from('booking_slots')
+        .select('booking_id')
+        .in('booking_id', bookingIds)
+        .eq('hour_start', hour_start)
+        .eq('active', true)
+
+      if (slotsErr) return serverError(slotsErr.message)
+
+      if (slotConflicts && slotConflicts.length > 0) {
+        const conflictIds = new Set(slotConflicts.map((s) => s.booking_id as string))
+        const conflictRefs = dateBookings
+          .filter((b) => conflictIds.has(b.id))
+          .map((b) => b.ref)
+        return NextResponse.json(
+          { error: 'Existing bookings conflict with this closure.', conflicts: conflictRefs },
+          { status: 409 }
+        )
+      }
+    } else {
+      // Full-day closure: any booking on this date conflicts.
+      return NextResponse.json(
+        {
+          error: 'Existing bookings conflict with this closure.',
+          conflicts: dateBookings.map((b) => b.ref),
+        },
+        { status: 409 }
+      )
+    }
+  }
+
   const { data, error } = await supabase
     .from('court_closures')
     .insert({

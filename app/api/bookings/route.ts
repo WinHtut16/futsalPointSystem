@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { CreateBookingSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
-import { priceForHour, tierForHour } from '@/lib/booking'
+import { priceForHour, tierForHour, isSlotBookable } from '@/lib/booking'
 
 function todayYangon(): string {
   return new Intl.DateTimeFormat('en-CA', {
@@ -86,6 +86,19 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Enforce lead time server-side for normal bookings (not overrides — those are
+  // admin-directed and the pending slot may be within 1 hour intentionally).
+  if (!override_request) {
+    for (const slot of slots) {
+      if (!isSlotBookable(booking_date, slot)) {
+        return NextResponse.json(
+          { error: `Slot ${booking_date} at ${slot}:00 is no longer available (too close to start time or in the past).` },
+          { status: 400 }
+        )
+      }
+    }
+  }
+
   // Recompute tier + price server-side — never trust client-supplied prices.
   const slotPayload = slots
     .slice()
@@ -114,6 +127,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'One or more of those slots were just taken. Please pick another time.' },
         { status: 409 }
+      )
+    }
+    if (error.message?.includes('slot_closed')) {
+      return NextResponse.json(
+        { error: 'This slot has been closed by the court. Please choose another time.' },
+        { status: 409 }
+      )
+    }
+    if (error.message?.includes('no_pending_conflict')) {
+      return NextResponse.json(
+        { error: 'No pending booking exists for this slot.' },
+        { status: 400 }
       )
     }
     return serverError(error.message)

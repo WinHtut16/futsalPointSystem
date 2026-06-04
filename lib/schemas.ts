@@ -75,7 +75,13 @@ export const AdjustPointsSchema = z.object({
 export const RedeemSchema = z.object({ reward_id: uuid })
 
 export const CreateBookingSchema = z.object({
-  booking_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date.'),
+  booking_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format.')
+    .refine((val) => {
+      const d = new Date(val)
+      return !isNaN(d.getTime()) && val === d.toISOString().slice(0, 10)
+    }, 'Invalid calendar date.'),
   slots: z
     .array(z.number().int().min(6, 'Invalid slot.').max(21, 'Invalid slot.'))
     .min(1, 'Select at least one slot.')
