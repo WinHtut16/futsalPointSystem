@@ -15,16 +15,15 @@ function isCloudinaryUrl(url: string): boolean {
   }
 }
 
-function PostImage({ url, className }: { url: string; className: string }) {
+function PostImage({ url, className, contain }: { url: string; className: string; contain?: boolean }) {
   if (isCloudinaryUrl(url)) {
     return (
       <CldImage
         src={url}
         alt=""
         width={800}
-        height={224}
-        crop="fill"
-        gravity="auto"
+        height={contain ? undefined : 224}
+        {...(contain ? { crop: 'limit' } : { crop: 'fill', gravity: 'auto' })}
         className={className}
       />
     )
@@ -34,7 +33,7 @@ function PostImage({ url, className }: { url: string; className: string }) {
       src={url}
       alt=""
       width={800}
-      height={224}
+      height={contain ? 800 : 224}
       unoptimized
       className={className}
     />
@@ -95,7 +94,9 @@ function NewsDetail({
   const content = (
     <>
       {post.manualImageUrl && (
-        <PostImage url={post.manualImageUrl} className="h-56 max-h-56 w-full object-cover" />
+        <div className="w-full bg-black">
+          <PostImage url={post.manualImageUrl} className="w-full" contain />
+        </div>
       )}
       <div className="p-5">
         <div className="flex items-center gap-2">
