@@ -37,10 +37,21 @@ export async function PATCH(
       if (req.customer_id !== user.id)
         return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
 
-      await supabase
+      const { data: cancelled, error: cancelError } = await supabase
         .from('redemption_requests')
         .update({ status: 'cancelled', resolved_at: new Date().toISOString() })
         .eq('id', id)
+        .eq('status', 'pending')  // guard: only cancel if still pending (TOCTOU fix)
+        .select('id')
+
+      if (cancelError) return serverError(cancelError.message)
+
+      if (!cancelled || cancelled.length === 0) {
+        return NextResponse.json(
+          { error: 'This request has already been actioned and cannot be cancelled.' },
+          { status: 409 }
+        )
+      }
 
       return NextResponse.json({ success: true })
     }

@@ -173,26 +173,6 @@ describe('POST /api/points/add validation', () => {
 })
 
 // ===========================================================================
-// /api/points/redeem POST  (customer)
-// ===========================================================================
-describe('POST /api/points/redeem validation', () => {
-  const url = 'http://t/api/points/redeem'
-  let POST: typeof import('@/app/api/points/redeem/route').POST
-  beforeEach(async () => {
-    as.customer()
-    POST = (await import('@/app/api/points/redeem/route')).POST
-  })
-
-  it('rejects empty body', async () => await expect400(await POST(req(url, 'POST', {}))))
-  it('rejects missing reward_id', async () => await expect400(await POST(req(url, 'POST', { foo: 'bar' }))))
-  it('rejects non-uuid reward_id', async () => await expect400(await POST(req(url, 'POST', { reward_id: 'abc' }))))
-  it('rejects SQL injection reward_id', async () => await expect400(await POST(req(url, 'POST', { reward_id: SQLi }))))
-  it('rejects script injection reward_id', async () => await expect400(await POST(req(url, 'POST', { reward_id: XSS }))))
-  it('rejects empty-string reward_id', async () => await expect400(await POST(req(url, 'POST', { reward_id: '' }))))
-  it('rejects wrong-type reward_id', async () => await expect400(await POST(req(url, 'POST', { reward_id: 12345 }))))
-})
-
-// ===========================================================================
 // /api/redemptions POST  (customer)
 // ===========================================================================
 describe('POST /api/redemptions validation', () => {

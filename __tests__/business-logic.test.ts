@@ -6,7 +6,7 @@
  *
  * Strategy for the DB mock:
  *   - `mockRpc` is a plain vi.fn() — configure with .mockResolvedValueOnce()
- *     per test for the atomic RPCs (redeem_reward_direct, approve_redemption).
+ *     per test for the atomic RPC (approve_redemption).
  *   - `queryQueue` is a shared FIFO — push results in call order; each
  *     .single() / .maybySingle() terminal call pops the next entry.
  *   - Fire-and-forget chains (.update().eq()) return the chain object
@@ -65,6 +65,8 @@ function makeChain() {
     single:      vi.fn(async () => next()),
     maybySingle: vi.fn(async () => next()),  // supabase-js v2 spelling used in this codebase
     maybeSingle: vi.fn(async () => next()),  // guard against either spelling
+    // Support `await chain` for update().eq().select() returning patterns (PTS-2/PTS-7)
+    then:        vi.fn((resolve: (v: unknown) => void) => resolve(next())),
   }
   for (const m of ['select', 'eq', 'neq', 'order', 'limit',
                    'insert', 'update', 'upsert', 'delete', 'lt', 'gt']) {
@@ -119,74 +121,6 @@ beforeEach(() => {
   authState.user = null
   queryQueue.length = 0
   mockRpc.mockReset()
-})
-
-// ============================================================================
-// (1 & 2) POST /api/points/redeem — direct customer redemption
-//
-// This route delegates entirely to the redeem_reward_direct RPC. Balance and
-// stock checks are atomic inside the DB function; the route maps exception
-// messages to HTTP status codes.
-// ============================================================================
-describe('POST /api/points/redeem', () => {
-  const url = 'http://t/api/points/redeem'
-  const body = { reward_id: REWARD_ID }
-
-  it('(1) succeeds when customer has exactly enough points', async () => {
-    asCustomer(100)
-    mockRpcOnce({ data: null, error: null })            // RPC succeeds
-    mockQuery({ data: { total_points: 0 } })            // post-deduction profile read
-
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const res = await POST(jsonReq(url, 'POST', body))
-
-    expect(res.status).toBe(200)
-    expect((await res.json()).total_points).toBe(0)
-  })
-
-  it('(2) returns 400 when balance is insufficient', async () => {
-    asCustomer(10)
-    mockRpcOnce({ error: { message: 'insufficient_points' } })
-
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const res = await POST(jsonReq(url, 'POST', body))
-
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toBe('Not enough points.')
-  })
-
-  it('(3) succeeds when redeeming the last item in stock', async () => {
-    asCustomer(50)
-    mockRpcOnce({ data: null, error: null })            // RPC atomically sets stock to 0
-    mockQuery({ data: { total_points: 0 } })
-
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const res = await POST(jsonReq(url, 'POST', body))
-
-    expect(res.status).toBe(200)
-    expect((await res.json()).total_points).toBe(0)
-  })
-
-  it('(4) returns 400 when stock is already 0', async () => {
-    asCustomer(100)
-    mockRpcOnce({ error: { message: 'out_of_stock' } })
-
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const res = await POST(jsonReq(url, 'POST', body))
-
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toBe('Reward is out of stock.')
-  })
-
-  it('returns 404 when reward does not exist or is inactive', async () => {
-    asCustomer(999)
-    mockRpcOnce({ error: { message: 'reward_unavailable' } })
-
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const res = await POST(jsonReq(url, 'POST', body))
-
-    expect(res.status).toBe(404)
-  })
 })
 
 // ============================================================================
@@ -393,28 +327,38 @@ describe('PATCH /api/redemptions/[id] — approve', () => {
 //
 // This tests the HTTP-layer invariant: the route never returns 500 or crashes
 // when the DB signals a race condition. The DB-level correctness (no negative
-// balance, no negative stock) is enforced by the atomic SQL functions tested
-// separately.
+// balance, no negative stock) is enforced by the atomic approve_redemption RPC.
+//
+// redeem_reward_direct has been removed (PTS-1); all concurrent tests now
+// target the correct approve_redemption flow.
 // ============================================================================
 describe('(5) Concurrent redemption invariants', () => {
-  it('two simultaneous direct redeems: one succeeds, one gets 400 insufficient_points', async () => {
-    asCustomer(100)
+  it('two approvals exhausting customer balance: one 200, one 400 insufficient_points', async () => {
+    asAdmin()
     mockRpcOnce(
-      { data: null, error: null },                         // first RPC call → success
-      { data: null, error: { message: 'insufficient_points' } }, // second → race reject
+      { data: null, error: null },                                // first approval → success
+      { data: null, error: { message: 'insufficient_points' } }, // second → balance now gone
     )
-    mockQuery({ data: { total_points: 0 } })               // only the winner fetches profile
 
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const fire = () => POST(jsonReq('http://t/api/points/redeem', 'POST', { reward_id: REWARD_ID }))
-    const [r1, r2] = await Promise.all([fire(), fire()])
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const REQUEST_ID_2 = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
+    const fire1 = () => PATCH(
+      jsonReq('http://t/api/redemptions/x', 'PATCH', { action: 'approve' }),
+      routeParams(REQUEST_ID),
+    )
+    const fire2 = () => PATCH(
+      jsonReq('http://t/api/redemptions/x', 'PATCH', { action: 'approve' }),
+      routeParams(REQUEST_ID_2),
+    )
+    const [r1, r2] = await Promise.all([fire1(), fire2()])
 
     const statuses = [r1.status, r2.status].sort((a, b) => a - b)
     expect(statuses).toEqual([200, 400])
 
     const bodies = await Promise.all([r1.json(), r2.json()])
-    const errors = bodies.filter(b => b.error).map(b => b.error)
-    expect(errors).toEqual(['Not enough points.'])
+    const errors = bodies.filter((b: { error?: string }) => b.error).map((b: { error: string }) => b.error)
+    expect(errors).toEqual(['Customer no longer has enough points.'])
+    expect(mockRpc).toHaveBeenCalledTimes(2)
   })
 
   it('two simultaneous approvals of the same request: one succeeds, one gets 400 not_pending', async () => {
@@ -439,26 +383,38 @@ describe('(5) Concurrent redemption invariants', () => {
     expect(errors).toEqual(['Only pending requests can be actioned.'])
   })
 
-  it('two simultaneous redeems of a single-stock item: one succeeds, one gets 400 out_of_stock', async () => {
-    asCustomer(200)
+  it('two approvals of a last-stock reward: one 200, one 400 out_of_stock', async () => {
+    // Two admins simultaneously approve two different customers' pending requests
+    // for the same reward that has stock=1. The approve_redemption RPC holds a
+    // FOR UPDATE lock on the reward row; the second caller finds stock=0 and raises
+    // out_of_stock. Exactly 2 RPC calls are made — stock never decremented twice.
+    asAdmin()
     mockRpcOnce(
-      { data: null, error: null },
-      { data: null, error: { message: 'out_of_stock' } },
+      { data: null, error: null },                         // first: approval succeeds, stock → 0
+      { data: null, error: { message: 'out_of_stock' } }, // second: stock already 0
     )
-    mockQuery({ data: { total_points: 150 } })             // only the winner fetches profile
 
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const fire = () => POST(jsonReq('http://t/api/points/redeem', 'POST', { reward_id: REWARD_ID }))
-    const [r1, r2] = await Promise.all([fire(), fire()])
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const REQUEST_ID_2 = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
+    const fire1 = () => PATCH(
+      jsonReq('http://t/api/redemptions/x', 'PATCH', { action: 'approve' }),
+      routeParams(REQUEST_ID),
+    )
+    const fire2 = () => PATCH(
+      jsonReq('http://t/api/redemptions/x', 'PATCH', { action: 'approve' }),
+      routeParams(REQUEST_ID_2),
+    )
+    const [r1, r2] = await Promise.all([fire1(), fire2()])
 
     const statuses = [r1.status, r2.status].sort((a, b) => a - b)
     expect(statuses).toEqual([200, 400])
 
-    // Exactly 2 RPC calls were made — stock was never decremented twice
+    const bodies = await Promise.all([r1.json(), r2.json()])
+    const errors = bodies.filter((b: { error?: string }) => b.error).map((b: { error: string }) => b.error)
+    expect(errors).toEqual(['Reward is now out of stock.'])
     expect(mockRpc).toHaveBeenCalledTimes(2)
-    expect(mockRpc).toHaveBeenCalledWith('redeem_reward_direct', expect.objectContaining({
-      p_customer_id: CUSTOMER_ID,
-      p_reward_id:   REWARD_ID,
+    expect(mockRpc).toHaveBeenCalledWith('approve_redemption', expect.objectContaining({
+      p_request_id: REQUEST_ID,
     }))
   })
 

@@ -1,0 +1,26 @@
+-- ============================================================
+-- Drop shadow redemption RPC (PTS-1)
+--
+-- redeem_reward_direct bypassed the admin approval workflow:
+-- it deducted points and decremented stock atomically without
+-- creating a redemption_requests row, making redemptions
+-- invisible to the admin queue.
+--
+-- app/api/points/redeem/route.ts has been deleted. No frontend
+-- component or test references this function.
+--
+-- Audit check — run this query BEFORE executing the DROP.
+-- If any rows are returned, surface them to admin before dropping.
+-- SELECT pt.*
+-- FROM point_transactions pt
+-- WHERE pt.transaction_type = 'redeem'
+--   AND NOT EXISTS (
+--     SELECT 1 FROM redemption_requests rr
+--     WHERE rr.customer_id = pt.customer_id
+--       AND rr.points_cost = -pt.points_delta
+--   );
+--
+-- Run AFTER: race-condition-fixes.sql
+-- ============================================================
+
+DROP FUNCTION IF EXISTS redeem_reward_direct(UUID, UUID);

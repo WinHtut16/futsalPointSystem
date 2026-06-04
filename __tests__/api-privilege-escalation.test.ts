@@ -247,12 +247,6 @@ describe('unauthenticated callers are rejected from every protected route', () =
     ok(res.status)
   })
 
-  it('POST /api/points/redeem', async () => {
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const res = await POST(jsonReq('http://t/api/points/redeem', 'POST', { reward_id: 'r1' }))
-    ok(res.status)
-  })
-
   it('GET /api/redemptions', async () => {
     const { GET } = await import('@/app/api/redemptions/route')
     const res = await GET()
