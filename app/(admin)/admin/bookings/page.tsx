@@ -51,8 +51,8 @@ export default async function AdminBookingsPage({
 
     async function runQuery(includeOverride: boolean) {
       const cols = includeOverride
-        ? 'id, ref, status, booking_date, deposit_total, deposit_received, override_request, customer:profiles(username, phone), booking_slots(hour_start)'
-        : 'id, ref, status, booking_date, deposit_total, deposit_received, customer:profiles(username, phone), booking_slots(hour_start)'
+        ? 'id, ref, status, booking_date, deposit_total, deposit_received, override_request, updated_at, customer:profiles(username, phone), booking_slots(hour_start)'
+        : 'id, ref, status, booking_date, deposit_total, deposit_received, updated_at, customer:profiles(username, phone), booking_slots(hour_start)'
 
       let q = supabase
         .from('bookings')
@@ -109,6 +109,7 @@ export default async function AdminBookingsPage({
             }
           : null,
         hours: ((b.booking_slots as { hour_start: number }[]) ?? []).map((s) => s.hour_start),
+        updated_at: (b.updated_at as string) ?? new Date(0).toISOString(),
       }
     })
   } catch (err) {
