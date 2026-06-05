@@ -44,8 +44,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       .reduce((s, t) => s + t.points_delta, 0) ?? 0
   const hoursNum = hoursPlayed / POINTS_PER_HOUR
 
-  const color = getAvatarColor(customer.username)
-  const initials = getInitials(customer.username)
+  const safeName = customer.username ?? ''
+  const color = getAvatarColor(safeName)
+  const initials = getInitials(safeName)
+  const totalPoints = customer.total_points ?? 0
 
   return (
     <div className="space-y-5">
@@ -63,10 +65,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               <div
                 className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold ${color.bg} ${color.text}`}
               >
-                {initials}
+                {initials || '?'}
               </div>
               <div>
-                <p className="text-xl font-bold text-gray-900">{customer.username}</p>
+                <p className="text-xl font-bold text-gray-900">{safeName || '—'}</p>
                 {customer.phone && (
                   <p className="text-sm text-gray-500 mt-0.5">{customer.phone}</p>
                 )}
@@ -76,7 +78,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               </div>
               <div className="mt-1">
                 <p className="text-4xl font-bold text-primary leading-none">
-                  {customer.total_points.toLocaleString()}
+                  {totalPoints.toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
                   <T k="common.pts" />
@@ -99,13 +101,13 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           {/* Add Points */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
             <h2 className="font-semibold text-gray-900 mb-4 text-sm"><T k="admin.addPointsSection" /></h2>
-            <AddPointsForm customerId={id} customerName={customer.username} />
+            <AddPointsForm customerId={id} customerName={safeName} />
           </div>
 
           {/* Adjust Points */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
             <h2 className="font-semibold text-gray-900 mb-4 text-sm"><T k="admin.adjustPointsSection" /></h2>
-            <AdjustPointsForm customerId={id} customerName={customer.username} />
+            <AdjustPointsForm customerId={id} customerName={safeName} />
           </div>
         </div>
 
@@ -133,7 +135,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           {canDelete && (
             <CustomerDetailActions
               customerId={id}
-              customerName={customer.username}
+              customerName={safeName}
               customerPhone={customer.phone ?? ''}
             />
           )}
