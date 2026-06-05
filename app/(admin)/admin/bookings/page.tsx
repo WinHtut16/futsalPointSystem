@@ -32,6 +32,14 @@ export default async function AdminBookingsPage({
 
   let list: AdminBooking[] = []
   let total = 0
+  let stats = { bookingsThisWeek: 0, depositsThisWeek: 0, pendingCount: 0, totalCustomers: 0 }
+
+  const weekAgoISO = (() => {
+    const d = new Date()
+    d.setDate(d.getDate() - 7)
+    return d.toISOString().split('T')[0]
+  })()
+  const todayISO = new Date().toISOString().split('T')[0]
 
   try {
     const supabase = createServiceClient()
@@ -44,6 +52,39 @@ export default async function AdminBookingsPage({
         .select('id')
         .or(`username.ilike.%${search}%,phone.ilike.%${search}%`)
       customerIds = (customers ?? []).map((c: { id: string }) => c.id)
+    }
+
+    // Stats + booking list queries in parallel.
+    const [wbResult, drResult, pcResult, tcResult] = await Promise.all([
+      supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .gte('booking_date', weekAgoISO)
+        .lte('booking_date', todayISO),
+      supabase
+        .from('bookings')
+        .select('deposit_total')
+        .gte('booking_date', weekAgoISO)
+        .lte('booking_date', todayISO)
+        .eq('deposit_received', true),
+      supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending'),
+      supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('role', 'customer'),
+    ])
+
+    stats = {
+      bookingsThisWeek: wbResult.count ?? 0,
+      depositsThisWeek: ((drResult.data ?? []) as { deposit_total: number }[]).reduce(
+        (s, r) => s + (r.deposit_total || 0),
+        0
+      ),
+      pendingCount: pcResult.count ?? 0,
+      totalCustomers: tcResult.count ?? 0,
     }
 
     // Attempt query with override_request; fall back if column absent.
@@ -131,6 +172,7 @@ export default async function AdminBookingsPage({
         currentSearch={search ?? ''}
         currentFrom={from ?? ''}
         currentTo={to ?? ''}
+        stats={stats}
       />
     </div>
   )

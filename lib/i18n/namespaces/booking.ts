@@ -249,6 +249,16 @@ export const bookingEN = {
   'booking.confirm.errorSlotTaken': 'Could not book {date} — the slot may have been taken. Your other dates were not charged. Please try again.',
   'booking.confirm.errorNetwork': 'Network error. Please try again.',
   'booking.confirm.errorCancelFail': 'Booking partially failed. Please contact staff to cancel refs: {refs}',
+
+  // Admin stats bar
+  'booking.admin.statBookingsWeek': 'Bookings this week',
+  'booking.admin.statDepositsWeek': 'Deposits received',
+  'booking.admin.statPending': 'Awaiting confirmation',
+  'booking.admin.statCustomers': 'Total customers',
+  // Cancel confirmation dialog
+  'booking.admin.cancelConfirmTitle': 'Cancel booking?',
+  'booking.admin.cancelConfirmBody': 'This action cannot be undone.',
+  'booking.admin.keep': 'Keep booking',
 } as const
 
 export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
@@ -502,4 +512,14 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.confirm.errorSlotTaken': '{date} ကို မှာကြားမရပါ — အချိန်ကွက်ကို တစ်ခြားသူ ယူသွားနှင့်ပြီ ဖြစ်နိုင်သည်။ ကျန်ရှိသည့် ရက်များကို မကောက်ခံပါ။ ထပ်မံကြိုးစားပါ။',
   'booking.confirm.errorNetwork': 'ကွန်ရက်အမှား။ ထပ်မံကြိုးစားပါ။',
   'booking.confirm.errorCancelFail': 'ကြိုတင်မှာကြားမှု တစ်စိတ်တစ်ပိုင်း မအောင်မြင်ပါ။ ဤ refs များကို ပယ်ဖျက်ရန် ဝန်ထမ်းနှင့် ဆက်သွယ်ပါ — {refs}',
+
+  // Admin stats bar
+  'booking.admin.statBookingsWeek': 'ဤသတ္တပတ် ဘွတ်ကင်',
+  'booking.admin.statDepositsWeek': 'စရံငွေ ရရှိပြီး',
+  'booking.admin.statPending': 'အတည်ပြုရန် ကျန်',
+  'booking.admin.statCustomers': 'ဖောက်သည်စုစုပေါင်း',
+  // Cancel confirmation dialog
+  'booking.admin.cancelConfirmTitle': 'ဘွတ်ကင် ပယ်ဖျက်မလား?',
+  'booking.admin.cancelConfirmBody': 'ဤလုပ်ဆောင်ချက်ကို ပြန်မလှည့်နိုင်ပါ။',
+  'booking.admin.keep': 'ဘွတ်ကင်ဆက်ထားမည်',
 }
