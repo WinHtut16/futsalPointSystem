@@ -102,7 +102,7 @@ export default function CustomersTable({ customers, hoursMap }: CustomersTablePr
               <th className="px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Points</th>
               <th className="px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Hours</th>
               <th className="px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Joined</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Actions</th>
+              <th className="px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide w-20">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">

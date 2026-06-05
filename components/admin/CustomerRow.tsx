@@ -85,7 +85,7 @@ export default function CustomerRow({ customer, hoursPlayed, variant = 'card' }:
             {hoursPlayed != null ? `${hoursPlayed.toFixed(1)}h` : '—'}
           </td>
           <td className="px-4 py-3 text-sm text-gray-500">{formatDate(customer.created_at)}</td>
-          <td className="px-4 py-3">
+          <td className="px-4 py-3 w-20 whitespace-nowrap">
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
@@ -97,9 +97,10 @@ export default function CustomerRow({ customer, hoursPlayed, variant = 'card' }:
               </button>
               <Link
                 href={`/admin/customers/${customer.id}`}
-                className="flex h-7 items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:border-gray-300"
+                title={t('admin.manageButton')}
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-50 hover:border-gray-300"
               >
-                <T k="admin.manageButton" />
+                <ChevronRight size={14} />
               </Link>
             </div>
           </td>

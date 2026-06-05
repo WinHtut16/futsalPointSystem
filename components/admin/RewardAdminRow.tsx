@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Pencil, Trash2, Zap, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Pencil, Trash2, Zap, Power } from 'lucide-react'
 import type { Reward } from '@/types'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { getLocalizedText } from '@/lib/i18n/utils'
@@ -107,17 +107,11 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
               className={cn(
                 'inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
                 reward.is_active
-                  ? 'text-orange-500 hover:bg-orange-50'
-                  : 'text-emerald-600 hover:bg-emerald-50',
+                  ? 'text-emerald-600 hover:bg-emerald-50'
+                  : 'text-gray-400 hover:bg-gray-100',
               )}
             >
-              {toggling ? (
-                <Spinner />
-              ) : reward.is_active ? (
-                <ToggleRight className="w-4 h-4" />
-              ) : (
-                <ToggleLeft className="w-4 h-4" />
-              )}
+              {toggling ? <Spinner /> : <Power className="w-4 h-4" />}
             </button>
           )}
           {canManage && (

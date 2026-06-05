@@ -133,7 +133,7 @@ export const adminEN = {
 
   // Rewards page
   'admin.pageHeadingRewards': 'Rewards',
-  'admin.newReward': '+ New Reward',
+  'admin.newReward': 'New Reward',
   'admin.noRewards': 'No rewards yet.',
   'admin.createOne': 'Create one',
   'admin.backToRewards': '← Rewards',
@@ -326,7 +326,7 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.dangerZone': 'အန္တရာယ်ဇုန်',
   'admin.pageHeadingRedemptions': 'ဆုလာဘ် တောင်းဆိုမှုများ',
   'admin.pageHeadingRewards': 'ဆုလာဘ်များ',
-  'admin.newReward': '+ ဆုလာဘ်အသစ်',
+  'admin.newReward': 'ဆုလာဘ်အသစ်',
   'admin.noRewards': 'ဆုလာဘ်များ မရှိသေးပါ။',
   'admin.createOne': 'ဖန်တီးရန်',
   'admin.backToRewards': '← ဆုလာဘ်များ',

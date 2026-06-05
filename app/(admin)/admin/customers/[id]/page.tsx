@@ -1,23 +1,22 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import TransactionItem from '@/components/customer/TransactionItem'
 import AddPointsForm from '@/components/admin/AddPointsForm'
 import AdjustPointsForm from '@/components/admin/AdjustPointsForm'
-import DeleteCustomerButton from '@/components/admin/DeleteCustomerButton'
 import T from '@/components/ui/T'
 import type { PointTransaction } from '@/types'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
 import { getAvatarColor, getInitials } from '@/components/admin/CustomerRow'
 import { POINTS_PER_HOUR } from '@/lib/points'
-import { KeyRound, ChevronLeft } from 'lucide-react'
-import TempPasswordModal from '@/components/admin/TempPasswordModal'
+import { ChevronLeft } from 'lucide-react'
 import CustomerDetailActions from '@/components/admin/CustomerDetailActions'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [supabase, currentUser] = await Promise.all([createClient(), getCurrentUser()])
+  const supabase = createServiceClient()
+  const currentUser = await getCurrentUser()
 
   const [{ data: customer }, { data: transactions }, { count: timesRedeemed }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', id).single(),
