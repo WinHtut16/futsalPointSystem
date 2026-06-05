@@ -16,7 +16,11 @@ const supabase = createClient(supabaseUrl, serviceKey, {
 // Set these to the owner's real email and desired username/password.
 const SUPERADMIN_EMAIL    = process.env.SUPERADMIN_EMAIL    || 'winhtutcentury@gmail.com'
 const SUPERADMIN_USERNAME = process.env.SUPERADMIN_USERNAME || 'Owner'
-const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'WinHtutNaingAIT1673@'
+if (!process.env.SUPERADMIN_PASSWORD) {
+  console.error('Missing required env var: SUPERADMIN_PASSWORD')
+  process.exit(1)
+}
+const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD
 const SUPERADMIN_PHONE    = process.env.SUPERADMIN_PHONE    || '09777219771'
 
 // ── 1. Create or find superadmin auth user ─────────────────────────────────
@@ -119,7 +123,6 @@ console.log(`
 
 Superadmin login:
   Email:    ${SUPERADMIN_EMAIL}
-  Password: ${SUPERADMIN_PASSWORD}
 
 Go to http://localhost:3000/admin/login
 ════════════════════════════════════════`)

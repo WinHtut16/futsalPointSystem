@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
 import { CreateBookingSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 import { priceForHour, tierForHour, isSlotBookable } from '@/lib/booking'
 
@@ -14,8 +14,8 @@ function todayYangon(): string {
 }
 
 export async function POST(request: NextRequest) {
-  const user = await getCurrentUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  try {
+  const user = await requireRole('customer')
 
   const parsed = CreateBookingSchema.safeParse(await parseJson(request))
   if (!parsed.success) return badRequest(parsed.error)
@@ -152,4 +152,10 @@ export async function POST(request: NextRequest) {
     deposit_total: booking?.deposit_total,
     price_total: booking?.price_total,
   }, { status: 201 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+  }
 }
