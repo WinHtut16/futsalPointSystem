@@ -13,8 +13,8 @@
 --
 -- New parameter: p_min_balance INTEGER DEFAULT 0
 -- - Existing callers that omit this parameter default to 0 (no change).
--- - adjust/route.ts passes p_min_balance: 0 explicitly.
--- - add/route.ts (earn transactions) omits it — still works.
+-- - App RPC callers pass p_min_balance: 0 explicitly to avoid PostgREST
+--   overload ambiguity if another signature exists.
 --
 -- Verified: SECURITY DEFINER is already present on this function
 -- (supabase-setup.sql line 69), so removing the INSERT RLS policy

@@ -154,7 +154,7 @@ Authentication → Email Templates → Recovery. Replace `{{ .ConfirmationURL }}
 
 All tables have Row-Level Security enforced. Key patterns:
 - `is_admin()` is a `SECURITY DEFINER` function used in RLS policies to avoid infinite recursion when policies on `profiles` would otherwise re-query `profiles`. Returns true for both `admin` and `superadmin`.
-- `add_points_transaction()` is an RPC function that atomically increments `profiles.total_points` and inserts into `point_transactions`. Always call this via Supabase RPC — never do the two steps separately. Used for all three transaction types: `earn`, `redeem`, and `adjustment`.
+- `add_points_transaction()` is an RPC function that atomically increments `profiles.total_points` and inserts into `point_transactions`. Always call this via Supabase RPC — never do the two steps separately. Used for all three transaction types: `earn`, `redeem`, and `adjustment`. Pass `p_min_balance: 0` explicitly from app RPC calls so PostgREST resolves the intended overload unambiguously.
 - `point_transactions.transaction_type` accepts `'earn'` (session play), `'redeem'` (reward redemption), or `'adjustment'` (manual correction by admin). The check constraint was updated by `point-adjustment-migration.sql`.
 - `handle_new_user()` trigger auto-creates a `profiles` row when a new `auth.users` entry is inserted. Uses `COALESCE(raw_user_meta_data->>'username', split_part(email,'@',1))` so it doesn't crash when `raw_user_meta_data` is absent (e.g. users created via the Supabase Auth dashboard).
 - `profiles.phone` is nullable — staff admin accounts have no phone.

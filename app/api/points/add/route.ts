@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       p_reward_id: null,
       p_note: note ?? null,
       p_created_by: admin.id,
+      p_min_balance: 0,
     })
 
     if (error) return serverError(error.message)
