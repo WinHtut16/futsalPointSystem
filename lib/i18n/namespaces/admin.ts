@@ -210,6 +210,22 @@ export const adminEN = {
   'admin.adjustSuccess': "Adjusted {name}'s points by {points}.",
   'admin.adjustFailed': 'Failed to apply adjustment.',
   'admin.adjustInvalidAmount': 'Enter a non-zero whole number.',
+
+  // Dashboard redesign
+  'admin.awaitingApproval': 'Awaiting approval',
+  'admin.reviewAction': 'Review',
+  'admin.earningRuleTitle': 'Earning rule',
+  'admin.totalMembers': 'Total members',
+  'admin.pointsOutstanding': 'Points outstanding',
+  'admin.pendingRequestsStat': 'Pending requests',
+  'admin.rewardsRedeemed': 'Rewards redeemed',
+  'admin.recentActivity': 'Recent activity',
+  'admin.manageButton': 'Manage',
+  'admin.hoursPlayedStat': 'Hours played',
+  'admin.timesRedeemedStat': 'Times redeemed',
+  'admin.searchByNameOrPhone': 'Search by name or phone…',
+  'admin.noHistory': 'No resolved requests yet.',
+  'admin.historySection': 'History',
 } as const
 
 export const adminMY: { [K in keyof typeof adminEN]: string } = {
@@ -385,4 +401,20 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.adjustSuccess': '{name} ၏ အမှတ်ကို {points} ချိန်ညှိပြီးပါပြီ။',
   'admin.adjustFailed': 'ချိန်ညှိမှု မအောင်မြင်ပါ။',
   'admin.adjustInvalidAmount': 'သုညမဟုတ်သော ကိန်းပြည့်ကို ထည့်ပါ။',
+
+  // Dashboard redesign
+  'admin.awaitingApproval': 'အတည်ပြုရန် စောင့်ဆိုင်း',
+  'admin.reviewAction': 'စစ်ဆေးရန်',
+  'admin.earningRuleTitle': 'အမှတ်ရရှိနည်း',
+  'admin.totalMembers': 'အဖွဲ့ဝင်စုစုပေါင်း',
+  'admin.pointsOutstanding': 'ကျန်ရှိသော အမှတ်',
+  'admin.pendingRequestsStat': 'စောင့်ဆိုင်းဆဲ တောင်းဆိုမှု',
+  'admin.rewardsRedeemed': 'ကောက်ယူပြီး ဆုလာဘ်',
+  'admin.recentActivity': 'မကြာသေးမှီ လုပ်ဆောင်မှု',
+  'admin.manageButton': 'စီမံရန်',
+  'admin.hoursPlayedStat': 'ကစားသောနာရီ',
+  'admin.timesRedeemedStat': 'ဆုလာဘ်ကောက်ယူမှု',
+  'admin.searchByNameOrPhone': 'နာမည် သို့ ဖုန်းဖြင့် ရှာပါ…',
+  'admin.noHistory': 'ပြင်ဆင်ပြီးသော တောင်းဆိုမှု မရှိသေးပါ။',
+  'admin.historySection': 'မှတ်တမ်း',
 }

@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Pencil, Trash2, Zap, ToggleLeft, ToggleRight } from 'lucide-react'
 import type { Reward } from '@/types'
-import Badge from '@/components/ui/Badge'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { getLocalizedText } from '@/lib/i18n/utils'
 import { cn } from '@/lib/utils'
@@ -14,61 +14,12 @@ interface RewardAdminRowProps {
   canManage: boolean
 }
 
-function SpinnerIcon() {
+function Spinner() {
   return (
-    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
     </svg>
-  )
-}
-
-function TrashIcon() {
-  return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-  )
-}
-
-function PencilIcon() {
-  return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-    </svg>
-  )
-}
-
-function PowerIcon() {
-  return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
-    </svg>
-  )
-}
-
-interface IconButtonProps {
-  onClick: () => void
-  disabled?: boolean
-  loading?: boolean
-  title: string
-  colorClass: string
-  children: React.ReactNode
-}
-
-function IconButton({ onClick, disabled, loading, title, colorClass, children }: IconButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled || loading}
-      title={title}
-      className={cn(
-        'inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed',
-        colorClass
-      )}
-    >
-      {loading ? <SpinnerIcon /> : children}
-    </button>
   )
 }
 
@@ -104,50 +55,90 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
   }
 
   return (
-    <div className="flex items-start justify-between px-4 py-3 gap-3">
+    <div
+      className={cn(
+        'flex items-start gap-3 px-4 py-4 transition-colors',
+        !reward.is_active && 'opacity-60',
+      )}
+    >
+      {/* Icon */}
+      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+        <Zap className="w-5 h-5 text-primary" />
+      </div>
+
+      {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
-          <Badge variant={reward.is_active ? 'green' : 'gray'}>
+          <p className="text-sm font-semibold text-gray-900">{displayName}</p>
+          <span
+            className={cn(
+              'inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded-full',
+              reward.is_active
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-gray-100 text-gray-500',
+            )}
+          >
             {reward.is_active ? t('admin.active') : t('admin.inactive')}
-          </Badge>
+          </span>
         </div>
-        <p className="text-xs text-brand-600 font-semibold mt-0.5">{reward.points_cost} {t('common.pts')}</p>
-        {reward.description && <p className="text-xs text-gray-400 truncate">{reward.description}</p>}
-        {reward.stock !== null && <p className="text-xs text-gray-400">{reward.stock} {t('admin.inStock')}</p>}
+        {reward.description && (
+          <p className="text-xs text-gray-400 truncate mt-0.5">{reward.description}</p>
+        )}
+        <div className="flex items-center gap-3 mt-1.5">
+          <span className="text-sm font-bold text-brand-600">
+            {reward.points_cost.toLocaleString()} {t('common.pts')}
+          </span>
+          {reward.stock !== null && (
+            <span className="text-xs text-gray-400">
+              {reward.stock} {t('admin.inStock')}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Actions */}
       {(canToggle || canManage) && (
         <div className="flex items-center gap-1 shrink-0 pt-0.5">
           {canToggle && (
-            <IconButton
+            <button
               onClick={toggleActive}
-              loading={toggling}
+              disabled={toggling || deleting}
               title={reward.is_active ? t('admin.deactivate') : t('admin.activate')}
-              colorClass={reward.is_active
-                ? 'text-orange-500 hover:bg-orange-50 focus:ring-orange-400'
-                : 'text-green-600 hover:bg-green-50 focus:ring-green-400'}
+              className={cn(
+                'inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
+                reward.is_active
+                  ? 'text-orange-500 hover:bg-orange-50'
+                  : 'text-emerald-600 hover:bg-emerald-50',
+              )}
             >
-              <PowerIcon />
-            </IconButton>
+              {toggling ? (
+                <Spinner />
+              ) : reward.is_active ? (
+                <ToggleRight className="w-4 h-4" />
+              ) : (
+                <ToggleLeft className="w-4 h-4" />
+              )}
+            </button>
           )}
           {canManage && (
-            <IconButton
+            <button
               onClick={() => router.push(`/admin/rewards/${reward.id}/edit`)}
+              disabled={toggling || deleting}
               title={t('admin.editReward')}
-              colorClass="text-blue-600 hover:bg-blue-50 focus:ring-blue-400"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <PencilIcon />
-            </IconButton>
+              <Pencil className="w-4 h-4" />
+            </button>
           )}
           {canManage && (
-            <IconButton
+            <button
               onClick={handleDelete}
-              loading={deleting}
+              disabled={toggling || deleting}
               title={t('admin.deleteReward')}
-              colorClass="text-red-600 hover:bg-red-50 focus:ring-red-400"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-500 hover:bg-red-50 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <TrashIcon />
-            </IconButton>
+              {deleting ? <Spinner /> : <Trash2 className="w-4 h-4" />}
+            </button>
           )}
         </div>
       )}
