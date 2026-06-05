@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   const offset = page * LIMIT
 
   const supabase = await createClient()
-  const svc = createServiceClient()
+  const svc = await createServiceClient()
 
   if (filter === 'bookings') {
     const { data, error } = await svc

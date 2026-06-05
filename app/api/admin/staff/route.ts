@@ -15,8 +15,11 @@ export async function GET() {
       .order('created_at', { ascending: false })
     if (error) return serverError(error.message)
     return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }
 
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
       .eq('username', username)
       .maybeSingle()
     if (existing) {
-      return NextResponse.json({ error: 'Username already taken.' }, { status: 400 })
+      return NextResponse.json({ error: 'Username already taken.' }, { status: 409 })
     }
 
     const email = usernameToAdminEmail(username)
@@ -65,7 +68,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ id: authData.user.id, username, role: 'admin' }, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }

@@ -16,7 +16,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!parsed.success) return badRequest(parsed.error)
   const { action } = parsed.data
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
   const { data: booking } = await supabase
     .from('bookings')
     .select('id, customer_id, status, deposit_received, override_request, booking_date')
@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (action === 'cancel') {
     // Customer may cancel their own booking; admins may cancel any.
     if (booking.customer_id !== user.id && !isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })
     }
     if (booking.status !== 'pending' && booking.status !== 'confirmed') {
       return NextResponse.json({ error: 'This booking can no longer be cancelled.' }, { status: 409 })

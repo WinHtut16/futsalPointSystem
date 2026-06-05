@@ -23,15 +23,18 @@ vi.mock('@/lib/auth', () => ({
   getCurrentUser: vi.fn(async () => state.user),
   requireRole: vi.fn(async (role: Role | Role[]) => {
     const roles = Array.isArray(role) ? role : [role]
-    if (!state.user || !roles.includes(state.user.role)) throw new Error('Unauthorized')
+    if (!state.user) throw new Error('UNAUTHENTICATED')
+    if (!roles.includes(state.user.role)) throw new Error('FORBIDDEN')
     return state.user
   }),
   requireAnyAdmin: vi.fn(async () => {
-    if (!state.user || !['admin', 'superadmin'].includes(state.user.role)) throw new Error('Unauthorized')
+    if (!state.user) throw new Error('UNAUTHENTICATED')
+    if (!['admin', 'superadmin'].includes(state.user.role)) throw new Error('FORBIDDEN')
     return state.user
   }),
   requireSuperAdmin: vi.fn(async () => {
-    if (!state.user || state.user.role !== 'superadmin') throw new Error('Unauthorized')
+    if (!state.user) throw new Error('UNAUTHENTICATED')
+    if (state.user.role !== 'superadmin') throw new Error('FORBIDDEN')
     return state.user
   }),
 }))

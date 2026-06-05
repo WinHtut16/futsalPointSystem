@@ -46,5 +46,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Registration failed. Please try again.' }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true }, { status: 201 })
 }

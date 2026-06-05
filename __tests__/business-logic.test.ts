@@ -268,25 +268,36 @@ describe('PATCH /api/redemptions/[id] — approve', () => {
     expect(res.status).toBe(200)
   })
 
-  it('(4) returns 400 when reward is now out of stock', async () => {
+  it('(4) returns 409 when reward is now out of stock', async () => {
     asAdmin()
     mockRpcOnce({ error: { message: 'out_of_stock' } })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
 
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(409)
     expect((await res.json()).error).toBe('Reward is now out of stock.')
   })
 
-  it('returns 400 when request is no longer pending (double-approval protection)', async () => {
+  it('returns 400 when reward deactivated/deleted between request and approval (PTS-8)', async () => {
+    asAdmin()
+    mockRpcOnce({ error: { message: 'reward_unavailable' } })
+
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
+
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('Reward is no longer available.')
+  })
+
+  it('returns 409 when request is no longer pending (double-approval protection)', async () => {
     asAdmin()
     mockRpcOnce({ error: { message: 'not_pending' } })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
 
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(409)
     expect((await res.json()).error).toBe('Only pending requests can be actioned.')
   })
 
@@ -361,7 +372,7 @@ describe('(5) Concurrent redemption invariants', () => {
     expect(mockRpc).toHaveBeenCalledTimes(2)
   })
 
-  it('two simultaneous approvals of the same request: one succeeds, one gets 400 not_pending', async () => {
+  it('two simultaneous approvals of the same request: one succeeds, one gets 409 not_pending', async () => {
     asAdmin()
     mockRpcOnce(
       { data: null, error: null },
@@ -376,14 +387,14 @@ describe('(5) Concurrent redemption invariants', () => {
     const [r1, r2] = await Promise.all([fire(), fire()])
 
     const statuses = [r1.status, r2.status].sort((a, b) => a - b)
-    expect(statuses).toEqual([200, 400])
+    expect(statuses).toEqual([200, 409])
 
     const bodies = await Promise.all([r1.json(), r2.json()])
     const errors = bodies.filter(b => b.error).map(b => b.error)
     expect(errors).toEqual(['Only pending requests can be actioned.'])
   })
 
-  it('two approvals of a last-stock reward: one 200, one 400 out_of_stock', async () => {
+  it('two approvals of a last-stock reward: one 200, one 409 out_of_stock', async () => {
     // Two admins simultaneously approve two different customers' pending requests
     // for the same reward that has stock=1. The approve_redemption RPC holds a
     // FOR UPDATE lock on the reward row; the second caller finds stock=0 and raises
@@ -407,7 +418,7 @@ describe('(5) Concurrent redemption invariants', () => {
     const [r1, r2] = await Promise.all([fire1(), fire2()])
 
     const statuses = [r1.status, r2.status].sort((a, b) => a - b)
-    expect(statuses).toEqual([200, 400])
+    expect(statuses).toEqual([200, 409])
 
     const bodies = await Promise.all([r1.json(), r2.json()])
     const errors = bodies.filter((b: { error?: string }) => b.error).map((b: { error: string }) => b.error)
@@ -516,12 +527,12 @@ describe('POST /api/points/add — success path', () => {
 // ============================================================================
 // PATCH /api/redemptions/[id] — reject branch
 //
-// The reject path does NOT call the approve_redemption RPC; it reads the row
-// directly, checks status, then fires a fire-and-forget update.
+// The reject path does NOT call the approve_redemption RPC; it issues a single
+// UPDATE with .eq('status','pending') guard + .select('id') returning check.
+// 0 rows returned → 409 (request not found or already actioned, indistinguishable).
 //
 // DB call order:
-//   1. from('redemption_requests').select('status').eq('id').single() → req fetch
-//   2. from('redemption_requests').update(...).eq('id')               → fire-and-forget
+//   1. from('redemption_requests').update(...).eq('id').eq('status','pending').select('id')
 // ============================================================================
 describe('PATCH /api/redemptions/[id] — reject', () => {
   const url  = 'http://t/api/redemptions/x'
@@ -529,7 +540,8 @@ describe('PATCH /api/redemptions/[id] — reject', () => {
 
   it('(1) returns 200 and does NOT call RPC for a pending request', async () => {
     asAdmin()
-    mockQuery({ data: { status: 'pending' } })
+    // UPDATE returning 1 row → success
+    mockQuery({ data: [{ id: REQUEST_ID }] })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
@@ -539,33 +551,34 @@ describe('PATCH /api/redemptions/[id] — reject', () => {
     expect(mockRpc).not.toHaveBeenCalled()
   })
 
-  it('(2) returns 404 when request not found', async () => {
+  it('(2) returns 409 when request not found or already actioned', async () => {
     asAdmin()
-    mockQuery({ data: null })
+    // UPDATE returns 0 rows: request does not exist or status != pending
+    mockQuery({ data: [] })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
 
-    expect(res.status).toBe(404)
-    expect((await res.json()).error).toBe('Request not found.')
+    expect(res.status).toBe(409)
+    expect((await res.json()).error).toBe('This request has already been actioned.')
     expect(mockRpc).not.toHaveBeenCalled()
   })
 
-  it('(3) returns 400 when request is already actioned (not pending)', async () => {
+  it('(3) returns 409 when request is already actioned (status guard prevents double-reject)', async () => {
     asAdmin()
-    mockQuery({ data: { status: 'approved' } })
+    // Same as (2): UPDATE eq('status','pending') finds 0 rows for approved/rejected request
+    mockQuery({ data: [] })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
 
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toBe('Only pending requests can be actioned.')
+    expect(res.status).toBe(409)
     expect(mockRpc).not.toHaveBeenCalled()
   })
 
   it('(4) optional notes are accepted', async () => {
     asAdmin()
-    mockQuery({ data: { status: 'pending' } })
+    mockQuery({ data: [{ id: REQUEST_ID }] })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(

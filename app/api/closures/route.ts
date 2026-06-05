@@ -1,21 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
-import { ClosureCreateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
+import { ClosureCreateSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   let admin
   try {
     admin = await requireAnyAdmin()
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 
   const parsed = ClosureCreateSchema.safeParse(await parseJson(request))
   if (!parsed.success) return badRequest(parsed.error)
   const { closure_date, hour_start, reason } = parsed.data
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
 
   // Check for existing pending/confirmed bookings that would conflict.
   const { data: dateBookings, error: bookingsErr } = await supabase
@@ -78,20 +81,24 @@ export async function POST(request: NextRequest) {
     }
     return serverError(error.message)
   }
-  return NextResponse.json(data)
+  return NextResponse.json(data, { status: 201 })
 }
 
 export async function DELETE(request: NextRequest) {
   try {
     await requireAnyAdmin()
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 
   const id = new URL(request.url).searchParams.get('id')
-  if (!id) return NextResponse.json({ error: 'Missing id.' }, { status: 400 })
+  const idParsed = IdParamSchema.safeParse({ id })
+  if (!idParsed.success) return badRequest(idParsed.error)
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
   const { error } = await supabase.from('court_closures').delete().eq('id', id)
   if (error) return serverError(error.message)
   return NextResponse.json({ ok: true })

@@ -6,8 +6,11 @@ import { CmsPostSchema, IdParamSchema, badRequest, parseJson, serverError } from
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireSuperAdmin()
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 
   const idParse = IdParamSchema.safeParse(await params)
@@ -18,7 +21,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (!parsed.success) return badRequest(parsed.error)
   const body = parsed.data
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
 
   // Preserve the original published_at; set it the first time a post is published.
   const { data: existing } = await supabase
@@ -31,7 +34,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const published_at =
     willPublish && !existing?.published_at ? new Date().toISOString() : existing?.published_at ?? null
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from('cms_posts')
     .update({
       slug: body.slug,
@@ -47,27 +50,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
+    .select('id')
+    .single()
 
+  if (error?.code === 'PGRST116') {
+    return NextResponse.json({ error: 'Post not found.' }, { status: 404 })
+  }
   if (error) {
     if (error.code === '23505') {
       return NextResponse.json({ error: 'That slug is already in use.' }, { status: 409 })
     }
     return serverError(error.message)
   }
-  return NextResponse.json({ id })
+  return NextResponse.json({ id: updated.id })
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireSuperAdmin()
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 
   const idParse = IdParamSchema.safeParse(await params)
   if (!idParse.success) return badRequest(idParse.error)
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
   const { error } = await supabase.from('cms_posts').delete().eq('id', idParse.data.id)
   if (error) return serverError(error.message)
   return NextResponse.json({ ok: true })

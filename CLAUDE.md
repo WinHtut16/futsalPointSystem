@@ -18,7 +18,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 **First-time setup:**
 1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://mya-thida-futsal.vercel.app` in Vercel env vars). Also add `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` for CMS image uploads.
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → `cms-simplify-migration.sql` → `rls-bookings-fix.sql` → `rls-profiles-insert-fix.sql` → `rls-transactions-fix.sql` → `points-adjust-atomic-fix.sql` → **`confirm-override-atomic-migration.sql`** → `override-booking-date-fix.sql` → `closure-booking-conflict-trigger.sql` → `override-conflict-lock-fix.sql` → `booking-updated-at-migration.sql` → `trigger-else-branch-fix.sql`
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → `cms-simplify-migration.sql` → `rls-bookings-fix.sql` → `rls-profiles-insert-fix.sql` → `rls-transactions-fix.sql` → `points-adjust-atomic-fix.sql` → **`confirm-override-atomic-migration.sql`** → `override-booking-date-fix.sql` → `closure-booking-conflict-trigger.sql` → `override-conflict-lock-fix.sql` → `booking-updated-at-migration.sql` → `trigger-else-branch-fix.sql` → `drop-shadow-redemption.sql` → `redemption-cost-snapshot-migration.sql` → `approve-use-snapshot-fix.sql` → `drop-booking-transaction-type.sql` → `points-delta-sign-constraint.sql` → `dead-schema-cleanup.sql`
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -250,7 +250,7 @@ Tables currently enabled: `redemption_requests`, `profiles`, `bookings` (enabled
 | `GET/POST /api/redemptions` | customer (GET: admin) | List / create redemption requests |
 | `PATCH /api/redemptions/[id]` | customer/admin | Cancel (customer) or approve/reject (admin) |
 | `GET/POST /api/rewards` | superadmin (GET: any authenticated user) | List / create rewards |
-| `GET /api/rewards/[id]` | any authenticated user | Reward detail |
+| `GET /api/rewards/[id]` | any authenticated user | Reward detail; non-superadmin cannot see soft-deleted rewards |
 | `PUT /api/rewards/[id]` (toggle only: `{ is_active }`) | admin/superadmin | Toggle active/inactive |
 | `PUT /api/rewards/[id]` (full update) | superadmin | Update reward fields |
 | `DELETE /api/rewards/[id]` | superadmin | Soft-delete reward (sets `is_deleted=true`, `is_active=false`) — row preserved so transaction history retains reward name |
@@ -267,10 +267,32 @@ Tables currently enabled: `redemption_requests`, `profiles`, `bookings` (enabled
 | `DELETE /api/cms/[id]` | superadmin | Delete CMS post |
 | `POST /api/cms/upload-image` | superadmin | Upload cover image to Cloudinary — multipart/form-data with `file` field (JPEG/PNG/WebP, max 5 MB); returns `{ url: string }` (Cloudinary `secure_url`); folder `myathida-futsal/cms`, width 800 limit, quality/format auto. `CLOUDINARY_API_SECRET` never leaves the server. |
 
+**HTTP status code conventions:**
+- 201: resource created (POST handlers)
+- 400: invalid input or failed business precondition
+- 401: no valid session
+- 403: authenticated but wrong role
+- 404: resource not found or wrong owner (ownership checks always return 404, not 403, to prevent enumeration)
+- 409: valid request but resource state prevents the action (concurrent conflict, duplicate, state transition failure)
+- 500: unexpected server error (generic message, no DB details)
+
+**RPC exception → HTTP status mapping:**
+| Exception             | Status | Description |
+|-----------------------|--------|-------------|
+| insufficient_balance  | 400    | Balance too low |
+| insufficient_points   | 400    | Points too low |
+| no_pending_conflict   | 400    | No pending booking to override |
+| booking_not_found     | 404    | Override booking missing |
+| request_not_found     | 404    | Redemption request missing |
+| reward_unavailable    | 400    | Reward deleted/inactive at approval time |
+| slot_closed           | 409    | Slot has a court closure |
+| out_of_stock          | 409    | Reward stock depleted |
+| not_pending           | 409    | Request already actioned |
+
 ### Points Business Logic
 
 - Earning: 10 points per hour of play, added by admin via `/api/points/add`
-- Redeeming: customer triggers `/api/points/redeem`; server checks stock > 0 and sufficient balance before calling `add_points_transaction()` with a negative amount
+- Redeeming: customer submits `POST /api/redemptions` (creates pending row with `points_cost_snapshot = reward.points_cost`); admin approves via `PATCH /api/redemptions/[id]` which calls `approve_redemption` RPC — deducts `points_cost_snapshot` (not live price), re-checks reward availability + stock, decrements stock atomically. The old `/api/points/redeem` shadow endpoint was removed (PTS-1).
 - Adjusting: admin corrects mistakes via `/api/points/adjust`; positive or negative integer, mandatory `reason` stored as `note`; server blocks if `total_points + points_delta < 0`; creates `transaction_type='adjustment'` record for audit trail. Displayed in customer history with a Pencil icon on blue background, blue (positive) or red (negative) amount, and the reason as italic note.
 
 ### Security

@@ -162,15 +162,15 @@ describe('PATCH /api/redemptions/[id] — customer cancel', () => {
     expect(res.status).toBe(404)
   })
 
-  it('customer cancels another customer\'s request → 403 Forbidden', async () => {
+  it('customer cancels another customer\'s request → 404 (ownership hidden)', async () => {
     asCustomer() // user.id = CUSTOMER_ID
-    // Request owned by a different customer — ownership check fires after status check
+    // Returns 404, not 403, to avoid leaking that the request exists but isn't theirs
     mockQuery({ data: { status: 'pending', customer_id: OTHER_CUSTOMER_ID } })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(patch({ action: 'cancel' }), routeParams(REQUEST_ID))
 
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 })
 

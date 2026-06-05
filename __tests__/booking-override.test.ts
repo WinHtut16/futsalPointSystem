@@ -89,7 +89,7 @@ describe('POST /api/bookings — override_request', () => {
       headers: { 'Content-Type': 'application/json' },
     })
     const res = await POST(req as never)
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(201)
     expect(mockRpc).toHaveBeenCalledWith('create_override_booking_transaction', expect.objectContaining({
       p_customer_id: 'cust-1',
       p_booking_date: '2027-01-15',

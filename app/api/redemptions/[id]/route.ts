@@ -35,7 +35,7 @@ export async function PATCH(
       if (req.status !== 'pending')
         return NextResponse.json({ error: 'Only pending requests can be actioned.' }, { status: 400 })
       if (req.customer_id !== user.id)
-        return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+        return NextResponse.json({ error: 'Request not found.' }, { status: 404 })
 
       const { data: cancelled, error: cancelError } = await supabase
         .from('redemption_requests')
@@ -71,9 +71,11 @@ export async function PATCH(
           if (rpcError.message === 'request_not_found')
             return NextResponse.json({ error: 'Request not found.' }, { status: 404 })
           if (rpcError.message === 'not_pending')
-            return NextResponse.json({ error: 'Only pending requests can be actioned.' }, { status: 400 })
+            return NextResponse.json({ error: 'Only pending requests can be actioned.' }, { status: 409 })
           if (rpcError.message === 'out_of_stock')
-            return NextResponse.json({ error: 'Reward is now out of stock.' }, { status: 400 })
+            return NextResponse.json({ error: 'Reward is now out of stock.' }, { status: 409 })
+          if (rpcError.message === 'reward_unavailable')
+            return NextResponse.json({ error: 'Reward is no longer available.' }, { status: 400 })
           if (rpcError.message === 'insufficient_points')
             return NextResponse.json({ error: 'Customer no longer has enough points.' }, { status: 400 })
           return serverError(rpcError.message)
@@ -83,17 +85,7 @@ export async function PATCH(
       }
 
       // action === 'reject'
-      const { data: req } = await supabase
-        .from('redemption_requests')
-        .select('status')
-        .eq('id', id)
-        .single()
-
-      if (!req) return NextResponse.json({ error: 'Request not found.' }, { status: 404 })
-      if (req.status !== 'pending')
-        return NextResponse.json({ error: 'Only pending requests can be actioned.' }, { status: 400 })
-
-      await supabase
+      const { data: rejected, error: rejectError } = await supabase
         .from('redemption_requests')
         .update({
           status: 'rejected',
@@ -102,6 +94,17 @@ export async function PATCH(
           notes: notes ?? null,
         })
         .eq('id', id)
+        .eq('status', 'pending')
+        .select('id')
+
+      if (rejectError) return serverError(rejectError.message)
+
+      if (!rejected || rejected.length === 0) {
+        return NextResponse.json(
+          { error: 'This request has already been actioned.' },
+          { status: 409 }
+        )
+      }
 
       return NextResponse.json({ success: true })
     }

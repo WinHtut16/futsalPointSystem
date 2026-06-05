@@ -7,15 +7,18 @@ export async function POST(request: NextRequest) {
   let admin
   try {
     admin = await requireSuperAdmin()
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 
   const parsed = CmsPostSchema.safeParse(await parseJson(request))
   if (!parsed.success) return badRequest(parsed.error)
   const body = parsed.data
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
   const { data, error } = await supabase
     .from('cms_posts')
     .insert({
@@ -40,5 +43,5 @@ export async function POST(request: NextRequest) {
     }
     return serverError(error.message)
   }
-  return NextResponse.json({ id: data?.id })
+  return NextResponse.json({ id: data?.id }, { status: 201 })
 }

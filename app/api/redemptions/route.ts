@@ -29,8 +29,11 @@ export async function GET() {
 
     if (error) return serverError(error.message)
     return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }
 
@@ -79,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('redemption_requests')
-      .insert({ customer_id: customer.id, reward_id, status: 'pending' })
+      .insert({ customer_id: customer.id, reward_id, status: 'pending', points_cost_snapshot: reward.points_cost })
       .select()
       .single()
 
@@ -93,7 +96,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(data, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }

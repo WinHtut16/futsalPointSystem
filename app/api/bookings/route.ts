@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Cannot book a past date.' }, { status: 400 })
   }
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
 
   // Reject slots that fall on an admin-closed day or closed hour.
   const { data: closures } = await supabase
@@ -151,5 +151,5 @@ export async function POST(request: NextRequest) {
     status: booking?.status,
     deposit_total: booking?.deposit_total,
     price_total: booking?.price_total,
-  })
+  }, { status: 201 })
 }

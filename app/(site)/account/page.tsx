@@ -44,7 +44,7 @@ export default async function AccountPage() {
     await Promise.all([
       supabase
         .from('point_transactions')
-        .select('points_delta')
+        .select('points_delta, transaction_type')
         .eq('customer_id', profile.id),
 
       svc
@@ -84,8 +84,8 @@ export default async function AccountPage() {
   let earned = 0
   let redeemed = 0
   for (const tx of statsRes.data ?? []) {
-    if (tx.points_delta >= 0) earned += tx.points_delta
-    else redeemed += -tx.points_delta
+    if (tx.transaction_type === 'earn') earned += tx.points_delta
+    else if (tx.transaction_type === 'redeem') redeemed += -tx.points_delta
   }
 
   const initialPendingMap: Record<string, string> = {}
