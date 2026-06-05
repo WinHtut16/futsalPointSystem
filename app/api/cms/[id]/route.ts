@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireSuperAdmin } from '@/lib/auth'
 import { CmsPostSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
@@ -62,6 +63,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
     return serverError(error.message)
   }
+  revalidatePath('/', 'page')
+  revalidatePath('/news', 'page')
   return NextResponse.json({ id: updated.id })
 }
 
@@ -81,5 +84,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const supabase = await createServiceClient()
   const { error } = await supabase.from('cms_posts').delete().eq('id', idParse.data.id)
   if (error) return serverError(error.message)
+  revalidatePath('/', 'page')
+  revalidatePath('/news', 'page')
   return NextResponse.json({ ok: true })
 }

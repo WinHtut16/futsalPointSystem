@@ -55,13 +55,17 @@ export default function RewardsGrid({ rewards, userId, userPoints, initialPendin
           filter: `customer_id=eq.${userId}`,
         },
         (payload) => {
-          const updated = payload.new as { id: string; reward_id: string; status: string }
-          if (updated.status === 'approved' || updated.status === 'rejected') {
-            setPendingMap((prev) => {
-              const next = { ...prev }
-              delete next[updated.reward_id]
-              return next
-            })
+          try {
+            const updated = payload.new as { id: string; reward_id: string; status: string }
+            if (updated.status === 'approved' || updated.status === 'rejected') {
+              setPendingMap((prev) => {
+                const next = { ...prev }
+                delete next[updated.reward_id]
+                return next
+              })
+            }
+          } catch (err) {
+            console.error('[customer-rewards-pending] realtime handler error:', err)
           }
         }
       )

@@ -58,16 +58,20 @@ export default function PendingRequestsList({
           filter: `customer_id=eq.${userId}`,
         },
         (payload) => {
-          const updated = payload.new as { id: string; status: string }
-          const prev = (payload.old as { status?: string }).status
+          try {
+            const updated = payload.new as { id: string; status: string }
+            const prev = (payload.old as { status?: string }).status
 
-          if (prev === 'pending' && (updated.status === 'approved' || updated.status === 'rejected')) {
-            setRequests((curr) => curr.filter((r) => r.id !== updated.id))
-            const notif: StatusNotification = { id: updated.id, type: updated.status as 'approved' | 'rejected' }
-            setNotifications((curr) => [...curr, notif])
-            setTimeout(() => {
-              setNotifications((curr) => curr.filter((n) => n.id !== updated.id))
-            }, 5000)
+            if (prev === 'pending' && (updated.status === 'approved' || updated.status === 'rejected')) {
+              setRequests((curr) => curr.filter((r) => r.id !== updated.id))
+              const notif: StatusNotification = { id: updated.id, type: updated.status as 'approved' | 'rejected' }
+              setNotifications((curr) => [...curr, notif])
+              setTimeout(() => {
+                setNotifications((curr) => curr.filter((n) => n.id !== updated.id))
+              }, 5000)
+            }
+          } catch (err) {
+            console.error('[customer-requests] realtime handler error:', err)
           }
         }
       )

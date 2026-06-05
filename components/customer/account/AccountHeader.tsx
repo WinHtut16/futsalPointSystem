@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Award, Phone, LogOut, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { useRealtimePoints } from '@/hooks/useRealtimePoints'
 
 function initials(name: string) {
   return name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'NW'
@@ -20,18 +20,19 @@ interface AccountHeaderProps {
   name: string
   userId: string
   initialPoints: number
+  initialUpdatedAt: string
   earned: number
   redeemed: number
   joinedISO: string
   phone?: string | null
 }
 
-// Compact identity + flat points strip (no tiers). Points stay live via the
-// same profiles realtime + 20s polling pattern as PointsCard.
-export default function AccountHeader({ name, userId, initialPoints, earned, redeemed, joinedISO, phone }: AccountHeaderProps) {
+// Compact identity + flat points strip (no tiers). Points stay live via
+// useRealtimePoints (profile-points-${userId}) with updated_at ordering guard.
+export default function AccountHeader({ name, userId, initialPoints, initialUpdatedAt, earned, redeemed, joinedISO, phone }: AccountHeaderProps) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
-  const [points, setPoints] = useState(initialPoints)
+  const points = useRealtimePoints(userId, initialPoints, initialUpdatedAt)
   const router = useRouter()
 
   async function handleSignOut() {
@@ -44,31 +45,6 @@ export default function AccountHeader({ name, userId, initialPoints, earned, red
   const joinedLabel = !isNaN(jd.getTime())
     ? (lang === 'my' ? `${MY_MONTHS[jd.getMonth()]} ${toMyDigits(jd.getFullYear())}` : `${EN_MONTHS[jd.getMonth()]} ${jd.getFullYear()}`)
     : ''
-
-  useEffect(() => {
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`account-points-${userId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles' },
-        (payload) => {
-          const updated = payload.new as { id: string; total_points: number }
-          if (updated.id === userId) setPoints(updated.total_points)
-        }
-      )
-      .subscribe()
-
-    const timer = setInterval(async () => {
-      const { data } = await supabase.from('profiles').select('total_points').eq('id', userId).single()
-      if (data) setPoints(data.total_points)
-    }, 20_000)
-
-    return () => {
-      supabase.removeChannel(channel)
-      clearInterval(timer)
-    }
-  }, [userId])
 
   return (
     <div className="px-4 pt-4">

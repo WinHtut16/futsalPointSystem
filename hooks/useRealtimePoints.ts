@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export function useRealtimePoints(userId: string, initialPoints: number): number {
+export function useRealtimePoints(
+  userId: string,
+  initialPoints: number,
+  initialUpdatedAt: string = ''
+): number {
   const [points, setPoints] = useState(initialPoints)
-  const lastUpdatedAt = useRef<string>('')
+  const lastUpdatedAt = useRef<string>(initialUpdatedAt)
 
   useEffect(() => {
     const supabase = createClient()
@@ -14,12 +18,16 @@ export function useRealtimePoints(userId: string, initialPoints: number): number
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles' },
         (payload) => {
-          const updated = payload.new as { id: string; total_points: number; updated_at: string }
-          if (updated.id !== userId) return
-          // Ignore out-of-order events: only apply if this event is newer than the last one.
-          if (updated.updated_at <= lastUpdatedAt.current) return
-          lastUpdatedAt.current = updated.updated_at
-          setPoints(updated.total_points)
+          try {
+            const updated = payload.new as { id: string; total_points: number; updated_at: string }
+            if (updated.id !== userId) return
+            // Ignore out-of-order events: only apply if this event is newer than the last one.
+            if (updated.updated_at <= lastUpdatedAt.current) return
+            lastUpdatedAt.current = updated.updated_at
+            setPoints(updated.total_points)
+          } catch (err) {
+            console.error('[profile-points] realtime handler error:', err)
+          }
         }
       )
       .subscribe()

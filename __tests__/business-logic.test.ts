@@ -21,6 +21,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 import { calculatePoints, POINTS_PER_HOUR } from '@/lib/points'
 
+vi.mock('next/cache', () => ({ revalidateTag: vi.fn(), revalidatePath: vi.fn() }))
+
 // ---------------------------------------------------------------------------
 // Auth state — mutated per-test via as.*() helpers
 // ---------------------------------------------------------------------------

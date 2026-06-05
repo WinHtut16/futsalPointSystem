@@ -108,6 +108,10 @@ export default function AdminBookingsList({
   const [busyMap, setBusyMap] = useState<Record<string, string>>({})
   const [errorMap, setErrorMap] = useState<Record<string, string | null>>({})
   const [hasNewBookings, setHasNewBookings] = useState(false)
+  const [localExtraCount, setLocalExtraCount] = useState(0)
+
+  const currentStatusRef = useRef(currentStatus)
+  useEffect(() => { currentStatusRef.current = currentStatus }, [currentStatus])
 
   // Local controlled values for search / date inputs (debounced push to URL)
   const [searchInput, setSearchInput] = useState(currentSearch)
@@ -119,6 +123,7 @@ export default function AdminBookingsList({
   useEffect(() => {
     setRows(initial)
     setHasNewBookings(false)
+    setLocalExtraCount(0)
   }, [initial])
 
   useEffect(() => { setSearchInput(currentSearch) }, [currentSearch])
@@ -194,26 +199,31 @@ export default function AdminBookingsList({
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'bookings' },
         async (payload) => {
-          const newId = (payload.new as { id: string }).id
-          const { data } = await supabase
-            .from('bookings')
-            .select(SELECT_QUERY)
-            .eq('id', newId)
-            .single()
-          if (data) {
-            const booking = parseRow(data as RawRow)
-            // Only prepend if on page 1 and matches current status filter.
-            const matchesFilter =
-              currentStatus === 'all' || booking.status === currentStatus
-            if (page === 1 && matchesFilter) {
-              setRows((prev) => {
-                const idx = prev.findIndex((b) => b.booking_date <= booking.booking_date)
-                if (idx === -1) return [...prev, booking]
-                return [...prev.slice(0, idx), booking, ...prev.slice(idx)]
-              })
-            } else if (matchesFilter) {
-              setHasNewBookings(true)
+          try {
+            const newId = (payload.new as { id: string }).id
+            const { data } = await supabase
+              .from('bookings')
+              .select(SELECT_QUERY)
+              .eq('id', newId)
+              .single()
+            if (data) {
+              const booking = parseRow(data as RawRow)
+              // Only prepend if on page 1 and matches current status filter.
+              const matchesFilter =
+                currentStatus === 'all' || booking.status === currentStatus
+              if (page === 1 && matchesFilter) {
+                setRows((prev) => {
+                  const idx = prev.findIndex((b) => b.booking_date <= booking.booking_date)
+                  if (idx === -1) return [...prev, booking]
+                  return [...prev.slice(0, idx), booking, ...prev.slice(idx)]
+                })
+                setLocalExtraCount((prev) => prev + 1)
+              } else if (matchesFilter) {
+                setHasNewBookings(true)
+              }
             }
+          } catch (err) {
+            console.error('[admin-bookings-list] INSERT handler error:', err)
           }
         }
       )
@@ -221,23 +231,47 @@ export default function AdminBookingsList({
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'bookings' },
         (payload) => {
-          const u = payload.new as { id: string; status: string; deposit_received: boolean; updated_at: string }
-          setRows((prev) =>
-            prev.map((b) => {
-              if (b.id !== u.id) return b
-              // Discard stale out-of-order events.
-              const incomingTime = new Date(u.updated_at).getTime()
-              const currentTime  = new Date(b.updated_at).getTime()
-              if (incomingTime < currentTime) return b
-              return { ...b, status: u.status as BookingStatus, deposit_received: u.deposit_received, updated_at: u.updated_at }
+          try {
+            const u = payload.new as { id: string; status: string; deposit_received: boolean; updated_at: string }
+            setRows((prev) => {
+              const activeStatus = currentStatusRef.current
+              if (activeStatus !== 'all' && u.status !== activeStatus) {
+                return prev.filter((b) => b.id !== u.id)
+              }
+              return prev.map((b) => {
+                if (b.id !== u.id) return b
+                // Discard stale out-of-order events.
+                const incomingTime = new Date(u.updated_at).getTime()
+                const currentTime  = new Date(b.updated_at).getTime()
+                if (incomingTime < currentTime) return b
+                return { ...b, status: u.status as BookingStatus, deposit_received: u.deposit_received, updated_at: u.updated_at }
+              })
             })
-          )
+          } catch (err) {
+            console.error('[admin-bookings-list] UPDATE handler error:', err)
+          }
         }
       )
       .subscribe()
 
+    channel.subscribe((status) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        router.refresh()
+      }
+    })
+
     return () => { supabase.removeChannel(channel) }
-  }, [currentStatus, page])
+  }, [currentStatus, page, router])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        router.refresh()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => { document.removeEventListener('visibilitychange', handleVisibilityChange) }
+  }, [])
 
   async function act(id: string, action: 'confirm' | 'unconfirm' | 'cancel' | 'close') {
     setBusyMap((prev) => ({ ...prev, [id]: action }))
@@ -250,18 +284,22 @@ export default function AdminBookingsList({
       })
       const json = await res.json()
       if (res.ok) {
-        setRows((prev) =>
-          prev.map((b) =>
+        const newStatus = json.status as BookingStatus
+        setRows((prev) => {
+          if (currentStatusRef.current !== 'all' && newStatus !== currentStatusRef.current) {
+            return prev.filter((b) => b.id !== id)
+          }
+          return prev.map((b) =>
             b.id === id
               ? {
                   ...b,
-                  status: json.status as BookingStatus,
+                  status: newStatus,
                   deposit_received:
                     action === 'confirm' ? true : action === 'unconfirm' ? false : b.deposit_received,
                 }
               : b
           )
-        )
+        })
       } else {
         setErrorMap((prev) => ({ ...prev, [id]: json.error ?? t('booking.admin.actionFailed') }))
       }
@@ -276,8 +314,9 @@ export default function AdminBookingsList({
     }
   }
 
+  const displayTotal = total + localExtraCount
   const fromIdx = (page - 1) * pageSize + 1
-  const toIdx = Math.min(page * pageSize, total)
+  const toIdx = Math.min(page * pageSize + localExtraCount, displayTotal)
 
   return (
     <div className="space-y-4">
@@ -361,7 +400,7 @@ export default function AdminBookingsList({
       {total > 0 && (
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span>
-            {t('booking.admin.showing' as never, { from: String(fromIdx), to: String(toIdx), total: String(total) })}
+            {t('booking.admin.showing' as never, { from: String(fromIdx), to: String(toIdx), total: String(displayTotal) })}
           </span>
           <span>{t('booking.admin.pageOf' as never, { page: String(page), total: String(totalPages) })}</span>
         </div>

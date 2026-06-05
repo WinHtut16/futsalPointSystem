@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -120,6 +120,12 @@ function Sidebar({
   const badgeText = count > 99 ? '99+' : String(count)
   const { count: bookingCount } = usePendingBookings()
   const bookingBadgeText = bookingCount > 99 ? '99+' : String(bookingCount)
+
+  const BASE_ADMIN_TITLE = 'Mya Thida Admin'
+  useEffect(() => {
+    const total = count + bookingCount
+    document.title = (total > 0 ? '(!) ' : '') + BASE_ADMIN_TITLE
+  }, [count, bookingCount])
 
   return (
     <div

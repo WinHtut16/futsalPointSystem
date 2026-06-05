@@ -39,22 +39,30 @@ export default function RedemptionsList({ initialRequests }: { initialRequests: 
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'redemption_requests' },
         async (payload) => {
-          if ((payload.new as { status: string }).status !== 'pending') return
-          const { data } = await supabase
-            .from('redemption_requests')
-            .select(SELECT_QUERY)
-            .eq('id', (payload.new as { id: string }).id)
-            .single()
-          if (data) setRequests((prev) => [...prev, data as RedemptionRequest])
+          try {
+            if ((payload.new as { status: string }).status !== 'pending') return
+            const { data } = await supabase
+              .from('redemption_requests')
+              .select(SELECT_QUERY)
+              .eq('id', (payload.new as { id: string }).id)
+              .single()
+            if (data) setRequests((prev) => [...prev, data as RedemptionRequest])
+          } catch (err) {
+            console.error('[redemptions-list] INSERT handler error:', err)
+          }
         }
       )
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'redemption_requests' },
         (payload) => {
-          const updated = payload.new as { id: string; status: string }
-          if (updated.status !== 'pending') {
-            setRequests((prev) => prev.filter((r) => r.id !== updated.id))
+          try {
+            const updated = payload.new as { id: string; status: string }
+            if (updated.status !== 'pending') {
+              setRequests((prev) => prev.filter((r) => r.id !== updated.id))
+            }
+          } catch (err) {
+            console.error('[redemptions-list] UPDATE handler error:', err)
           }
         }
       )

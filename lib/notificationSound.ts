@@ -33,16 +33,20 @@ function playTone(
  * Silently swallows NotAllowedError and any other errors.
  */
 export function playNotificationBeep(): void {
-  try {
-    const ctx = makeAudioContext()
-    if (!ctx) return
-    const now = ctx.currentTime
-    playTone(ctx, 880, now, 0.2, 0.3)
-    playTone(ctx, 660, now + 0.08, 0.2, 0.2)
-    setTimeout(() => ctx.close().catch(() => {}), 600)
-  } catch {
-    // Silently swallow NotAllowedError (autoplay block) and any other errors
-  }
+  const ctx = makeAudioContext()
+  if (!ctx) return
+  ctx.resume().then(() => {
+    try {
+      const now = ctx.currentTime
+      playTone(ctx, 880, now, 0.2, 0.3)
+      playTone(ctx, 660, now + 0.08, 0.2, 0.2)
+      setTimeout(() => ctx.close().catch(() => {}), 600)
+    } catch {
+      // Silently swallow scheduling errors
+    }
+  }).catch(() => {
+    // resume() blocked — silent fail
+  })
 }
 
 /**
@@ -50,14 +54,18 @@ export function playNotificationBeep(): void {
  * Silently swallows NotAllowedError and any other errors.
  */
 export function playBookingBeep(): void {
-  try {
-    const ctx = makeAudioContext()
-    if (!ctx) return
-    const now = ctx.currentTime
-    playTone(ctx, 660, now, 0.2, 0.3)
-    playTone(ctx, 880, now + 0.08, 0.2, 0.2)
-    setTimeout(() => ctx.close().catch(() => {}), 600)
-  } catch {
-    // Silently swallow NotAllowedError (autoplay block) and any other errors
-  }
+  const ctx = makeAudioContext()
+  if (!ctx) return
+  ctx.resume().then(() => {
+    try {
+      const now = ctx.currentTime
+      playTone(ctx, 660, now, 0.2, 0.3)
+      playTone(ctx, 880, now + 0.08, 0.2, 0.2)
+      setTimeout(() => ctx.close().catch(() => {}), 600)
+    } catch {
+      // Silently swallow scheduling errors
+    }
+  }).catch(() => {
+    // resume() blocked — silent fail
+  })
 }

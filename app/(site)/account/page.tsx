@@ -145,6 +145,7 @@ export default async function AccountPage() {
           name={profile.username ?? 'Member'}
           userId={profile.id}
           initialPoints={profile.total_points}
+          initialUpdatedAt={profile.updated_at}
           earned={earned}
           redeemed={redeemed}
           joinedISO={profile.created_at}

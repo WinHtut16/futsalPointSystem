@@ -22,6 +22,7 @@ export interface Profile {
   role: UserRole
   total_points: number
   created_at: string
+  updated_at: string
 }
 
 export interface Reward {

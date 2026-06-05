@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Star } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Reward } from '@/types'
 import AccountHeader from './AccountHeader'
@@ -13,11 +15,13 @@ import RewardsGrid from '@/components/customer/RewardsGrid'
 
 type Tab = 'upcoming' | 'history' | 'rewards'
 type Filter = 'all' | 'bookings' | 'points'
+type CursorMap = { all: string | null; bookings: string | null; points: string | null }
 
 interface UnifiedAccountProps {
   name: string
   userId: string
   initialPoints: number
+  initialUpdatedAt: string
   earned: number
   redeemed: number
   joinedISO: string
@@ -32,18 +36,38 @@ interface UnifiedAccountProps {
 
 export default function UnifiedAccount(props: UnifiedAccountProps) {
   const { t, lang } = useLanguage()
+  const router = useRouter()
   const my = lang === 'my' ? 'my' : ''
   const [tab, setTab] = useState<Tab>('upcoming')
   const [filter, setFilter] = useState<Filter>('all')
 
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`customer-upcoming-${props.userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'bookings' },
+        (payload) => {
+          try {
+            if ((payload.new as { customer_id: string }).customer_id !== props.userId) return
+            const newStatus = (payload.new as { status: string }).status
+            if (newStatus === 'cancelled' || newStatus === 'confirmed') {
+              router.refresh()
+            }
+          } catch (err) {
+            console.error('[customer-upcoming] realtime handler error:', err)
+          }
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [props.userId, router])
+
   // Per-filter feed state
   const [feeds, setFeeds] = useState(props.initialFeeds)
   const [hasMore, setHasMore] = useState(props.initialHasMore)
-  const [pages, setPages] = useState<{ all: number; bookings: number; points: number }>({
-    all: 0,
-    bookings: 0,
-    points: 0,
-  })
+  const [cursors, setCursors] = useState<CursorMap>({ all: null, bookings: null, points: null })
   const [loading, setLoading] = useState(false)
 
   const tabs: { k: Tab; label: string }[] = [
@@ -59,23 +83,25 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
   const loadMore = useCallback(async () => {
     if (loading || !hasMore[filter]) return
     setLoading(true)
-    const nextPage = pages[filter] + 1
+    const cursor = cursors[filter]
+    const url = `/api/account/history?filter=${filter}${cursor ? `&before=${encodeURIComponent(cursor)}` : ''}`
     try {
-      const res = await fetch(
-        `/api/account/history?filter=${filter}&page=${nextPage}`
-      )
+      const res = await fetch(url)
       if (!res.ok) return
-      const { items, hasMore: moreItems } = (await res.json()) as {
+      const { items, hasMore: moreItems, nextCursor } = (await res.json()) as {
         items: FeedItem[]
         hasMore: boolean
+        nextCursor: string | null
       }
       setFeeds((prev) => ({ ...prev, [filter]: [...prev[filter], ...items] }))
       setHasMore((prev) => ({ ...prev, [filter]: moreItems }))
-      setPages((prev) => ({ ...prev, [filter]: nextPage }))
+      if (nextCursor) {
+        setCursors((prev) => ({ ...prev, [filter]: nextCursor }))
+      }
     } finally {
       setLoading(false)
     }
-  }, [filter, hasMore, loading, pages])
+  }, [filter, hasMore, loading, cursors])
 
   const currentFeed = feeds[filter]
 
@@ -85,6 +111,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
         name={props.name}
         userId={props.userId}
         initialPoints={props.initialPoints}
+        initialUpdatedAt={props.initialUpdatedAt}
         earned={props.earned}
         redeemed={props.redeemed}
         joinedISO={props.joinedISO}

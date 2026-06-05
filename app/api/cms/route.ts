@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireSuperAdmin } from '@/lib/auth'
 import { CmsPostSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
@@ -43,5 +44,7 @@ export async function POST(request: NextRequest) {
     }
     return serverError(error.message)
   }
+  revalidatePath('/', 'page')
+  revalidatePath('/news', 'page')
   return NextResponse.json({ id: data?.id }, { status: 201 })
 }

@@ -45,8 +45,12 @@ export function PendingBookingsProvider({
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'bookings' },
         (payload) => {
-          if ((payload.new as { status: string }).status === 'pending') {
-            setCount((c) => c + 1)
+          try {
+            if ((payload.new as { status: string }).status === 'pending') {
+              setCount((c) => c + 1)
+            }
+          } catch (err) {
+            console.error('[admin-pending-bookings-badge] INSERT handler error:', err)
           }
         }
       )
@@ -54,16 +58,24 @@ export function PendingBookingsProvider({
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'bookings' },
         (payload) => {
-          const prev = (payload.old as { status?: string }).status
-          const next = (payload.new as { status: string }).status
-          if (prev === 'pending' && next !== 'pending') {
-            setCount((c) => Math.max(0, c - 1))
-          } else if (prev !== 'pending' && next === 'pending') {
-            setCount((c) => c + 1)
+          try {
+            const prev = (payload.old as { status?: string }).status
+            const next = (payload.new as { status: string }).status
+            if (prev === 'pending' && next !== 'pending') {
+              setCount((c) => Math.max(0, c - 1))
+            } else if (prev !== 'pending' && next === 'pending') {
+              setCount((c) => c + 1)
+            }
+          } catch (err) {
+            console.error('[admin-pending-bookings-badge] UPDATE handler error:', err)
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          fetchCount()
+        }
+      })
 
     const timer = setInterval(fetchCount, POLL_INTERVAL_MS)
 
