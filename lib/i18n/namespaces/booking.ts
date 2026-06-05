@@ -237,6 +237,18 @@ export const bookingEN = {
   'booking.footer.quickLinks': 'Quick Links',
   'booking.footer.findUs': 'Find Us',
   'booking.footer.getDirections': 'Get Directions',
+
+  // Mobile cart sheet
+  'booking.cart.title': 'Your Selected Slots',
+  'booking.cart.slots': 'slots selected',
+  'booking.cart.viewCart': 'View cart',
+  'booking.cart.remove': 'Remove slot',
+
+  // Confirm flow errors
+  'booking.confirm.errorPartialFail': 'Booking partially failed. Please contact staff to cancel refs: {refs}',
+  'booking.confirm.errorSlotTaken': 'Could not book {date} — the slot may have been taken. Your other dates were not charged. Please try again.',
+  'booking.confirm.errorNetwork': 'Network error. Please try again.',
+  'booking.confirm.errorCancelFail': 'Booking partially failed. Please contact staff to cancel refs: {refs}',
 } as const
 
 export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
@@ -478,4 +490,16 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.footer.quickLinks': 'လင့်ကြောင်းများ',
   'booking.footer.findUs': 'လိပ်စာ',
   'booking.footer.getDirections': 'လမ်းညွှန်',
+
+  // Mobile cart sheet
+  'booking.cart.title': 'သင်ရွေးချယ်ထားသော အချိန်ကွက်များ',
+  'booking.cart.slots': 'ကွက်ရွေးထား',
+  'booking.cart.viewCart': 'ခြင်းတောင်း ကြည့်ရန်',
+  'booking.cart.remove': 'ဖယ်ရှားရန်',
+
+  // Confirm flow errors
+  'booking.confirm.errorPartialFail': 'ကြိုတင်မှာကြားမှု တစ်စိတ်တစ်ပိုင်း မအောင်မြင်ပါ။ ဤ refs များကို ပယ်ဖျက်ရန် ဝန်ထမ်းနှင့် ဆက်သွယ်ပါ — {refs}',
+  'booking.confirm.errorSlotTaken': '{date} ကို မှာကြားမရပါ — အချိန်ကွက်ကို တစ်ခြားသူ ယူသွားနှင့်ပြီ ဖြစ်နိုင်သည်။ ကျန်ရှိသည့် ရက်များကို မကောက်ခံပါ။ ထပ်မံကြိုးစားပါ။',
+  'booking.confirm.errorNetwork': 'ကွန်ရက်အမှား။ ထပ်မံကြိုးစားပါ။',
+  'booking.confirm.errorCancelFail': 'ကြိုတင်မှာကြားမှု တစ်စိတ်တစ်ပိုင်း မအောင်မြင်ပါ။ ဤ refs များကို ပယ်ဖျက်ရန် ဝန်ထမ်းနှင့် ဆက်သွယ်ပါ — {refs}',
 }

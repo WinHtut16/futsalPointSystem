@@ -12,6 +12,7 @@ import { priceForHour, depositFor, formatHourRange, isWeekendRate, DEPOSIT_PER_S
 const WD_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const WD_MY = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ']
 const MO_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MO_MY = ['ဇန်', 'ဖေ', 'မတ်', 'ဧပြီ', 'မေ', 'ဇွန်', 'ဇူ', 'ဩ', 'စက်', 'အောက်', 'နို', 'ဒီ']
 
 const KBZPAY = { number: '09 5190 865', holder: 'Aung Thura Phyo' }
 const PHONE = '+95 9 797 272000'
@@ -28,7 +29,9 @@ function longDateStr(date: string, lang: string): string {
 function shortDateStr(date: string, lang: string): string {
   const [y, m, d] = date.split('-').map(Number)
   const wd = (lang === 'my' ? WD_MY : WD_EN)[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
-  return lang === 'my' ? `${wd}နေ့ ၊ ${d}` : `${wd.slice(0, 3)} · ${MO_EN[m - 1]} ${d}, ${y}`
+  return lang === 'my'
+    ? `${wd}နေ့ ၊ ${d} ${MO_MY[m - 1]} ${y}`
+    : `${wd.slice(0, 3)} · ${MO_EN[m - 1]} ${d}, ${y}`
 }
 
 function timeRangeFor(hours: number[]): string {
@@ -85,13 +88,9 @@ export default function ConfirmFlow({
           }
 
           if (cancelErrors.length > 0) {
-            setError(
-              `Booking partially failed. Please contact staff to cancel: ${cancelErrors.join(', ')}`
-            )
+            setError(t('booking.confirm.errorCancelFail', { refs: cancelErrors.join(', ') }))
           } else {
-            setError(
-              `Could not book ${g.date} — ${json.error ?? 'the slot may have been taken'}. Your other dates were not charged. Please try again.`
-            )
+            setError(t('booking.confirm.errorSlotTaken', { date: g.date }))
           }
           return
         }
@@ -100,7 +99,7 @@ export default function ConfirmFlow({
       setRefs(createdRefs.map((c) => c.ref))
       setStep(2)
     } catch {
-      setError('Network error. Please try again.')
+      setError(t('booking.confirm.errorNetwork'))
     } finally {
       setSubmitting(false)
     }

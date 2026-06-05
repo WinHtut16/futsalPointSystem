@@ -79,13 +79,13 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) { setPwdError('Session expired'); return }
+      if (!user?.email) { setPwdError(t('settings.sessionExpired')); return }
 
       const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: currentPwd,
       })
-      if (signInErr) { setPwdError('Current password is incorrect'); return }
+      if (signInErr) { setPwdError(t('settings.currentPasswordWrong')); return }
 
       const { error } = await supabase.auth.updateUser({ password: newPwd })
       if (error) {
@@ -136,6 +136,8 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
           <Input
             id="s-phone"
             label={t('settings.phone')}
+            type="tel"
+            autoComplete="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="09XXXXXXXXX"
@@ -210,10 +212,10 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
       <Modal
         open={showDelete}
         onClose={() => setShowDelete(false)}
-        title="Are you sure?"
+        title={t('settings.deleteModal.title')}
       >
-        <p className="mb-4 text-sm text-gray-600">
-          This will permanently delete your account and all booking history. This cannot be undone.
+        <p className={`mb-4 text-sm text-gray-600 ${my}`}>
+          {t('settings.deleteModal.body')}
         </p>
         <div className="mb-5 rounded-xl bg-gray-50 p-4">
           <p className={`text-sm text-gray-600 ${my}`}>{t('settings.deleteContact')}</p>
@@ -222,16 +224,16 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
           <button
             type="button"
             onClick={() => setShowDelete(false)}
-            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
+            className={`flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 ${my}`}
           >
-            Cancel
+            {t('settings.deleteModal.cancel')}
           </button>
           <button
             type="button"
             onClick={() => setShowDelete(false)}
-            className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-medium text-white hover:bg-red-600"
+            className={`flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-medium text-white hover:bg-red-600 ${my}`}
           >
-            Delete My Account
+            {t('settings.deleteModal.confirm')}
           </button>
         </div>
       </Modal>
@@ -239,7 +241,7 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
       {/* Toast */}
       {toast && (
         <div
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-lg"
+          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-lg"
           style={{ background: toast.ok ? 'var(--color-primary)' : '#ef4444' }}
         >
           {toast.msg}

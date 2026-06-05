@@ -262,7 +262,7 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.hoursPlayedPlaceholder': 'e.g. 1.5',
   'admin.hoursPlayedPreview': '{hours} နာရီ ကစားမှုအတွက် {points} မှတ် ထည့်မည်',
   'admin.noteLabel': 'မှတ်ချက် (ရွေးချယ်နိုင်)',
-  'admin.notePlaceholder': 'e.g. Weekend session',
+  'admin.notePlaceholder': 'ဥပမာ — ဝိတ်အမ်းနှစ် ကစားပွဲ',
   'admin.invalidHours': 'အချိန် မှန်ကန်စွာ ထည့်ပါ (0.5 – 24)။',
   'admin.pointsAddedSuccess': '{name} သို့ {points} မှတ် ထည့်ပြီးပါပြီ။',
   'admin.addPointsFailed': 'အမှတ်ထည့်ခြင်း မအောင်မြင်ပါ။',

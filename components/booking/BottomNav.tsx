@@ -15,7 +15,7 @@ export default function BottomNav({ active }: { active?: string }) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
   return (
-    <nav className="sticky bottom-0 z-20 grid grid-cols-4 border-t border-line bg-surface px-2 pb-1 pt-2 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-20 grid grid-cols-4 border-t border-line bg-surface px-2 pb-[calc(0.25rem+env(safe-area-inset-bottom))] pt-2 md:hidden">
       {items.map(({ k, href, Ic, key }) => {
         const on = k === active
         return (

@@ -66,7 +66,7 @@ export default function RegisterForm() {
       return
     }
 
-    router.push(safeRedirect(searchParams.get('next'), '/dashboard'))
+    router.push(safeRedirect(searchParams.get('next'), '/account'))
     router.refresh()
   }
 

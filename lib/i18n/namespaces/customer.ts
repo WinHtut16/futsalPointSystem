@@ -90,6 +90,12 @@ export const customerEN = {
   'settings.deleteAccount': 'Delete Account',
   'settings.deleteContact': 'To delete your account please contact us at +95 9 797 272000',
   'settings.emailConfirmed': 'Email address confirmed successfully',
+  'settings.deleteModal.title': 'Are you sure?',
+  'settings.deleteModal.body': 'This will permanently delete your account and all your points history. This action cannot be undone.',
+  'settings.deleteModal.cancel': 'Cancel',
+  'settings.deleteModal.confirm': 'Delete My Account',
+  'settings.sessionExpired': 'Session expired. Please log in again.',
+  'settings.currentPasswordWrong': 'Current password is incorrect.',
 } as const
 
 export const customerMY: { [K in keyof typeof customerEN]: string } = {
@@ -178,5 +184,11 @@ export const customerMY: { [K in keyof typeof customerEN]: string } = {
   'settings.deleteAccount': 'အကောင့်ဖျက်ရန်',
   'settings.deleteContact': 'အကောင့်ဖျက်ရန် +95 9 797 272000 သို့ဆက်သွယ်ပါ',
   'settings.emailConfirmed': 'အီးမေးလ်လိပ်စာ အတည်ပြုပြီးပါပြီ',
+  'settings.deleteModal.title': 'သေချာပါသလား?',
+  'settings.deleteModal.body': 'ဤလုပ်ဆောင်ချက်သည် သင့်အကောင့်နှင့် အမှတ်မှတ်တမ်းများကို အပြီးတိုင်ဖျက်ပစ်မည်။ ပြန်မရနိုင်ပါ။',
+  'settings.deleteModal.cancel': 'မလုပ်တော့',
+  'settings.deleteModal.confirm': 'အကောင့်ဖျက်မည်',
+  'settings.sessionExpired': 'လော့ဂ်အင် သက်တမ်းကုန်ပါပြီ။ ထပ်မံဝင်ပါ။',
+  'settings.currentPasswordWrong': 'လက်ရှိ စကားဝှက် မမှန်ကန်ပါ။',
 }
 

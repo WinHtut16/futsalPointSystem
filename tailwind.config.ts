@@ -70,10 +70,10 @@ const config: Config = {
       fontFamily: {
         // Distinct keys so Tailwind's default `font-mono` (used by the
         // points system) is NOT overridden.
-        display: ['var(--font-sora)', 'Noto Sans Myanmar', 'system-ui', 'sans-serif'],
-        body: ['var(--font-manrope)', 'Noto Sans Myanmar', 'system-ui', 'sans-serif'],
+        display: ['var(--font-sora)', 'var(--font-noto-my)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-manrope)', 'var(--font-noto-my)', 'system-ui', 'sans-serif'],
         fbmono: ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
-        my: ['var(--font-noto-my)', 'var(--font-sora)', 'system-ui', 'sans-serif'],
+        my: ['var(--font-noto-my)', 'Myanmar Text', 'Pyidaungsu', 'Padauk', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         'fb-sm': 'var(--shadow-sm)',

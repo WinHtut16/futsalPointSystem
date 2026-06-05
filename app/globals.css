@@ -65,7 +65,7 @@
   --font-display: var(--font-sora), 'Noto Sans Myanmar', system-ui, sans-serif;
   --font-body:    var(--font-manrope), 'Noto Sans Myanmar', system-ui, sans-serif;
   --font-mono:    var(--font-jetbrains), ui-monospace, monospace;
-  --font-my:      var(--font-noto-my), var(--font-sora), system-ui, sans-serif;
+  --font-my:      var(--font-noto-my), 'Myanmar Text', 'Pyidaungsu', 'Padauk', system-ui, sans-serif;
 }
 
 /* World Cup seasonal theme — apply .theme-wc on a wrapper to retheme
@@ -81,7 +81,7 @@
 }
 
 /* Myanmar script helper */
-.my { font-family: var(--font-my); letter-spacing: 0; }
+.my { font-family: var(--font-my); letter-spacing: 0; line-height: 1.7; }
 
 /* ---- Primitives ---- */
 .fb-card {
@@ -177,3 +177,24 @@
 /* Hide scrollbar while preserving scroll functionality */
 .scrollbar-hide { scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-page-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-pulse {
+    animation: none;
+  }
+}

@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { formatHourRange } from '@/lib/booking'
@@ -16,13 +17,39 @@ export default function PendingSlotSheet({
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
 
+  // Drag-to-dismiss refs
+  const dragStartY = useRef<number | null>(null)
+  const dragDelta = useRef<number>(0)
+
+  const handleDragStart = (e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY
+    dragDelta.current = 0
+  }
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (dragStartY.current === null) return
+    const scrollContainer = e.currentTarget as HTMLElement
+    if (scrollContainer.scrollTop > 0) {
+      dragStartY.current = null
+      return
+    }
+    const delta = e.touches[0].clientY - dragStartY.current
+    if (delta > 0) dragDelta.current = delta
+  }
+
+  const handleDragEnd = () => {
+    if (dragDelta.current >= 80) onClose()
+    dragStartY.current = null
+    dragDelta.current = 0
+  }
+
   if (hour === null) return null
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/40"
+        className="fixed inset-0 z-40 bg-black/40 cursor-pointer"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -38,8 +65,11 @@ export default function PendingSlotSheet({
           w-full md:w-[420px]
           rounded-t-[var(--r-xl)] md:rounded-[var(--r-xl)]
           bg-surface shadow-fb-md
-          p-5 pb-8 md:p-6 md:pb-6
+          p-5 pb-[calc(2rem+env(safe-area-inset-bottom))] md:p-6 md:pb-6
         "
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
       >
         {/* Handle (mobile only) */}
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-line md:hidden" />

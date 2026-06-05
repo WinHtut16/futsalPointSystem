@@ -17,17 +17,37 @@ const LanguageContext = createContext<LanguageContextValue>({
   t: (key) => en[key] ?? key,
 })
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Language>('en')
+export function LanguageProvider({
+  children,
+  initialLang,
+}: {
+  children: React.ReactNode
+  initialLang?: Language
+}) {
+  const [lang, setLangState] = useState<Language>(initialLang ?? 'en')
 
+  // One-time migration: server sent 'en' (no cookie yet) but user previously set
+  // MY via localStorage. Adopt it and write the cookie so future page loads are
+  // flash-free from the server side.
   useEffect(() => {
-    const stored = localStorage.getItem('lang') as Language | null
-    if (stored === 'en' || stored === 'my') setLangState(stored)
-  }, [])
+    if (lang !== 'en') return
+    try {
+      const stored = localStorage.getItem('lang') as Language | null
+      if (stored === 'my') {
+        setLangState('my')
+        document.documentElement.lang = 'my'
+        document.documentElement.dataset.lang = 'my'
+        document.cookie = 'lang=my;path=/;max-age=31536000;SameSite=Lax'
+      }
+    } catch {}
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function setLang(l: Language) {
     setLangState(l)
-    localStorage.setItem('lang', l)
+    document.documentElement.lang = l
+    document.documentElement.dataset.lang = l
+    try { localStorage.setItem('lang', l) } catch {}
+    document.cookie = `lang=${l};path=/;max-age=31536000;SameSite=Lax`
   }
 
   function t(key: TranslationKey, vars?: Record<string, string | number>) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { X, ArrowRight, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -28,7 +28,31 @@ export default function BookingLoginSheet({ open, onClose, onSuccess, nextTarget
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (!open) return null
+  // Drag-to-dismiss refs
+  const dragStartY = useRef<number | null>(null)
+  const dragDelta = useRef<number>(0)
+
+  const handleDragStart = (e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY
+    dragDelta.current = 0
+  }
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (dragStartY.current === null) return
+    const scrollContainer = e.currentTarget as HTMLElement
+    if (scrollContainer.scrollTop > 0) {
+      dragStartY.current = null
+      return
+    }
+    const delta = e.touches[0].clientY - dragStartY.current
+    if (delta > 0) dragDelta.current = delta
+  }
+
+  const handleDragEnd = () => {
+    if (dragDelta.current >= 80) onClose()
+    dragStartY.current = null
+    dragDelta.current = 0
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -65,24 +89,33 @@ export default function BookingLoginSheet({ open, onClose, onSuccess, nextTarget
   }
 
   return (
-    <div className="fixed inset-0 z-40 md:hidden">
+    <div
+      className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300
+                  ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+    >
       {/* scrim */}
       <button
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0"
-        style={{ background: 'rgba(15,30,22,0.55)' }}
+        className={`absolute inset-0 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}
+        style={{ background: 'rgba(15,30,22,0.55)', cursor: 'pointer' }}
       />
 
       {/* sheet */}
       <div
-        className="absolute inset-x-0 bottom-0 bg-surface px-5 pb-8 pt-2.5"
+        className={`absolute inset-x-0 bottom-0 bg-surface px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-2.5
+                    max-h-[85vh] overflow-y-auto
+                    transition-transform duration-300 ease-out
+                    ${open ? 'translate-y-0' : 'translate-y-full'}`}
         style={{
           borderTopLeftRadius: 'var(--r-2xl)',
           borderTopRightRadius: 'var(--r-2xl)',
           boxShadow: '0 -16px 48px -12px rgba(15,40,28,0.4)',
         }}
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-line-strong" />
 

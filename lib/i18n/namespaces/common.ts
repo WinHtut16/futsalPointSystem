@@ -9,6 +9,7 @@ export const commonEN = {
   'common.logout': 'Logout',
   'common.pts': 'pts',
   'common.optional': 'optional',
+  'common.close': 'Close',
 } as const
 
 export const commonMY: { [K in keyof typeof commonEN]: string } = {
@@ -22,4 +23,5 @@ export const commonMY: { [K in keyof typeof commonEN]: string } = {
   'common.logout': 'ထွက်ရန်',
   'common.pts': 'မှတ်',
   'common.optional': 'ရွေးချယ်နိုင်သည်',
+  'common.close': 'ပိတ်ရန်',
 }

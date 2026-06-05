@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X, AlertTriangle, Check, Lock } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { toMyDigits } from '@/lib/utils'
 import BookingLoginSheet from './BookingLoginSheet'
 import {
   dayHours,
@@ -35,14 +36,16 @@ type CartSlot = { date: string; hour: number; override?: boolean }
 
 const WD_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const WD_MY = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ']
+const WD_MY_SHORT = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓ', 'ကြာ', 'သောကြာ', 'စနေ']
 const MO_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MO_MY = ['ဇန်', 'ဖေ', 'မတ်', 'ဧပြီ', 'မေ', 'ဇွန်', 'ဇူ', 'ဩ', 'စက်', 'အောက်', 'နို', 'ဒီ']
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
 function shortDateLabel(dateISO: string, lang: string): string {
   const [y, m, d] = dateISO.split('-').map(Number)
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
-  if (lang === 'my') return `${WD_MY[wd].slice(0, 3)} ${d} ${MO_EN[m - 1]}`
+  if (lang === 'my') return `${WD_MY_SHORT[wd]} ${d} ${MO_MY[m - 1]}`
   return `${WD_EN[wd].slice(0, 3)}, ${MO_EN[m - 1]} ${d}`
 }
 
@@ -70,6 +73,7 @@ export default function BookingView({
   const [selectedDay, setSelectedDay] = useState<number | null>(initialDay)
   const [cart, setCart] = useState<CartSlot[]>([])
   const [pendingSheetHour, setPendingSheetHour] = useState<number | null>(null)
+  const [cartSheetOpen, setCartSheetOpen] = useState(false)
 
   // Post-login booking flow (mobile bottom-sheet). `loggedIn` is the initial
   // server value; once a customer signs in via the sheet we flip locally so the
@@ -180,7 +184,7 @@ export default function BookingView({
     if (!dateISO) return ''
     const dt = new Date(year, monthIdx, selectedDay!)
     const wd = (lang === 'my' ? WD_MY : WD_EN)[dt.getDay()]
-    if (lang === 'my') return `${wd}နေ့ ၊ ${selectedDay} ၊ ${year}`
+    if (lang === 'my') return `${wd}နေ့ ၊ ${toMyDigits(selectedDay!)} ၊ ${toMyDigits(year)}`
     return `${wd}, ${MO_EN[monthIdx]} ${selectedDay}, ${year}`
   })()
 
@@ -317,7 +321,18 @@ export default function BookingView({
         <div className="flex items-center justify-between">
           <div>
             <div className={`font-display text-[11px] text-ink-muted ${my}`}>
-              {cart.length} {t('booking.summary.slotsDeposit')}
+              {cart.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setCartSheetOpen(true)}
+                  className="underline"
+                  aria-label={t('booking.cart.viewCart')}
+                >
+                  {cart.length} {t('booking.cart.slots')}
+                </button>
+              ) : (
+                <span>{cart.length} {t('booking.summary.slotsDeposit')}</span>
+              )}
               {cart.length > 0 && (
                 <span className="font-fbmono"> · {total.toLocaleString('en-US')} MMK {t('booking.summary.total')}</span>
               )}
@@ -332,10 +347,10 @@ export default function BookingView({
               <span className="font-fbmono text-[11px] text-ink-muted">MMK</span>
               {cart.some(s => s.override) && (
                 <span
-                  className="ml-1 rounded px-1.5 py-0.5 font-display text-[9px] font-bold uppercase tracking-wide"
+                  className={`ml-1 rounded px-1.5 py-0.5 font-display text-[9px] font-bold uppercase tracking-wide ${my}`}
                   style={{ background: 'var(--color-slot-pending-bg)', color: 'oklch(0.50 0.13 78)' }}
                 >
-                  Priority
+                  {t('booking.pending.priorityLabel')}
                 </span>
               )}
             </div>
@@ -384,6 +399,48 @@ export default function BookingView({
         onConfirm={confirmPendingRequest}
         onClose={() => setPendingSheetHour(null)}
       />
+
+      {/* Mobile cart sheet */}
+      {cartSheetOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setCartSheetOpen(false)}
+            style={{ cursor: 'pointer' }}
+          />
+          <div className="absolute inset-x-0 bottom-0 bg-white rounded-t-2xl p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+            <h3 className={`font-semibold mb-4 ${my}`}>{t('booking.cart.title')}</h3>
+            {cart.map((slot) => (
+              <div
+                key={`${slot.date}-${slot.hour}`}
+                className="flex items-center justify-between py-2 border-b border-gray-100"
+              >
+                <span className={`text-sm ${my}`}>
+                  {shortDateLabel(slot.date, lang)} {String(slot.hour).padStart(2, '0')}:00
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    removeFromCart(slot.date, slot.hour)
+                    if (cart.length <= 1) setCartSheetOpen(false)
+                  }}
+                  className="p-3 -mr-3 text-gray-400 hover:text-red-500"
+                  aria-label={t('booking.cart.remove')}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setCartSheetOpen(false)}
+              className={`mt-4 w-full py-3 text-sm text-gray-500 ${my}`}
+            >
+              {t('common.close')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
