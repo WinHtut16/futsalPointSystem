@@ -5,7 +5,7 @@ import StaffResetPasswordForm from '@/components/admin/StaffResetPasswordForm'
 import DeleteStaffButton from '@/components/admin/DeleteStaffButton'
 import T from '@/components/ui/T'
 import { formatDate } from '@/lib/utils'
-import { getAvatarColor, getInitials } from '@/components/admin/CustomerRow'
+import { getAvatarColor, getInitials } from '@/lib/avatar'
 import { ChevronLeft, Shield, CalendarDays, KeyRound } from 'lucide-react'
 
 export default async function StaffDetailPage({ params }: { params: Promise<{ id: string }> }) {

@@ -4,7 +4,7 @@ import Button from '@/components/ui/Button'
 import T from '@/components/ui/T'
 import { formatDate } from '@/lib/utils'
 import { UserCog, Plus } from 'lucide-react'
-import { getAvatarColor, getInitials } from '@/components/admin/CustomerRow'
+import { getAvatarColor, getInitials } from '@/lib/avatar'
 
 export default async function StaffPage() {
   const supabase = await createClient()

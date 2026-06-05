@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Gift, Clock } from 'lucide-react'
 import type { RedemptionRequest } from '@/types'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { getAvatarColor, getInitials } from '@/components/admin/CustomerRow'
+import { getAvatarColor, getInitials } from '@/lib/avatar'
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
