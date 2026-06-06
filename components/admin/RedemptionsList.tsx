@@ -40,6 +40,7 @@ export default function RedemptionsList({
   initialHistory: RedemptionRequest[]
 }) {
   const [requests, setRequests] = useState<RedemptionRequest[]>(initialRequests)
+  const [history, setHistory] = useState<RedemptionRequest[]>(initialHistory)
   const { t } = useLanguage()
 
   const fetchAll = useCallback(async () => {
@@ -81,11 +82,22 @@ export default function RedemptionsList({
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'redemption_requests' },
-        (payload) => {
+        async (payload) => {
           try {
             const updated = payload.new as { id: string; status: string }
             if (updated.status !== 'pending') {
               setRequests((prev) => prev.filter((r) => r.id !== updated.id))
+              const { data } = await supabase
+                .from('redemption_requests')
+                .select(SELECT_QUERY)
+                .eq('id', updated.id)
+                .single()
+              if (data) {
+                setHistory((prev) => {
+                  const without = prev.filter((r) => r.id !== updated.id)
+                  return [data as RedemptionRequest, ...without]
+                })
+              }
             }
           } catch (err) {
             console.error('[redemptions-list] UPDATE handler error:', err)
@@ -136,13 +148,13 @@ export default function RedemptionsList({
       )}
 
       {/* History section */}
-      {initialHistory.length > 0 && (
+      {history.length > 0 && (
         <section>
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
             {t('admin.historySection')}
           </h2>
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
-            {initialHistory.map((req) => (
+            {history.map((req) => (
               <div key={req.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -167,7 +179,7 @@ export default function RedemptionsList({
         </section>
       )}
 
-      {initialHistory.length === 0 && requests.length === 0 && (
+      {history.length === 0 && requests.length === 0 && (
         <p className="text-center text-xs text-gray-400 pb-4">{t('admin.noHistory')}</p>
       )}
     </div>
