@@ -5,6 +5,20 @@ import Link from 'next/link'
 import { Phone, MapPin, Clock, MessageCircle, ExternalLink, Bus } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
+const VIBER_DEEP = 'viber://chat?number=%2B959797272000'
+const VIBER_FALLBACK = 'https://invite.viber.com/?number=%2B959797272000'
+
+function handleViberClick(e: React.MouseEvent) {
+  e.preventDefault()
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  if (isMobile) {
+    window.location.href = VIBER_DEEP
+    setTimeout(() => { window.location.href = VIBER_FALLBACK }, 1500)
+  } else {
+    window.location.href = VIBER_DEEP
+  }
+}
+
 export default function SiteFooter() {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
@@ -35,7 +49,7 @@ export default function SiteFooter() {
               <Phone size={14} />
               <span className="font-fbmono">+95 9 797 272000</span>
             </a>
-            <a href="viber://chat?number=%2B959797272000" className={btnCls}>
+            <a href={VIBER_DEEP} onClick={handleViberClick} className={btnCls}>
               <MessageCircle size={14} />
               <span>Viber</span>
             </a>
