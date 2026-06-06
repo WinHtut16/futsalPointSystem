@@ -7,6 +7,7 @@ import type { Reward } from '@/types'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { getLocalizedText } from '@/lib/i18n/utils'
 import { cn } from '@/lib/utils'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 interface RewardAdminRowProps {
   reward: Reward
@@ -29,6 +30,7 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
   const displayName = getLocalizedText(reward.name, reward.name_my, lang)
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   async function toggleActive() {
     setToggling(true)
@@ -42,15 +44,11 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
   }
 
   async function handleDelete() {
-    if (!confirm(t('admin.confirmDelete').replace('{name}', reward.name))) return
     setDeleting(true)
     const res = await fetch(`/api/rewards/${reward.id}`, { method: 'DELETE' })
     setDeleting(false)
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      alert(body.error ?? 'Failed to delete reward')
-      return
-    }
+    setShowDeleteConfirm(false)
+    if (!res.ok) return
     router.refresh()
   }
 
@@ -126,7 +124,7 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
           )}
           {canManage && (
             <button
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirm(true)}
               disabled={toggling || deleting}
               title={t('admin.deleteReward')}
               className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-500 hover:bg-red-50 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -136,6 +134,17 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
           )}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title="Delete reward"
+        message="This reward will be removed from the catalog. Customers who have already redeemed it will not be affected."
+        confirmLabel="Delete"
+        variant="danger"
+        isLoading={deleting}
+      />
     </div>
   )
 }

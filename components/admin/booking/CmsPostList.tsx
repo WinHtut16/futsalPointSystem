@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 export type CmsPostRow = {
   id: string
@@ -17,15 +18,17 @@ export default function CmsPostList({ initial }: { initial: CmsPostRow[] }) {
   const { t } = useLanguage()
   const [rows, setRows] = useState(initial)
   const [busy, setBusy] = useState<string | null>(null)
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
 
-  async function remove(id: string) {
-    if (!confirm('Delete this post?')) return
-    setBusy(id)
+  async function remove() {
+    if (!deleteTargetId) return
+    setBusy(deleteTargetId)
     try {
-      const res = await fetch(`/api/cms/${id}`, { method: 'DELETE' })
-      if (res.ok) setRows((prev) => prev.filter((r) => r.id !== id))
+      const res = await fetch(`/api/cms/${deleteTargetId}`, { method: 'DELETE' })
+      if (res.ok) setRows((prev) => prev.filter((r) => r.id !== deleteTargetId))
     } finally {
       setBusy(null)
+      setDeleteTargetId(null)
     }
   }
 
@@ -51,12 +54,22 @@ export default function CmsPostList({ initial }: { initial: CmsPostRow[] }) {
             <Link href={`/admin/cms/${p.id}/edit`} className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50" aria-label={t('booking.admin.edit')}>
               <Pencil className="h-4 w-4" />
             </Link>
-            <button onClick={() => remove(p.id)} disabled={busy === p.id} className="rounded-lg border border-gray-300 p-2 text-red-600 hover:bg-red-50" aria-label={t('booking.admin.delete')}>
+            <button onClick={() => setDeleteTargetId(p.id)} disabled={busy === p.id} className="rounded-lg border border-gray-300 p-2 text-red-600 hover:bg-red-50" aria-label={t('booking.admin.delete')}>
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
         </div>
       ))}
+      <ConfirmModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={remove}
+        title="Delete post"
+        message="This post will be permanently deleted and removed from the site."
+        confirmLabel="Delete"
+        variant="danger"
+        isLoading={!!busy}
+      />
     </div>
   )
 }

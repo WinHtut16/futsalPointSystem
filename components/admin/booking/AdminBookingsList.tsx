@@ -6,6 +6,7 @@ import { Check, X, Phone, Clock, AlertTriangle, Search, ChevronLeft, ChevronRigh
 import { formatDate } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'closed'
 
@@ -751,39 +752,19 @@ export default function AdminBookingsList({
         </div>
       )}
 
-      {/* Cancel confirmation dialog */}
-      {cancelConfirmId && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={(e) => { if (e.target === e.currentTarget) setCancelConfirmId(null) }}
-        >
-          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
-            <h3 className="text-base font-bold text-gray-900">
-              {t('booking.admin.cancelConfirmTitle' as never)}
-            </h3>
-            <p className="mt-1.5 text-sm text-gray-500">
-              {t('booking.admin.cancelConfirmBody' as never)}
-            </p>
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setCancelConfirmId(null)}
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-              >
-                {t('booking.admin.keep' as never)}
-              </button>
-              <button
-                onClick={() => {
-                  act(cancelConfirmId, 'cancel')
-                  setCancelConfirmId(null)
-                }}
-                className="flex-1 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600"
-              >
-                {t('booking.admin.cancelBooking')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={!!cancelConfirmId}
+        onClose={() => setCancelConfirmId(null)}
+        onConfirm={() => {
+          if (cancelConfirmId) act(cancelConfirmId, 'cancel')
+          setCancelConfirmId(null)
+        }}
+        title="Cancel booking"
+        message="This will cancel the booking and notify the customer. This action cannot be reversed."
+        confirmLabel={t('booking.admin.cancelBooking')}
+        variant="warning"
+        isLoading={!!cancelConfirmId && busyMap[cancelConfirmId] === 'cancel'}
+      />
     </div>
   )
 }

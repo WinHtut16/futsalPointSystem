@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Clock, X, Receipt, Calendar, Wallet, Hash } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Modal from '@/components/ui/Modal'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 export type BookingStatus = 'confirmed' | 'pending' | 'closed' | 'cancelled'
 
@@ -36,6 +37,7 @@ export default function BookingHistoryCard({
   const [cancelled, setCancelled] = useState(false)
   const [busy, setBusy] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const effective: BookingStatus = cancelled ? 'cancelled' : status
 
   async function cancel() {
@@ -83,7 +85,7 @@ export default function BookingHistoryCard({
           <div className="mt-3 flex gap-2">
             <button
               type="button"
-              onClick={cancel}
+              onClick={() => { if (canCancel && !busy) setShowCancelConfirm(true) }}
               disabled={!canCancel || busy}
               title={!canCancel ? t('booking.dash.cannotCancel') : ''}
               className="fb-btn fb-btn-ghost flex-1 !py-2.5 !text-xs"
@@ -111,6 +113,18 @@ export default function BookingHistoryCard({
           </button>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={() => { setShowCancelConfirm(false); cancel() }}
+        title="Cancel your booking"
+        message="Are you sure you want to cancel this booking? Please contact us if you need help."
+        confirmLabel={t('common.cancel')}
+        cancelLabel={t('booking.admin.keep' as never) || 'Keep booking'}
+        variant="warning"
+        isLoading={busy}
+      />
 
       <Modal
         open={showDetails}
