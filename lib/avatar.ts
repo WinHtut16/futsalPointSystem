@@ -9,20 +9,21 @@ const AVATAR_COLORS = [
   { bg: 'bg-indigo-100', text: 'text-indigo-700' },
 ]
 
-export function getAvatarColor(name: string) {
+export function getAvatarColor(name: string | null | undefined) {
+  if (!name) return AVATAR_COLORS[0]
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
-export function getInitials(name: string) {
-  return (
-    name
-      .trim()
-      .split(/[\s_]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((s) => s[0]?.toUpperCase() ?? '')
-      .join('') || name[0]?.toUpperCase() || '?'
-  )
+export function getInitials(name: string | null | undefined) {
+  if (!name) return '?'
+  const trimmed = name.trim()
+  if (!trimmed) return '?'
+  const parts = trimmed.split(/[\s_]+/).filter(Boolean)
+  if (parts.length === 0) return trimmed[0]?.toUpperCase() ?? '?'
+  return parts
+    .slice(0, 2)
+    .map((s) => [...s][0]?.toUpperCase() ?? '')
+    .join('') || '?'
 }

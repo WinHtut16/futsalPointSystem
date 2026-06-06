@@ -9,6 +9,7 @@ import DeleteCustomerButton from '@/components/admin/DeleteCustomerButton'
 import T from '@/components/ui/T'
 import type { PointTransaction } from '@/types'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +40,8 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2">
-        <Link href="/admin/customers" className="text-sm text-brand-600 hover:underline">
+        <Link href="/admin/customers" className="flex items-center gap-1 text-sm text-brand-600 hover:underline">
+          <ArrowLeft size={14} />
           <T k="admin.backToCustomers" />
         </Link>
       </div>
