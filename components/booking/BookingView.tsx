@@ -114,9 +114,6 @@ export default function BookingView({
       const exists = prev.some(s => s.date === date && s.hour === hour)
       if (exists) return prev.filter(s => !(s.date === date && s.hour === hour))
       if (prev.length >= MAX_SLOTS) return prev
-      // Block adding a normal slot to a date that already has an override slot
-      const dateHasOverride = prev.some(s => s.date === date && s.override)
-      if (dateHasOverride) return prev
       return [...prev, { date, hour }].sort((a, b) =>
         a.date < b.date ? -1 : a.date > b.date ? 1 : a.hour - b.hour
       )
@@ -124,6 +121,11 @@ export default function BookingView({
   }
 
   const handlePendingClick = (hour: number) => {
+    if (!dateISO) return
+    if (cart.some(s => s.date === dateISO && s.hour === hour && s.override)) {
+      removeFromCart(dateISO, hour)
+      return
+    }
     if (cart.length >= MAX_SLOTS) return
     setPendingSheetHour(hour)
   }
@@ -136,10 +138,6 @@ export default function BookingView({
     setCart((prev) => {
       const exists = prev.some(s => s.date === date && s.hour === hour)
       if (exists || prev.length >= MAX_SLOTS) return prev
-      // Block mixing override and non-override slots on the same date:
-      // a group with both types would cause the normal slot to be inserted active=false.
-      const dateHasNonOverride = prev.some(s => s.date === date && !s.override)
-      if (dateHasNonOverride) return prev
       return [...prev, { date, hour, override: true }].sort((a, b) =>
         a.date < b.date ? -1 : a.date > b.date ? 1 : a.hour - b.hour
       )
@@ -276,7 +274,7 @@ export default function BookingView({
                   selected={selectedHoursOnDate}
                   overrideSelected={overrideSelectedHoursOnDate}
                   onToggle={toggleSlot}
-                  onPendingClick={atMax ? undefined : handlePendingClick}
+                  onPendingClick={handlePendingClick}
                   atMax={atMax}
                 />
               </div>

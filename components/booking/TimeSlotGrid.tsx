@@ -52,6 +52,8 @@ export default function TimeSlotGrid({
           const isSelected = selected.includes(s.hourStart)
           const isOverrideSelected = overrideSelected.includes(s.hourStart)
           const tileMaxReached = atMax && s.state === 'available' && !isSelected
+          // Pending tile: allow click when already override-selected (deselect) or when not at max (add).
+          const pendingClickable = s.state === 'pending' && (isOverrideSelected || !atMax)
           return (
             <SlotTile
               key={s.hourStart}
@@ -63,7 +65,7 @@ export default function TimeSlotGrid({
               selectedAsOverride={isOverrideSelected}
               maxReached={tileMaxReached}
               onClick={() => onToggle(s.hourStart)}
-              onPendingClick={s.state === 'pending' ? () => onPendingClick?.(s.hourStart) : undefined}
+              onPendingClick={pendingClickable ? () => onPendingClick?.(s.hourStart) : undefined}
             />
           )
         })}

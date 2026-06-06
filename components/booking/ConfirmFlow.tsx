@@ -64,37 +64,47 @@ export default function ConfirmFlow({
     const createdRefs: { date: string; bookingId: string; ref: string }[] = []
     try {
       for (const g of bookings) {
-        const hasOverride = g.overrideHours && g.overrideHours.length > 0
-        const res = await fetch('/api/bookings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            booking_date: g.date,
-            slots: g.hours,
-            ...(hasOverride ? { override_request: true } : {}),
-          }),
-        })
-        const json = await res.json()
-        if (!res.ok) {
-          // Partial failure — attempt to auto-cancel all bookings created so far.
-          const cancelErrors: string[] = []
-          for (const created of createdRefs) {
-            const cancelRes = await fetch(`/api/bookings/${created.bookingId}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'cancel' }),
-            })
-            if (!cancelRes.ok) cancelErrors.push(created.ref)
-          }
+        const overrideSet = new Set(g.overrideHours ?? [])
+        const normalHours = g.hours.filter(h => !overrideSet.has(h))
+        const overrideOnlyHours = g.hours.filter(h => overrideSet.has(h))
+        // Split mixed same-date groups into separate calls so normal slots are
+        // not sent with override_request: true (which would book them as inactive).
+        const subCalls: { slots: number[]; isOverride: boolean }[] = []
+        if (normalHours.length > 0) subCalls.push({ slots: normalHours, isOverride: false })
+        if (overrideOnlyHours.length > 0) subCalls.push({ slots: overrideOnlyHours, isOverride: true })
 
-          if (cancelErrors.length > 0) {
-            setError(t('booking.confirm.errorCancelFail', { refs: cancelErrors.join(', ') }))
-          } else {
-            setError(t('booking.confirm.errorSlotTaken', { date: g.date }))
+        for (const call of subCalls) {
+          const res = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              booking_date: g.date,
+              slots: call.slots,
+              ...(call.isOverride ? { override_request: true } : {}),
+            }),
+          })
+          const json = await res.json()
+          if (!res.ok) {
+            // Partial failure — attempt to auto-cancel all bookings created so far.
+            const cancelErrors: string[] = []
+            for (const created of createdRefs) {
+              const cancelRes = await fetch(`/api/bookings/${created.bookingId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'cancel' }),
+              })
+              if (!cancelRes.ok) cancelErrors.push(created.ref)
+            }
+
+            if (cancelErrors.length > 0) {
+              setError(t('booking.confirm.errorCancelFail', { refs: cancelErrors.join(', ') }))
+            } else {
+              setError(t('booking.confirm.errorSlotTaken', { date: g.date }))
+            }
+            return
           }
-          return
+          createdRefs.push({ date: g.date, bookingId: json.id, ref: json.ref })
         }
-        createdRefs.push({ date: g.date, bookingId: json.id, ref: json.ref })
       }
       setRefs(createdRefs.map((c) => c.ref))
       setStep(2)
