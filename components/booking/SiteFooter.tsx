@@ -6,17 +6,15 @@ import { Phone, MapPin, Clock, MessageCircle, ExternalLink, Bus } from 'lucide-r
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 const VIBER_DEEP = 'viber://chat?number=%2B959797272000'
-const VIBER_FALLBACK = 'https://invite.viber.com/?number=%2B959797272000'
+const VIBER_MOBILE = 'https://invite.viber.com/?number=%2B959797272000'
 
 function handleViberClick(e: React.MouseEvent) {
   e.preventDefault()
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-  if (isMobile) {
-    window.location.href = VIBER_DEEP
-    setTimeout(() => { window.location.href = VIBER_FALLBACK }, 1500)
-  } else {
-    window.location.href = VIBER_DEEP
-  }
+  // On mobile: invite.viber.com detects the device, opens the app if installed,
+  // or redirects to the App Store / Play Store if not — avoids iOS "Request Unavailable".
+  // On desktop: deep link works when Viber desktop is installed.
+  window.location.href = isMobile ? VIBER_MOBILE : VIBER_DEEP
 }
 
 export default function SiteFooter() {
