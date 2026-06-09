@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, X, Phone, Clock, AlertTriangle, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Check, X, Phone, Clock, AlertTriangle, Search, ChevronLeft, ChevronRight, Plus, ChevronDown } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import AdminNewBookingPanel from './AdminNewBookingPanel'
 
 type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'closed'
 
@@ -21,10 +22,15 @@ export type AdminBooking = {
   updated_at: string
   customer: { username: string | null; phone: string | null } | null
   hours: number[]
+  // NEW:
+  source: 'online' | 'phone' | 'walk_in' | 'other' | null
+  guest_name: string | null
+  guest_phone: string | null
+  internal_notes: string | null
 }
 
 const SELECT_QUERY =
-  'id, ref, status, booking_date, deposit_total, deposit_received, override_request, updated_at, customer:profiles(username, phone), booking_slots(hour_start)'
+  'id, ref, status, booking_date, deposit_total, deposit_received, override_request, updated_at, source, guest_name, guest_phone, internal_notes, customer:profiles(username, phone), booking_slots(hour_start)'
 
 type RawRow = Record<string, unknown>
 
@@ -46,6 +52,10 @@ function parseRow(b: RawRow): AdminBooking {
       ? { username: customer.username as string | null, phone: customer.phone as string | null }
       : null,
     hours: ((b.booking_slots as { hour_start: number }[]) ?? []).map((s) => s.hour_start),
+    source: (b.source as AdminBooking['source']) ?? null,
+    guest_name: (b.guest_name as string | null) ?? null,
+    guest_phone: (b.guest_phone as string | null) ?? null,
+    internal_notes: (b.internal_notes as string | null) ?? null,
   }
 }
 
@@ -69,6 +79,20 @@ const statusKey: Record<BookingStatus, string> = {
   confirmed: 'booking.status.confirmed',
   cancelled: 'booking.status.cancelled',
   closed: 'booking.status.closed',
+}
+
+const sourceStyle: Record<NonNullable<AdminBooking['source']>, string> = {
+  online: 'bg-blue-100 text-blue-700',
+  phone: 'bg-purple-100 text-purple-700',
+  walk_in: 'bg-orange-100 text-orange-700',
+  other: 'bg-gray-100 text-gray-600',
+}
+
+const sourceLabel: Record<NonNullable<AdminBooking['source']>, string> = {
+  online: 'Online',
+  phone: 'Phone',
+  walk_in: 'Walk-in',
+  other: 'Other',
 }
 
 const AVATAR_COLORS = [
@@ -140,6 +164,25 @@ export default function AdminBookingsList({
   const [hasNewBookings, setHasNewBookings] = useState(false)
   const [localExtraCount, setLocalExtraCount] = useState(0)
   const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set())
+
+  function toggleNotes(id: string) {
+    setExpandedNotes((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  function handleBookingCreated(ref: string, hadConflict: boolean) {
+    const msg = hadConflict
+      ? `Booking ${ref} created — pending conflict, confirm from list to resolve.`
+      : `Booking ${ref} created.`
+    setSuccessMsg(msg)
+    setTimeout(() => setSuccessMsg(null), 5000)
+  }
 
   const currentStatusRef = useRef(currentStatus)
   useEffect(() => { currentStatusRef.current = currentStatus }, [currentStatus])
@@ -355,6 +398,24 @@ export default function AdminBookingsList({
 
   return (
     <div className="space-y-4">
+      {/* New Booking button row */}
+      <div className="flex items-center justify-between">
+        <span />
+        <button
+          onClick={() => setIsPanelOpen(true)}
+          className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
+        >
+          <Plus className="h-4 w-4" />
+          {t('booking.admin.newBooking' as never)}
+        </button>
+      </div>
+
+      {successMsg && (
+        <div className="rounded-xl bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-800">
+          {successMsg}
+        </div>
+      )}
+
       {/* Stats bar */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {statItems.map(({ label, value }) => (
@@ -481,111 +542,140 @@ export default function AdminBookingsList({
               <tbody className="divide-y divide-gray-50">
                 {rows.map((b) => {
                   const muted = b.status === 'cancelled' || b.status === 'closed'
-                  const name = b.customer?.username ?? ''
-                  const initials = name ? name.substring(0, 2).toUpperCase() : '??'
+                  const displayName = b.customer?.username ?? b.guest_name ?? 'Guest'
+                  const initials = displayName ? displayName.substring(0, 2).toUpperCase() : '??'
                   const isBusy = !!busyMap[b.id]
                   return (
-                    <tr key={b.id} className={muted ? 'opacity-50' : ''}>
-                      {/* Customer */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white ${avatarColor(name)}`}
-                          >
-                            {initials}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-gray-900">
-                              {b.customer?.username ?? '—'}
-                            </p>
-                            <p className="truncate text-xs text-gray-400">
-                              {b.customer?.phone ?? '—'}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      {/* Date + Slots */}
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-gray-800">{formatDate(b.booking_date)}</p>
-                        <p className="font-mono text-xs text-gray-400">{timeLabel(b.hours)}</p>
-                      </td>
-                      {/* Status */}
-                      <td className="px-4 py-3">
-                        <div className="flex flex-col gap-1">
-                          <span
-                            className={`inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-bold ${statusStyle[b.status]}`}
-                          >
-                            {t(statusKey[b.status] as never)}
-                          </span>
-                          {b.override_request && b.status === 'pending' && (
-                            <span className="inline-block w-fit rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                              {t('booking.admin.overrideBadge')}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      {/* Deposit */}
-                      <td className="px-4 py-3">
-                        <span className="font-mono text-sm text-gray-800">
-                          {b.deposit_total.toLocaleString('en-US')} MMK
-                        </span>
-                      </td>
-                      {/* Received toggle */}
-                      <td className="px-4 py-3">
-                        {!muted ? (
-                          <button
-                            onClick={() => act(b.id, b.deposit_received ? 'unconfirm' : 'confirm')}
-                            disabled={isBusy}
-                            role="switch"
-                            aria-checked={b.deposit_received}
-                            className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:cursor-wait ${
-                              b.deposit_received ? 'bg-primary' : 'bg-gray-200'
-                            }`}
-                          >
-                            {busyMap[b.id] === 'confirm' || busyMap[b.id] === 'unconfirm' ? (
-                              <svg
-                                className="absolute left-1/2 h-3 w-3 -translate-x-1/2 animate-spin text-white"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
-                                <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                              </svg>
-                            ) : (
-                              <span
-                                className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
-                                  b.deposit_received ? 'translate-x-[18px]' : 'translate-x-0.5'
-                                }`}
-                              />
-                            )}
-                          </button>
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </td>
-                      {/* Actions */}
-                      <td className="px-4 py-3">
-                        {!muted && (
-                          <div className="flex flex-col gap-1">
-                            <button
-                              onClick={() => setCancelConfirmId(b.id)}
-                              disabled={isBusy}
-                              title={t('booking.admin.cancelBooking')}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-red-500 hover:bg-red-50 disabled:opacity-40"
+                    <>
+                      <tr key={b.id} className={muted ? 'opacity-50' : ''}>
+                        {/* Customer */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white ${avatarColor(displayName)}`}
                             >
-                              {busyMap[b.id] === 'cancel' ? (
-                                <Spinner />
+                              {initials}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-gray-900">
+                                {b.customer?.username ?? b.guest_name ?? 'Guest'}
+                              </p>
+                              <p className="truncate text-xs text-gray-400">
+                                {b.customer?.phone ?? b.guest_phone ?? '—'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        {/* Date + Slots */}
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-gray-800">{formatDate(b.booking_date)}</p>
+                          <p className="font-mono text-xs text-gray-400">{timeLabel(b.hours)}</p>
+                        </td>
+                        {/* Status */}
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col gap-1">
+                            <span
+                              className={`inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-bold ${statusStyle[b.status]}`}
+                            >
+                              {t(statusKey[b.status] as never)}
+                            </span>
+                            {b.override_request && b.status === 'pending' && (
+                              <span className="inline-block w-fit rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                                {t('booking.admin.overrideBadge')}
+                              </span>
+                            )}
+                            {b.source && (
+                              <span className={`inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-bold ${sourceStyle[b.source]}`}>
+                                {sourceLabel[b.source]}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        {/* Deposit */}
+                        <td className="px-4 py-3">
+                          <span className="font-mono text-sm text-gray-800">
+                            {b.deposit_total.toLocaleString('en-US')} MMK
+                          </span>
+                        </td>
+                        {/* Received toggle */}
+                        <td className="px-4 py-3">
+                          {!muted ? (
+                            <button
+                              onClick={() => act(b.id, b.deposit_received ? 'unconfirm' : 'confirm')}
+                              disabled={isBusy}
+                              role="switch"
+                              aria-checked={b.deposit_received}
+                              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:cursor-wait ${
+                                b.deposit_received ? 'bg-primary' : 'bg-gray-200'
+                              }`}
+                            >
+                              {busyMap[b.id] === 'confirm' || busyMap[b.id] === 'unconfirm' ? (
+                                <svg
+                                  className="absolute left-1/2 h-3 w-3 -translate-x-1/2 animate-spin text-white"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                >
+                                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                                  <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
                               ) : (
-                                <X className="h-3.5 w-3.5" />
+                                <span
+                                  className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                                    b.deposit_received ? 'translate-x-[18px]' : 'translate-x-0.5'
+                                  }`}
+                                />
                               )}
                             </button>
-                            {errorMap[b.id] && (
-                              <p className="text-[10px] text-red-500">{errorMap[b.id]}</p>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                          ) : (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                        </td>
+                        {/* Actions */}
+                        <td className="px-4 py-3">
+                          {!muted && (
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => setCancelConfirmId(b.id)}
+                                  disabled={isBusy}
+                                  title={t('booking.admin.cancelBooking')}
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-red-500 hover:bg-red-50 disabled:opacity-40"
+                                >
+                                  {busyMap[b.id] === 'cancel' ? (
+                                    <Spinner />
+                                  ) : (
+                                    <X className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                                {b.internal_notes && (
+                                  <button
+                                    onClick={() => toggleNotes(b.id)}
+                                    title="Internal notes"
+                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50"
+                                  >
+                                    <ChevronDown
+                                      className={`h-3.5 w-3.5 transition-transform ${expandedNotes.has(b.id) ? 'rotate-180' : ''}`}
+                                    />
+                                  </button>
+                                )}
+                              </div>
+                              {errorMap[b.id] && (
+                                <p className="text-[10px] text-red-500">{errorMap[b.id]}</p>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                      {expandedNotes.has(b.id) && b.internal_notes && (
+                        <tr key={`${b.id}-notes`}>
+                          <td colSpan={6} className="bg-gray-50 px-4 pb-3 pt-0">
+                            <p className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
+                              {b.internal_notes}
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   )
                 })}
               </tbody>
@@ -607,13 +697,13 @@ export default function AdminBookingsList({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-gray-900">
-                      {b.customer?.username ?? 'Unknown'}
+                      {b.customer?.username ?? b.guest_name ?? 'Guest'}
                     </p>
                     <p className="flex items-center gap-1 text-xs text-gray-400">
-                      <Phone className="h-3 w-3" /> {b.customer?.phone ?? '—'}
+                      <Phone className="h-3 w-3" /> {b.customer?.phone ?? b.guest_phone ?? '—'}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex shrink-0 flex-wrap items-center gap-1.5">
                     {b.override_request && b.status === 'pending' && (
                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
                         {t('booking.admin.overrideBadge')}
@@ -622,6 +712,11 @@ export default function AdminBookingsList({
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusStyle[b.status]}`}>
                       {t(statusKey[b.status] as never)}
                     </span>
+                    {b.source && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${sourceStyle[b.source]}`}>
+                        {sourceLabel[b.source]}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -687,6 +782,18 @@ export default function AdminBookingsList({
                     </div>
                     {errorMap[b.id] && (
                       <p className="text-xs text-red-500">{errorMap[b.id]}</p>
+                    )}
+                  </div>
+                )}
+
+                {b.internal_notes && (
+                  <div className="mt-2 border-t border-gray-100 pt-2">
+                    <button onClick={() => toggleNotes(b.id)} className="flex items-center gap-1 text-xs text-gray-400">
+                      <ChevronDown className={`h-3 w-3 transition-transform ${expandedNotes.has(b.id) ? 'rotate-180' : ''}`} />
+                      {t('booking.admin.internalNotes' as never)}
+                    </button>
+                    {expandedNotes.has(b.id) && (
+                      <p className="mt-1.5 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">{b.internal_notes}</p>
                     )}
                   </div>
                 )}
@@ -764,6 +871,12 @@ export default function AdminBookingsList({
         confirmLabel={t('booking.admin.cancelBooking')}
         variant="warning"
         isLoading={!!cancelConfirmId && busyMap[cancelConfirmId] === 'cancel'}
+      />
+
+      <AdminNewBookingPanel
+        isOpen={isPanelOpen}
+        onClose={() => setIsPanelOpen(false)}
+        onSuccess={handleBookingCreated}
       />
     </div>
   )
