@@ -40,11 +40,11 @@ UPDATE public.bookings SET source = 'online' WHERE source IS NULL;
 --      - p_is_override=true inserts slots active=false + override_request=true
 --        (same mechanism as create_override_booking_transaction)
 CREATE OR REPLACE FUNCTION public.create_admin_booking_transaction(
+  p_booking_date    DATE,
+  p_slots           JSONB,
   p_customer_id     UUID    DEFAULT NULL,
   p_guest_name      TEXT    DEFAULT NULL,
   p_guest_phone     TEXT    DEFAULT NULL,
-  p_booking_date    DATE,
-  p_slots           JSONB,
   p_deposit_total   INTEGER DEFAULT 10000,
   p_deposit_received BOOLEAN DEFAULT FALSE,
   p_source          TEXT    DEFAULT 'phone',
