@@ -90,6 +90,39 @@ export const CreateBookingSchema = z.object({
   override_request: z.boolean().optional(),
 })
 
+export const AdminCreateBookingSchema = z
+  .object({
+    customer_id: uuid.optional(),
+    guest_name: z.string().trim().max(100, 'Guest name is too long.').optional(),
+    guest_phone: z.string().trim().max(20, 'Guest phone is too long.').optional(),
+    booking_date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format.')
+      .refine((val) => {
+        const d = new Date(val)
+        return !isNaN(d.getTime()) && val === d.toISOString().slice(0, 10)
+      }, 'Invalid calendar date.'),
+    slots: z
+      .array(z.number().int().min(6, 'Invalid slot.').max(21, 'Invalid slot.'))
+      .min(1, 'Select at least one slot.')
+      .max(2, 'Maximum 2 slots per booking.')
+      .refine((arr) => new Set(arr).size === arr.length, { message: 'Duplicate slots.' }),
+    deposit_total: z
+      .number({ message: 'Deposit must be a number.' })
+      .int('Deposit must be an integer.')
+      .min(0, 'Deposit cannot be negative.')
+      .max(500_000, 'Deposit is too large.'),
+    deposit_received: z.boolean({ message: 'deposit_received must be a boolean.' }),
+    source: z.enum(['phone', 'walk_in', 'other'], { message: 'Invalid source.' }),
+    internal_notes: z.string().trim().max(1000, 'Notes are too long.').optional(),
+  })
+  .refine(
+    (d) =>
+      d.customer_id !== undefined ||
+      (d.guest_name !== undefined && d.guest_name.trim().length > 0),
+    { message: 'Link a customer or enter guest details.', path: ['customer_id'] }
+  )
+
 export const BookingActionSchema = z
   .object({
     action: z.enum(['cancel', 'confirm', 'unconfirm', 'close'], { message: 'Invalid action.' }),
