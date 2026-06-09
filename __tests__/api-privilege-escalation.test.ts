@@ -331,3 +331,21 @@ describe('unauthenticated callers are rejected from every protected route', () =
     ok(res.status)
   })
 })
+
+describe('GET /api/admin/slot-availability', () => {
+  it('returns 401 when unauthenticated', async () => {
+    unauth()
+    const { GET } = await import('@/app/api/admin/slot-availability/route')
+    const req = new NextRequest('http://localhost/api/admin/slot-availability?date=2026-07-01')
+    const res = await GET(req)
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when called by a customer', async () => {
+    asCustomer()
+    const { GET } = await import('@/app/api/admin/slot-availability/route')
+    const req = new NextRequest('http://localhost/api/admin/slot-availability?date=2026-07-01')
+    const res = await GET(req)
+    expect(res.status).toBe(403)
+  })
+})
