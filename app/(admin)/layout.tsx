@@ -15,6 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const supabase = await createClient()
   const svc = createServiceClient()
+  const todayMM = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(new Date())
   const [{ count: initialPendingCount }, { count: initialPendingBookingsCount }] = await Promise.all([
     supabase
       .from('redemption_requests')
@@ -23,7 +24,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     svc
       .from('bookings')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending'),
+      .eq('status', 'pending')
+      .eq('deposit_received', false)
+      .gte('booking_date', todayMM),
   ])
 
   return (

@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, X, Phone, Clock, AlertTriangle, Search, ChevronLeft, ChevronRight, Plus, ChevronDown } from 'lucide-react'
+import { Check, X, Phone, Clock, AlertTriangle, Search, ChevronLeft, ChevronRight, Plus, ChevronDown, Archive, Trash2, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import AdminNewBookingPanel from './AdminNewBookingPanel'
+import type { UserRole } from '@/types'
 
 type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'closed'
 
@@ -22,11 +23,11 @@ export type AdminBooking = {
   updated_at: string
   customer: { username: string | null; phone: string | null } | null
   hours: number[]
-  // NEW:
   source: 'online' | 'phone' | 'walk_in' | 'other' | null
   guest_name: string | null
   guest_phone: string | null
   internal_notes: string | null
+  is_archived: boolean
 }
 
 const SELECT_QUERY =
@@ -56,16 +57,61 @@ function parseRow(b: RawRow): AdminBooking {
     guest_name: (b.guest_name as string | null) ?? null,
     guest_phone: (b.guest_phone as string | null) ?? null,
     internal_notes: (b.internal_notes as string | null) ?? null,
+    is_archived: (b.is_archived as boolean) ?? false,
   }
 }
 
-const FILTER_KEYS: { k: 'all' | BookingStatus; labelKey: string }[] = [
+type TabFilter = 'all' | 'pending' | 'confirmed' | 'history'
+
+const FILTER_KEYS: { k: TabFilter; labelKey: string }[] = [
   { k: 'all', labelKey: 'booking.admin.all' },
   { k: 'pending', labelKey: 'booking.status.pending' },
   { k: 'confirmed', labelKey: 'booking.status.confirmed' },
-  { k: 'cancelled', labelKey: 'booking.status.cancelled' },
-  { k: 'closed', labelKey: 'booking.status.closed' },
+  { k: 'history', labelKey: 'booking.admin.history' },
 ]
+
+const HISTORY_SUB_FILTERS: { k: string; labelKey: string }[] = [
+  { k: 'all', labelKey: 'booking.admin.historySubAll' },
+  { k: 'cancelled', labelKey: 'booking.admin.historySubCancelled' },
+  { k: 'closed', labelKey: 'booking.admin.historySubNoshow' },
+]
+
+function getMyanmarToday(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(new Date())
+}
+function getMyanmarTomorrow(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(d)
+}
+
+function dateGroupLabel(bookingDate: string, todayMM: string, tomorrowMM: string): string {
+  const [y, m, day] = bookingDate.split('-').map(Number)
+  const monthDay = new Date(y, m - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  if (bookingDate === todayMM) return `TODAY  •  ${monthDay}`
+  if (bookingDate === tomorrowMM) return `Tomorrow  •  ${monthDay}`
+  return monthDay
+}
+
+function relTimeLabel(bookingDate: string, hours: number[], todayMM: string, tomorrowMM: string): string | null {
+  if (bookingDate < todayMM) return null
+  if (bookingDate === tomorrowMM) return 'Tomorrow'
+  if (bookingDate > tomorrowMM) {
+    const [y1, m1, d1] = todayMM.split('-').map(Number)
+    const [y2, m2, d2] = bookingDate.split('-').map(Number)
+    const diff = Math.round((new Date(y2, m2 - 1, d2).getTime() - new Date(y1, m1 - 1, d1).getTime()) / 86_400_000)
+    return `in ${diff} day${diff !== 1 ? 's' : ''}`
+  }
+  if (hours.length === 0) return 'Today'
+  const earliest = Math.min(...hours)
+  const nowH = parseInt(
+    new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Yangon', hour: 'numeric', hour12: false }).format(new Date()),
+    10
+  )
+  const diff = earliest - nowH
+  if (diff <= 0) return 'Today'
+  return `Today · in ${diff} hr${diff !== 1 ? 's' : ''}`
+}
 
 const statusStyle: Record<BookingStatus, string> = {
   pending: 'bg-amber-100 text-amber-700',
@@ -137,11 +183,20 @@ interface AdminBookingsListProps {
   totalPages: number
   pageSize: number
   currentStatus: string
+  currentSub: string
   currentSearch: string
   currentFrom: string
   currentTo: string
   stats: BookingStats
+  role: UserRole
 }
+
+const PURGE_OPTIONS: { days: number; labelKey: string }[] = [
+  { days: 30, labelKey: 'booking.admin.purge30d' },
+  { days: 90, labelKey: 'booking.admin.purge90d' },
+  { days: 180, labelKey: 'booking.admin.purge6m' },
+  { days: 365, labelKey: 'booking.admin.purge1y' },
+]
 
 export default function AdminBookingsList({
   initial,
@@ -150,13 +205,19 @@ export default function AdminBookingsList({
   totalPages,
   pageSize,
   currentStatus,
+  currentSub,
   currentSearch,
   currentFrom,
   currentTo,
   stats,
+  role,
 }: AdminBookingsListProps) {
   const { t } = useLanguage()
   const router = useRouter()
+  const todayMM = getMyanmarToday()
+  const tomorrowMM = getMyanmarTomorrow()
+  const isSuperAdmin = role === 'superadmin'
+  const isHistory = currentStatus === 'history'
 
   const [rows, setRows] = useState(initial)
   const [busyMap, setBusyMap] = useState<Record<string, string>>({})
@@ -168,12 +229,90 @@ export default function AdminBookingsList({
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set())
 
+  // Selection state (History tab only)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState<string | null>(null)
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false)
+  const [hardDeleteConfirmOpen, setHardDeleteConfirmOpen] = useState(false)
+
+  // Purge state (superadmin only)
+  const [purgeOpen, setPurgeOpen] = useState(false)
+  const [purgeDays, setPurgeDays] = useState<number>(30)
+  const [purgeCount, setPurgeCount] = useState<number | null>(null)
+  const [purgeCountLoading, setPurgeCountLoading] = useState(false)
+  const [purgeBusy, setPurgeBusy] = useState(false)
+
   function toggleNotes(id: string) {
     setExpandedNotes((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id); else next.add(id)
       return next
     })
+  }
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    setSelected((prev) => {
+      if (prev.size === rows.length) return new Set()
+      return new Set(rows.map((r) => r.id))
+    })
+  }
+
+  async function bulkAction(endpoint: string, extraBody?: Record<string, unknown>) {
+    const ids = Array.from(selected)
+    if (!ids.length) return
+    setBulkBusy(endpoint)
+    try {
+      const res = await fetch(`/api/admin/bookings/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, ...extraBody }),
+      })
+      if (res.ok) {
+        if (endpoint === 'hard-delete') {
+          setRows((prev) => prev.filter((r) => !ids.includes(r.id)))
+        } else if (endpoint === 'archive') {
+          setRows((prev) => prev.map((r) => ids.includes(r.id) ? { ...r, is_archived: true } : r))
+        } else if (endpoint === 'restore') {
+          setRows((prev) => prev.map((r) => ids.includes(r.id) ? { ...r, is_archived: false } : r))
+        }
+        setSelected(new Set())
+      }
+    } finally {
+      setBulkBusy(null)
+    }
+  }
+
+  // Fetch purge count when purge modal opens or days changes.
+  useEffect(() => {
+    if (!purgeOpen) { setPurgeCount(null); return }
+    setPurgeCountLoading(true)
+    fetch(`/api/admin/bookings/purge?olderThanDays=${purgeDays}`)
+      .then((r) => r.json())
+      .then((d) => setPurgeCount(d.count ?? 0))
+      .catch(() => setPurgeCount(null))
+      .finally(() => setPurgeCountLoading(false))
+  }, [purgeOpen, purgeDays])
+
+  async function executePurge() {
+    setPurgeBusy(true)
+    try {
+      const res = await fetch('/api/admin/bookings/purge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ olderThanDays: purgeDays }),
+      })
+      if (res.ok) { setPurgeOpen(false); router.refresh() }
+    } finally {
+      setPurgeBusy(false)
+    }
   }
 
   function handleBookingCreated(ref: string, hadConflict: boolean) {
@@ -196,6 +335,7 @@ export default function AdminBookingsList({
     setRows(initial)
     setHasNewBookings(false)
     setLocalExtraCount(0)
+    setSelected(new Set())
   }, [initial])
 
   useEffect(() => { setSearchInput(currentSearch) }, [currentSearch])
@@ -205,14 +345,18 @@ export default function AdminBookingsList({
   function buildUrl(overrides: Record<string, string>) {
     const merged: Record<string, string> = {
       status: currentStatus,
+      sub: currentSub,
       search: currentSearch,
       from: currentFrom,
       to: currentTo,
       page: '1',
       ...overrides,
     }
+    // Switching away from History clears the sub-filter
+    if (merged.status !== 'history') merged.sub = 'all'
     const p = new URLSearchParams()
-    if (merged.status && merged.status !== 'all') p.set('status', merged.status)
+    if (merged.status && merged.status !== 'pending') p.set('status', merged.status)
+    if (merged.sub && merged.sub !== 'all') p.set('sub', merged.sub)
     if (merged.search) p.set('search', merged.search)
     if (merged.from) p.set('from', merged.from)
     if (merged.to) p.set('to', merged.to)
@@ -258,7 +402,7 @@ export default function AdminBookingsList({
     navigate({ page: String(newPage) })
   }
 
-  const hasFilters = currentSearch || currentFrom || currentTo || (currentStatus && currentStatus !== 'all')
+  const hasFilters = currentSearch || currentFrom || currentTo || (currentStatus && currentStatus !== 'pending')
 
   useEffect(() => {
     const supabase = createClient()
@@ -270,6 +414,7 @@ export default function AdminBookingsList({
         { event: 'INSERT', schema: 'public', table: 'bookings' },
         async (payload) => {
           try {
+            if (currentStatusRef.current === 'history') return
             const newId = (payload.new as { id: string }).id
             const { data } = await supabase
               .from('bookings')
@@ -278,15 +423,16 @@ export default function AdminBookingsList({
               .single()
             if (data) {
               const booking = parseRow(data as RawRow)
+              if (booking.booking_date < todayMM) return
               const matchesFilter =
-                currentStatus === 'all' || booking.status === currentStatus
+                currentStatusRef.current === 'all' || booking.status === currentStatusRef.current
               if (page === 1 && matchesFilter) {
                 setRows((prev) => {
-                  const idx = prev.findIndex((b) => b.booking_date <= booking.booking_date)
+                  const idx = prev.findIndex((b) => b.booking_date > booking.booking_date)
                   if (idx === -1) return [...prev, booking]
                   return [...prev.slice(0, idx), booking, ...prev.slice(idx)]
                 })
-                setLocalExtraCount((prev) => prev + 1)
+                setLocalExtraCount((c) => c + 1)
               } else if (matchesFilter) {
                 setHasNewBookings(true)
               }
@@ -304,7 +450,7 @@ export default function AdminBookingsList({
             const u = payload.new as { id: string; status: string; deposit_received: boolean; updated_at: string }
             setRows((prev) => {
               const activeStatus = currentStatusRef.current
-              if (activeStatus !== 'all' && u.status !== activeStatus) {
+              if (activeStatus !== 'all' && activeStatus !== 'history' && u.status !== activeStatus) {
                 return prev.filter((b) => b.id !== u.id)
               }
               return prev.map((b) => {
@@ -398,9 +544,18 @@ export default function AdminBookingsList({
 
   return (
     <div className="space-y-4">
-      {/* New Booking button row */}
-      <div className="flex items-center justify-between">
-        <span />
+      {/* New Booking + Purge button row */}
+      <div className="flex items-center justify-between gap-2">
+        {isSuperAdmin && isHistory ? (
+          <button
+            onClick={() => setPurgeOpen(true)}
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm hover:bg-gray-50"
+          >
+            {t('booking.admin.purgeOldRecords' as never)}
+          </button>
+        ) : (
+          <span />
+        )}
         <button
           onClick={() => setIsPanelOpen(true)}
           className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
@@ -409,6 +564,49 @@ export default function AdminBookingsList({
           {t('booking.admin.newBooking' as never)}
         </button>
       </div>
+
+      {/* Floating bulk-action toolbar (History tab only) */}
+      {isHistory && selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-lg">
+          <span className="mr-1 font-semibold">
+            {t('booking.admin.selectedCount' as never, { n: String(selected.size) })}
+          </span>
+          <button
+            disabled={!!bulkBusy}
+            onClick={() => setArchiveConfirmOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50"
+          >
+            <Archive className="h-3.5 w-3.5" />
+            {t('booking.admin.archiveSelected' as never)}
+          </button>
+          {isSuperAdmin && (
+            <>
+              <button
+                disabled={!!bulkBusy}
+                onClick={() => bulkAction('restore')}
+                className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                {t('booking.admin.restoreSelected' as never)}
+              </button>
+              <button
+                disabled={!!bulkBusy}
+                onClick={() => setHardDeleteConfirmOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-red-500/80 px-3 py-1.5 text-xs font-semibold hover:bg-red-500 disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('booking.admin.hardDeleteSelected' as never)}
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-xs text-white/60 hover:text-white"
+          >
+            {t('booking.admin.clearSelection' as never)}
+          </button>
+        </div>
+      )}
 
       {successMsg && (
         <div className="rounded-xl bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-800">
@@ -433,7 +631,7 @@ export default function AdminBookingsList({
             key={f.k}
             onClick={() => handleStatusFilter(f.k)}
             className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-              currentStatus === f.k || (f.k === 'all' && (!currentStatus || currentStatus === 'all'))
+              currentStatus === f.k
                 ? 'bg-gray-900 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
@@ -442,6 +640,25 @@ export default function AdminBookingsList({
           </button>
         ))}
       </div>
+
+      {/* History sub-filter pills */}
+      {isHistory && (
+        <div className="flex gap-1.5 mt-2">
+          {HISTORY_SUB_FILTERS.map((f) => (
+            <button
+              key={f.k}
+              onClick={() => navigate({ sub: f.k })}
+              className={`rounded-full px-2.5 py-1 text-xs transition-colors ${
+                currentSub === f.k
+                  ? 'border-2 border-gray-900 bg-white text-gray-900 font-semibold'
+                  : 'border border-gray-300 bg-transparent text-gray-500 font-normal hover:border-gray-400 hover:text-gray-700'
+              }`}
+            >
+              {t(f.labelKey as never)}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Search + date range */}
       <div className="flex flex-wrap items-end gap-3">
@@ -519,6 +736,16 @@ export default function AdminBookingsList({
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
+                  {isHistory && (
+                    <th className="w-10 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={rows.length > 0 && selected.size === rows.length}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-gray-300 text-primary"
+                      />
+                    </th>
+                  )}
                   <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
                     {t('booking.admin.customer')}
                   </th>
@@ -540,14 +767,39 @@ export default function AdminBookingsList({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {rows.map((b) => {
-                  const muted = b.status === 'cancelled' || b.status === 'closed'
+                {rows.map((b, idx) => {
+                  const prev = rows[idx - 1]
+                  const isNewGroup = !prev || prev.booking_date !== b.booking_date
+                  const isPast = b.booking_date < todayMM
+                  const muted = b.status === 'cancelled' || b.status === 'closed' || isPast
+                  const badgeStyle = isPast
+                    ? 'bg-gray-100 text-gray-500'
+                    : statusStyle[b.status]
                   const displayName = b.customer?.username ?? b.guest_name ?? 'Guest'
                   const initials = displayName ? displayName.substring(0, 2).toUpperCase() : '??'
                   const isBusy = !!busyMap[b.id]
+                  const relLabel = relTimeLabel(b.booking_date, b.hours, todayMM, tomorrowMM)
                   return (
-                    <>
-                      <tr key={b.id} className={muted ? 'opacity-50' : ''}>
+                    <Fragment key={b.id}>
+                      {isNewGroup && (
+                        <tr>
+                          <td colSpan={isHistory ? 7 : 6} className="border-t border-gray-100 bg-gray-50 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                            {dateGroupLabel(b.booking_date, todayMM, tomorrowMM)}
+                          </td>
+                        </tr>
+                      )}
+                      <tr className={b.is_archived ? 'opacity-40' : muted ? 'opacity-50' : ''}>
+                        {/* Checkbox (History tab) */}
+                        {isHistory && (
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={selected.has(b.id)}
+                              onChange={() => toggleSelect(b.id)}
+                              className="h-4 w-4 rounded border-gray-300 text-primary"
+                            />
+                          </td>
+                        )}
                         {/* Customer */}
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
@@ -568,17 +820,27 @@ export default function AdminBookingsList({
                         </td>
                         {/* Date + Slots */}
                         <td className="px-4 py-3">
-                          <p className="font-medium text-gray-800">{formatDate(b.booking_date)}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-medium text-gray-800">{formatDate(b.booking_date)}</p>
+                            {relLabel && (
+                              <span className="text-[10px] text-gray-400">{relLabel}</span>
+                            )}
+                          </div>
                           <p className="font-mono text-xs text-gray-400">{timeLabel(b.hours)}</p>
                         </td>
                         {/* Status */}
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-1">
                             <span
-                              className={`inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-bold ${statusStyle[b.status]}`}
+                              className={`inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeStyle}`}
                             >
                               {t(statusKey[b.status] as never)}
                             </span>
+                            {b.is_archived && (
+                              <span className="inline-block w-fit rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                                {t('booking.admin.archived' as never)}
+                              </span>
+                            )}
                             {b.override_request && b.status === 'pending' && (
                               <span className="inline-block w-fit rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
                                 {t('booking.admin.overrideBadge')}
@@ -668,14 +930,14 @@ export default function AdminBookingsList({
                       </tr>
                       {expandedNotes.has(b.id) && b.internal_notes && (
                         <tr key={`${b.id}-notes`}>
-                          <td colSpan={6} className="bg-gray-50 px-4 pb-3 pt-0">
+                          <td colSpan={isHistory ? 7 : 6} className="bg-gray-50 px-4 pb-3 pt-0">
                             <p className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
                               {b.internal_notes}
                             </p>
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   )
                 })}
               </tbody>
@@ -684,32 +946,58 @@ export default function AdminBookingsList({
 
           {/* ── Mobile cards (< md) ─────────────────────────────────────── */}
           <div className="space-y-3 md:hidden">
-            {rows.map((b) => (
+            {rows.map((b, idx) => {
+              const prevRow = rows[idx - 1]
+              const isNewGroup = !prevRow || prevRow.booking_date !== b.booking_date
+              const isPast = b.booking_date < todayMM
+              const badgeStyle = isPast ? 'bg-gray-100 text-gray-500' : statusStyle[b.status]
+              const isActionable = b.status !== 'cancelled' && b.status !== 'closed' && !isPast
+              const relLabel = relTimeLabel(b.booking_date, b.hours, todayMM, tomorrowMM)
+              return (
+              <Fragment key={b.id}>
+              {isNewGroup && (
+                <div className="px-1 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                  {dateGroupLabel(b.booking_date, todayMM, tomorrowMM)}
+                </div>
+              )}
               <div
-                key={b.id}
-                className="rounded-2xl bg-white p-4 shadow-sm"
-                style={
-                  b.override_request && b.status === 'pending'
-                    ? { borderLeft: '3px solid #f59e0b' }
-                    : undefined
+                className={`rounded-2xl bg-white p-4 shadow-sm${b.is_archived ? ' opacity-40' : isPast ? ' opacity-60' : ''}`}
+                style={b.override_request && b.status === 'pending'
+                  ? { borderLeft: '3px solid #f59e0b' }
+                  : undefined
                 }
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-gray-900">
-                      {b.customer?.username ?? b.guest_name ?? 'Guest'}
-                    </p>
-                    <p className="flex items-center gap-1 text-xs text-gray-400">
-                      <Phone className="h-3 w-3" /> {b.customer?.phone ?? b.guest_phone ?? '—'}
-                    </p>
+                  <div className="flex min-w-0 items-start gap-2.5">
+                    {isHistory && (
+                      <input
+                        type="checkbox"
+                        checked={selected.has(b.id)}
+                        onChange={() => toggleSelect(b.id)}
+                        className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-gray-900">
+                        {b.customer?.username ?? b.guest_name ?? 'Guest'}
+                      </p>
+                      <p className="flex items-center gap-1 text-xs text-gray-400">
+                        <Phone className="h-3 w-3" /> {b.customer?.phone ?? b.guest_phone ?? '—'}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                    {b.is_archived && (
+                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                        {t('booking.admin.archived' as never)}
+                      </span>
+                    )}
                     {b.override_request && b.status === 'pending' && (
                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
                         {t('booking.admin.overrideBadge')}
                       </span>
                     )}
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusStyle[b.status]}`}>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${badgeStyle}`}>
                       {t(statusKey[b.status] as never)}
                     </span>
                     {b.source && (
@@ -728,7 +1016,12 @@ export default function AdminBookingsList({
                 )}
 
                 <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-sm">
-                  <span className="font-medium text-gray-800">{formatDate(b.booking_date)}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-gray-800">{formatDate(b.booking_date)}</span>
+                    {relLabel && (
+                      <span className="text-[10px] text-gray-400">{relLabel}</span>
+                    )}
+                  </div>
                   <span className="flex items-center gap-1 font-mono text-xs text-gray-500">
                     <Clock className="h-3 w-3" /> {timeLabel(b.hours)}
                   </span>
@@ -744,7 +1037,7 @@ export default function AdminBookingsList({
                   </span>
                 </div>
 
-                {b.status !== 'cancelled' && b.status !== 'closed' && (
+                {isActionable && (
                   <div className="mt-3 flex flex-col gap-2">
                     <div className="flex items-center gap-2">
                       <button
@@ -798,7 +1091,9 @@ export default function AdminBookingsList({
                   </div>
                 )}
               </div>
-            ))}
+              </Fragment>
+              )
+            })}
           </div>
         </>
       )}
@@ -872,6 +1167,79 @@ export default function AdminBookingsList({
         variant="warning"
         isLoading={!!cancelConfirmId && busyMap[cancelConfirmId] === 'cancel'}
       />
+
+      {/* Archive confirmation */}
+      <ConfirmModal
+        isOpen={archiveConfirmOpen}
+        onClose={() => setArchiveConfirmOpen(false)}
+        onConfirm={() => { setArchiveConfirmOpen(false); bulkAction('archive') }}
+        title={t('booking.admin.archiveConfirmTitle' as never)}
+        message={t('booking.admin.archiveConfirmBody' as never)}
+        confirmLabel={t('booking.admin.archiveSelected' as never)}
+        variant="warning"
+        isLoading={bulkBusy === 'archive'}
+      />
+
+      {/* Hard-delete confirmation (superadmin) */}
+      {isSuperAdmin && (
+        <ConfirmModal
+          isOpen={hardDeleteConfirmOpen}
+          onClose={() => setHardDeleteConfirmOpen(false)}
+          onConfirm={() => { setHardDeleteConfirmOpen(false); bulkAction('hard-delete') }}
+          title={t('booking.admin.hardDeleteConfirmTitle' as never)}
+          message={t('booking.admin.hardDeleteConfirmBody' as never, { n: String(selected.size) })}
+          confirmLabel={t('booking.admin.hardDeleteSelected' as never)}
+          variant="danger"
+          isLoading={bulkBusy === 'hard-delete'}
+        />
+      )}
+
+      {/* Purge modal (superadmin) */}
+      {isSuperAdmin && purgeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-base font-bold text-gray-900">
+              {t('booking.admin.purgeModalTitle' as never)}
+            </h2>
+            <p className="mt-1 text-xs text-gray-500">
+              {t('booking.admin.purgeOlderThan' as never)}
+            </p>
+            <select
+              value={purgeDays}
+              onChange={(e) => setPurgeDays(Number(e.target.value))}
+              className="mt-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            >
+              {PURGE_OPTIONS.map((o) => (
+                <option key={o.days} value={o.days}>
+                  {t(o.labelKey as never)}
+                </option>
+              ))}
+            </select>
+            <p className="mt-3 min-h-[1.5rem] text-sm text-red-600">
+              {purgeCountLoading
+                ? t('booking.admin.purgeWarningLoading' as never)
+                : purgeCount !== null
+                  ? t('booking.admin.purgeWarning' as never, { count: String(purgeCount) })
+                  : ''}
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setPurgeOpen(false)}
+                className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                {t('booking.admin.cancel')}
+              </button>
+              <button
+                onClick={executePurge}
+                disabled={purgeBusy || purgeCountLoading || purgeCount === 0}
+                className="flex-1 rounded-xl bg-red-600 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {purgeBusy ? '…' : t('booking.admin.confirmPurge' as never)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AdminNewBookingPanel
         isOpen={isPanelOpen}

@@ -18,6 +18,10 @@ const PendingBookingsContext = createContext<PendingBookingsContextValue>({ coun
 
 const POLL_INTERVAL_MS = 15_000
 
+function myanmarToday(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(new Date())
+}
+
 export function PendingBookingsProvider({
   initialCount,
   children,
@@ -33,6 +37,8 @@ export function PendingBookingsProvider({
       .from('bookings')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending')
+      .eq('deposit_received', false)
+      .gte('booking_date', myanmarToday())
     if (!error && fresh !== null) setCount(fresh)
   }, [])
 
@@ -46,7 +52,8 @@ export function PendingBookingsProvider({
         { event: 'INSERT', schema: 'public', table: 'bookings' },
         (payload) => {
           try {
-            if ((payload.new as { status: string }).status === 'pending') {
+            const b = payload.new as { status: string; booking_date: string; deposit_received: boolean }
+            if (b.status === 'pending' && !b.deposit_received && b.booking_date >= myanmarToday()) {
               setCount((c) => c + 1)
             }
           } catch (err) {
@@ -59,13 +66,13 @@ export function PendingBookingsProvider({
         { event: 'UPDATE', schema: 'public', table: 'bookings' },
         (payload) => {
           try {
-            const prev = (payload.old as { status?: string }).status
-            const next = (payload.new as { status: string }).status
-            if (prev === 'pending' && next !== 'pending') {
-              setCount((c) => Math.max(0, c - 1))
-            } else if (prev !== 'pending' && next === 'pending') {
-              setCount((c) => c + 1)
-            }
+            const old = payload.old as { status?: string; deposit_received?: boolean; booking_date?: string }
+            const neu = payload.new as { status: string; deposit_received: boolean; booking_date: string }
+            if (neu.booking_date < myanmarToday()) return
+            const prevInBadge = old.status === 'pending' && old.deposit_received === false
+            const nextInBadge = neu.status === 'pending' && neu.deposit_received === false
+            if (prevInBadge && !nextInBadge) setCount((c) => Math.max(0, c - 1))
+            else if (!prevInBadge && nextInBadge) setCount((c) => c + 1)
           } catch (err) {
             console.error('[admin-pending-bookings-badge] UPDATE handler error:', err)
           }

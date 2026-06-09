@@ -1,6 +1,7 @@
 import { requireAnyAdmin } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import AdminBookingsList, { type AdminBooking } from '@/components/admin/booking/AdminBookingsList'
+import type { UserRole } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,6 +9,7 @@ const PAGE_SIZE = 20
 
 type SearchParams = {
   status?: string
+  sub?: string
   search?: string
   from?: string
   to?: string
@@ -19,11 +21,17 @@ export default async function AdminBookingsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  await requireAnyAdmin()
+  const currentUser = await requireAnyAdmin()
+  const role = currentUser.role as UserRole
 
   const params = await searchParams
+  const rawStatus = params.status ?? 'pending'
+  const isHistory = rawStatus === 'history'
+  const rawSub = params.sub === 'cancelled' || params.sub === 'closed' ? params.sub : 'all'
   const status =
-    params.status && params.status !== 'all' ? (params.status as AdminBooking['status']) : null
+    rawStatus !== 'all' && rawStatus !== 'history'
+      ? (rawStatus as AdminBooking['status'])
+      : null
   const search = params.search?.trim() || null
   const from = params.from || null
   const to = params.to || null
@@ -34,12 +42,12 @@ export default async function AdminBookingsPage({
   let total = 0
   let stats = { bookingsThisWeek: 0, depositsThisWeek: 0, pendingCount: 0, totalCustomers: 0 }
 
+  const todayMyanmarISO = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(new Date())
   const weekAgoISO = (() => {
     const d = new Date()
     d.setDate(d.getDate() - 7)
-    return d.toISOString().split('T')[0]
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(d)
   })()
-  const todayISO = new Date().toISOString().split('T')[0]
 
   try {
     const supabase = createServiceClient()
@@ -60,17 +68,18 @@ export default async function AdminBookingsPage({
         .from('bookings')
         .select('id', { count: 'exact', head: true })
         .gte('booking_date', weekAgoISO)
-        .lte('booking_date', todayISO),
+        .lte('booking_date', todayMyanmarISO),
       supabase
         .from('bookings')
         .select('deposit_total')
         .gte('booking_date', weekAgoISO)
-        .lte('booking_date', todayISO)
+        .lte('booking_date', todayMyanmarISO)
         .eq('deposit_received', true),
       supabase
         .from('bookings')
         .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending'),
+        .eq('status', 'pending')
+        .gte('booking_date', todayMyanmarISO),
       supabase
         .from('profiles')
         .select('id', { count: 'exact', head: true })
@@ -92,15 +101,32 @@ export default async function AdminBookingsPage({
 
     async function runQuery(includeOverride: boolean) {
       const cols = includeOverride
-        ? 'id, ref, status, booking_date, deposit_total, deposit_received, override_request, updated_at, source, guest_name, guest_phone, internal_notes, customer:profiles(username, phone), booking_slots(hour_start)'
-        : 'id, ref, status, booking_date, deposit_total, deposit_received, updated_at, source, guest_name, guest_phone, internal_notes, customer:profiles(username, phone), booking_slots(hour_start)'
+        ? 'id, ref, status, booking_date, deposit_total, deposit_received, override_request, updated_at, source, guest_name, guest_phone, internal_notes, is_archived, customer:profiles(username, phone), booking_slots(hour_start)'
+        : 'id, ref, status, booking_date, deposit_total, deposit_received, updated_at, source, guest_name, guest_phone, internal_notes, is_archived, customer:profiles(username, phone), booking_slots(hour_start)'
 
       let q = supabase
         .from('bookings')
         .select(cols, { count: 'exact' })
-        .order('booking_date', { ascending: false })
+        .order('booking_date', { ascending: true })
         .range(offset, offset + PAGE_SIZE - 1)
 
+      if (isHistory) {
+        if (rawSub === 'cancelled') {
+          q = q.eq('status', 'cancelled')
+        } else if (rawSub === 'closed') {
+          q = q.eq('status', 'closed')
+        } else {
+          // 'all': past bookings by date OR terminal status (future cancelled/closed also visible)
+          q = q.or(`booking_date.lt.${todayMyanmarISO},status.eq.cancelled,status.eq.closed`)
+        }
+      } else {
+        // Non-history: upcoming active bookings only, never archived.
+        q = q.gte('booking_date', todayMyanmarISO).eq('is_archived', false)
+        if (!status) {
+          // 'All' tab: exclude terminal statuses to avoid overlap with History tab
+          q = q.in('status', ['pending', 'confirmed'])
+        }
+      }
       if (status) q = q.eq('status', status)
       if (from) q = q.gte('booking_date', from)
       if (to) q = q.lte('booking_date', to)
@@ -155,6 +181,7 @@ export default async function AdminBookingsPage({
         guest_name: (b.guest_name as string | null) ?? null,
         guest_phone: (b.guest_phone as string | null) ?? null,
         internal_notes: (b.internal_notes as string | null) ?? null,
+        is_archived: (b.is_archived as boolean) ?? false,
       }
     })
   } catch (err) {
@@ -172,11 +199,13 @@ export default async function AdminBookingsPage({
         page={page}
         totalPages={totalPages}
         pageSize={PAGE_SIZE}
-        currentStatus={status ?? 'all'}
+        currentStatus={rawStatus}
+        currentSub={rawSub}
         currentSearch={search ?? ''}
         currentFrom={from ?? ''}
         currentTo={to ?? ''}
         stats={stats}
+        role={role}
       />
     </div>
   )

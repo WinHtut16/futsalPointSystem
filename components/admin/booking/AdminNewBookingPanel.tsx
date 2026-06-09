@@ -99,6 +99,12 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
     if (isOpen && date) fetchSlots(date)
   }, [isOpen, date, fetchSlots])
 
+  // Lock body scroll when panel is open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
   // Reset all state when panel opens
   useEffect(() => {
     if (!isOpen) return
@@ -225,7 +231,10 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
       <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} />
 
       {/* Panel: bottom sheet on mobile, right drawer on desktop */}
-      <div className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white shadow-xl md:inset-x-auto md:inset-y-0 md:bottom-auto md:right-0 md:max-h-none md:w-[420px] md:overflow-y-auto md:rounded-none md:rounded-l-2xl">
+      <div
+        onWheel={(e) => e.stopPropagation()}
+        className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white shadow-xl md:inset-x-auto md:inset-y-0 md:bottom-auto md:right-0 md:h-screen md:w-[420px] md:overflow-y-auto md:rounded-none md:rounded-l-2xl"
+      >
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
           <h2 className="text-base font-bold text-gray-900">
@@ -239,7 +248,7 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
           </button>
         </div>
 
-        <div className="space-y-5 p-4 pb-8">
+        <div className="space-y-5 p-4 pb-16">
           {/* ── Section 1: Customer ─────────────────── */}
           <section>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -411,29 +420,23 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
               </div>
             </div>
 
-            {/* Deposit received toggle */}
-            <button
-              type="button"
-              onClick={() => setDepositReceived((v) => !v)}
-              className={`flex w-full items-center justify-between rounded-xl border px-4 py-2.5 transition-colors ${
-                depositReceived
-                  ? 'border-green-300 bg-green-50 text-green-800'
-                  : 'border-gray-200 bg-white text-gray-600'
-              }`}
-            >
-              <span className="text-sm font-semibold">
-                {depositReceived
-                  ? t('booking.admin.depositReceivedLabel' as never)
-                  : t('booking.admin.depositPending' as never)}
-              </span>
-              <div
-                className={`relative h-5 w-9 rounded-full transition-colors ${depositReceived ? 'bg-green-500' : 'bg-gray-200'}`}
+            {/* Deposit status */}
+            <div className="flex w-full overflow-hidden rounded-xl border border-gray-200">
+              <button
+                type="button"
+                onClick={() => setDepositReceived(false)}
+                className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${!depositReceived ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
               >
-                <span
-                  className={`absolute top-0.5 inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${depositReceived ? 'translate-x-4' : 'translate-x-0.5'}`}
-                />
-              </div>
-            </button>
+                {t('booking.admin.depositPending' as never)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDepositReceived(true)}
+                className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${depositReceived ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+              >
+                {t('booking.admin.depositReceivedLabel' as never)}
+              </button>
+            </div>
 
             {/* Notes */}
             <div>
