@@ -2,8 +2,16 @@
 -- Run AFTER all previous migrations in Supabase SQL editor.
 
 -- 1. Make customer_id nullable (guest bookings have no linked account)
-ALTER TABLE public.bookings
-  ALTER COLUMN customer_id DROP NOT NULL;
+DO $$
+BEGIN
+  IF (SELECT is_nullable FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name   = 'bookings'
+        AND column_name  = 'customer_id') = 'NO'
+  THEN
+    ALTER TABLE public.bookings ALTER COLUMN customer_id DROP NOT NULL;
+  END IF;
+END $$;
 
 -- 2. Add source column with check constraint and default
 ALTER TABLE public.bookings
@@ -62,6 +70,9 @@ BEGIN
   END IF;
 
   -- Validate slot count (mirrors create_booking_transaction)
+  IF p_slots IS NULL OR jsonb_typeof(p_slots) != 'array' THEN
+    RAISE EXCEPTION 'slots_required';
+  END IF;
   IF jsonb_array_length(p_slots) < 1 OR jsonb_array_length(p_slots) > 2 THEN
     RAISE EXCEPTION 'A booking must contain 1 or 2 slots (got %).', jsonb_array_length(p_slots);
   END IF;
