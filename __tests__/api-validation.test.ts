@@ -347,3 +347,76 @@ describe('id-only routes reject malformed id', () => {
     await expect400(await DELETE(req('http://t/x', 'DELETE'), params(SQLi)))
   })
 })
+
+// ===========================================================================
+// /api/admin/bookings POST  (admin/superadmin)
+// ===========================================================================
+describe('POST /api/admin/bookings — validation', () => {
+  const validBase = {
+    guest_name: 'Ko Aung',
+    booking_date: '2026-08-15',
+    slots: [10],
+    deposit_total: 10000,
+    deposit_received: false,
+    source: 'phone',
+  }
+
+  beforeEach(() => as.admin())
+
+  it('returns 400 when no body', async () => {
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const request = new NextRequest('http://localhost/api/admin/bookings', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: 'not-json',
+    })
+    const res = await POST(request)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when no customer_id and no guest_name', async () => {
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const { guest_name: _, ...bodyWithoutGuest } = validBase
+    const request = req('http://localhost/api/admin/bookings', 'POST', bodyWithoutGuest)
+    const res = await POST(request)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when slots is empty array', async () => {
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const request = req('http://localhost/api/admin/bookings', 'POST', { ...validBase, slots: [] })
+    const res = await POST(request)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when slots has more than 2 items', async () => {
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const request = req('http://localhost/api/admin/bookings', 'POST', { ...validBase, slots: [9, 10, 11] })
+    const res = await POST(request)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when booking_date is invalid', async () => {
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const request = req('http://localhost/api/admin/bookings', 'POST', { ...validBase, booking_date: 'not-a-date' })
+    const res = await POST(request)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when source is invalid', async () => {
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const request = req('http://localhost/api/admin/bookings', 'POST', { ...validBase, source: 'online' })
+    const res = await POST(request)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for oversized notes', async () => {
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const request = req('http://localhost/api/admin/bookings', 'POST', {
+      ...validBase,
+      internal_notes: 'x'.repeat(1001),
+    })
+    const res = await POST(request)
+    expect(res.status).toBe(400)
+  })
+})

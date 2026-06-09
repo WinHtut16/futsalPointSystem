@@ -349,3 +349,30 @@ describe('GET /api/admin/slot-availability', () => {
     expect(res.status).toBe(403)
   })
 })
+
+describe('POST /api/admin/bookings', () => {
+  const validBody = {
+    guest_name: 'Ko Aung',
+    booking_date: '2026-08-15',
+    slots: [10],
+    deposit_total: 10000,
+    deposit_received: false,
+    source: 'phone',
+  }
+
+  it('returns 401 when unauthenticated', async () => {
+    unauth()
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const req = jsonReq('http://localhost/api/admin/bookings', 'POST', validBody)
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when called by a customer', async () => {
+    asCustomer()
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const req = jsonReq('http://localhost/api/admin/bookings', 'POST', validBody)
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+  })
+})
