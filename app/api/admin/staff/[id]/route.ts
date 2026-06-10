@@ -89,6 +89,8 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Admin not found.' }, { status: 404 })
     }
 
+    // Explicitly delete profiles row before auth deletion — defensive against missing FK cascade.
+    await supabase.from('profiles').delete().eq('id', id)
     const { error } = await supabase.auth.admin.deleteUser(id)
     if (error) return serverError(error.message)
     return NextResponse.json({ success: true })

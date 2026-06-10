@@ -5,7 +5,6 @@ import { safeRedirect } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
   const next = safeRedirect(searchParams.get('next'), '/admin/login')
@@ -33,14 +32,6 @@ export async function GET(request: NextRequest) {
       },
     }
   )
-
-  // PKCE flow: ?code=  (browser-side PKCE verifier cookie must be present)
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return redirectResponse
-    }
-  }
 
   // OTP/email-link flow: ?token_hash=&type=  (supabase-js 2.x default for email links)
   if (token_hash && type) {

@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import LanguageToggle from '@/components/ui/LanguageToggle'
 
 export default function AdminForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -23,7 +24,7 @@ export default function AdminForgotPasswordPage() {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/admin/reset-password`,
     })
     if (resetError) {
-      setError(resetError.message)
+      setError('Unable to send reset email. Please try again.')
       setLoading(false)
       return
     }
@@ -36,6 +37,9 @@ export default function AdminForgotPasswordPage() {
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-10"
       style={{ background: 'linear-gradient(160deg, var(--color-primary), var(--color-primary-dark))' }}
     >
+      <div className="absolute right-4 top-4 z-10">
+        <LanguageToggle variant="light" />
+      </div>
       <svg viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" className="pointer-events-none absolute inset-0 h-full w-full" style={{ opacity: 0.07 }} aria-hidden="true">
         <g stroke="#fff" strokeWidth="2" fill="none">
           <rect x="20" y="20" width="360" height="560" />
