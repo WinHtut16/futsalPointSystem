@@ -195,6 +195,14 @@ export const bookingEN = {
   'booking.admin.saveClosureBtn': 'Save Closure',
   'booking.admin.noClosures': 'No closures scheduled',
   'booking.admin.removeClosure': 'Remove closure',
+  'booking.admin.reopenSlotTitle': 'Reopen this slot?',
+  'booking.admin.reopenSlotFutureBody': 'This will remove the closure for {court} on {date} ({slot}). Customers will be able to book this slot again immediately.',
+  'booking.admin.reopenSlotPastBody': 'This will remove the closure record for {court} on {date}. Since this slot is in the past, no bookings will be affected.',
+  'booking.admin.reopenSlotConfirm': 'Yes, Reopen Slot',
+  'booking.admin.slotReopened': 'Slot reopened',
+  'booking.admin.showPastClosures': 'Show past closures',
+  'booking.admin.hidePastClosures': 'Hide past closures',
+  'booking.admin.pastLabel': 'Past',
 
   // Bottom-sheet login (post-login booking flow)
   'booking.login.title': 'Log in to continue',
@@ -316,7 +324,7 @@ export const bookingEN = {
   'booking.admin.hardDeleteConfirmBody': 'This will permanently delete {n} booking(s). This cannot be undone.',
   'booking.admin.historySubAll': 'All history',
   'booking.admin.historySubCancelled': 'Cancelled',
-  'booking.admin.historySubNoshow': 'No-show',
+  'booking.admin.historySubEnded': 'Ended',
 } as const
 
 export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
@@ -516,6 +524,14 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.admin.saveClosureBtn': 'ပိတ်ရက်သိမ်းရန်',
   'booking.admin.noClosures': 'ပိတ်ရက်သတ်မှတ်မှုမရှိပါ',
   'booking.admin.removeClosure': 'ပိတ်ရက်ဖယ်ရှားရန်',
+  'booking.admin.reopenSlotTitle': 'ဤ slot ကို ပြန်ဖွင့်မည်လား?',
+  'booking.admin.reopenSlotFutureBody': '{court} ၏ {date} ({slot}) ပိတ်ချိန်ကို ဖယ်ရှားမည်ဖြစ်သည်။ ဖောက်သည်များ ချက်ချင်း ဘွတ်ကင်ပြုလုပ်နိုင်မည်ဖြစ်သည်။',
+  'booking.admin.reopenSlotPastBody': '{court} ၏ {date} ပိတ်မှတ်တမ်းကို ဖယ်ရှားမည်ဖြစ်သည်။ ဤ slot သည် ကာလပြီးသွားသဖြင့် ဘွတ်ကင်မည်သည့်ဘွတ်ကင်မှ မထိခိုက်ပါ။',
+  'booking.admin.reopenSlotConfirm': 'ဟုတ်ကဲ့၊ ပြန်ဖွင့်ရန်',
+  'booking.admin.slotReopened': 'Slot ပြန်ဖွင့်ပြီးပါပြီ',
+  'booking.admin.showPastClosures': 'ကာလပြီး ပိတ်ချိန်များ ပြရန်',
+  'booking.admin.hidePastClosures': 'ကာလပြီး ပိတ်ချိန်များ ဖျောက်ရန်',
+  'booking.admin.pastLabel': 'ကာလပြီး',
 
   // Bottom-sheet login (post-login booking flow)
   'booking.login.title': 'ဆက်လုပ်ရန် ဝင်ပါ',
@@ -637,5 +653,5 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.admin.hardDeleteConfirmBody': 'ဘွတ်ကင် {n} ခု ပြင်ဆင်မရနိုင်အောင် ဖျက်မည်။',
   'booking.admin.historySubAll': 'မှတ်တမ်း အားလုံး',
   'booking.admin.historySubCancelled': 'ပယ်ဖျက်ပြီး',
-  'booking.admin.historySubNoshow': 'မလာသူ',
+  'booking.admin.historySubEnded': 'ပြီးဆုံးပြီး',
 }

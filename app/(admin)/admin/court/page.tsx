@@ -22,7 +22,6 @@ export default async function AdminCourtPage() {
     const { data } = await supabase
       .from('court_closures')
       .select('id, closure_date, hour_start, reason')
-      .gte('closure_date', todayYangon())
       .order('closure_date', { ascending: true })
     closures = (data ?? []) as Closure[]
   } catch {
@@ -35,7 +34,7 @@ export default async function AdminCourtPage() {
         <h1 className="text-xl font-bold text-gray-900">Court &amp; slots</h1>
         <p className="mt-1 text-sm text-gray-500">Close the whole court for a day, or deactivate individual slots.</p>
       </div>
-      <ClosureManager initial={closures} />
+      <ClosureManager initial={closures} today={todayYangon()} />
     </div>
   )
 }
