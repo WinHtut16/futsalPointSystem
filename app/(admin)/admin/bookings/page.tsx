@@ -107,7 +107,7 @@ export default async function AdminBookingsPage({
       let q = supabase
         .from('bookings')
         .select(cols, { count: 'exact' })
-        .order('booking_date', { ascending: true })
+        .order('booking_date', { ascending: !isHistory })
         .range(offset, offset + PAGE_SIZE - 1)
 
       if (isHistory) {

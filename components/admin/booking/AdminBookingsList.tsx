@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, Fragment } from 'react'
+import { useState, useEffect, useRef, useTransition, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, X, Phone, Clock, AlertTriangle, Search, ChevronLeft, ChevronRight, Plus, ChevronDown, Archive, Trash2, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
@@ -73,7 +73,7 @@ const FILTER_KEYS: { k: TabFilter; labelKey: string }[] = [
 const HISTORY_SUB_FILTERS: { k: string; labelKey: string }[] = [
   { k: 'all', labelKey: 'booking.admin.historySubAll' },
   { k: 'cancelled', labelKey: 'booking.admin.historySubCancelled' },
-  { k: 'closed', labelKey: 'booking.admin.historySubNoshow' },
+  { k: 'closed', labelKey: 'booking.admin.historySubEnded' },
 ]
 
 function getMyanmarToday(): string {
@@ -160,6 +160,66 @@ function timeLabel(hours: number[]) {
   return `${pad(sorted[0])}:00 – ${pad(sorted[sorted.length - 1] + 1)}:00`
 }
 
+function SkeletonRow() {
+  // Each td has px-4 (32px). 6 cols × 32px = 192px padding.
+  // Content budget: max-w-2xl(672) - outer px-4(32) - 192px = 448px across 6 cols.
+  // Widths below sum to ~430px, leaving 18px slack so rightmost col isn't clipped.
+  return (
+    <tr>
+      {/* Customer: avatar + name/phone */}
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-gray-200" />
+          <div>
+            <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+            <div className="mt-1 h-3 w-14 animate-pulse rounded bg-gray-200" />
+          </div>
+        </div>
+      </td>
+      {/* Date */}
+      <td className="px-4 py-3">
+        <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+      </td>
+      {/* Status badge */}
+      <td className="px-4 py-3">
+        <div className="h-5 w-16 animate-pulse rounded-full bg-gray-200" />
+      </td>
+      {/* Deposit */}
+      <td className="px-4 py-3">
+        <div className="h-3 w-14 animate-pulse rounded bg-gray-200" />
+      </td>
+      {/* Received toggle */}
+      <td className="px-4 py-3">
+        <div className="h-5 w-9 animate-pulse rounded-full bg-gray-200" />
+      </td>
+      {/* Actions */}
+      <td className="px-4 py-3">
+        <div className="h-7 w-12 animate-pulse rounded bg-gray-200" />
+      </td>
+    </tr>
+  )
+}
+
+function SkeletonCard() {
+  return (
+    <div className="rounded-2xl bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1.5">
+          <div className="h-4 w-28 animate-pulse rounded bg-gray-200" />
+          <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+        </div>
+        <div className="h-5 w-16 animate-pulse rounded-full bg-gray-200" />
+      </div>
+      <div className="mt-3 border-t border-gray-100 pt-3">
+        <div className="flex items-center justify-between">
+          <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+          <div className="h-3 w-16 animate-pulse rounded bg-gray-200" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Spinner() {
   return (
     <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -218,6 +278,8 @@ export default function AdminBookingsList({
   const tomorrowMM = getMyanmarTomorrow()
   const isSuperAdmin = role === 'superadmin'
   const isHistory = currentStatus === 'history'
+
+  const [isTabPending, startTabTransition] = useTransition()
 
   const [rows, setRows] = useState(initial)
   const [busyMap, setBusyMap] = useState<Record<string, string>>({})
@@ -370,7 +432,7 @@ export default function AdminBookingsList({
   }
 
   function handleStatusFilter(k: string) {
-    navigate({ status: k, page: '1' })
+    startTabTransition(() => navigate({ status: k, page: '1' }))
   }
 
   function handleSearchChange(value: string) {
@@ -647,7 +709,7 @@ export default function AdminBookingsList({
           {HISTORY_SUB_FILTERS.map((f) => (
             <button
               key={f.k}
-              onClick={() => navigate({ sub: f.k })}
+              onClick={() => startTabTransition(() => navigate({ sub: f.k }))}
               className={`rounded-full px-2.5 py-1 text-xs transition-colors ${
                 currentSub === f.k
                   ? 'border-2 border-gray-900 bg-white text-gray-900 font-semibold'
@@ -725,7 +787,22 @@ export default function AdminBookingsList({
         </div>
       )}
 
-      {rows.length === 0 ? (
+      {isTabPending ? (
+        <>
+          {/* ── Desktop skeleton (md+) ─────────────────────────────────── */}
+          <div className="hidden overflow-hidden rounded-2xl bg-white shadow-sm md:block">
+            <table className="w-full text-left text-sm">
+              <tbody className="divide-y divide-gray-50">
+                {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
+              </tbody>
+            </table>
+          </div>
+          {/* ── Mobile skeleton (< md) ─────────────────────────────────── */}
+          <div className="space-y-3 md:hidden">
+            {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        </>
+      ) : rows.length === 0 ? (
         <p className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
           {t('booking.admin.noBookings')}
         </p>
