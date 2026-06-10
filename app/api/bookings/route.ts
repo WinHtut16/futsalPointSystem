@@ -47,6 +47,31 @@ export async function POST(request: NextRequest) {
   // confirmed/closed slots (truly taken). Filters by booking_date to avoid matching
   // active slots on other dates that share the same hour_start.
   if (override_request) {
+    // Reject if this customer already has a non-cancelled booking on this date
+    // that overlaps any of the requested slots — prevents duplicate override spam
+    // via direct API calls.
+    const { data: ownBookings } = await supabase
+      .from('bookings')
+      .select('id, booking_slots(hour_start)')
+      .eq('customer_id', user.id)
+      .eq('booking_date', booking_date)
+      .neq('status', 'cancelled')
+      .limit(10)
+
+    if (ownBookings && ownBookings.length > 0) {
+      const ownedHours = new Set(
+        ownBookings.flatMap((b) =>
+          ((b.booking_slots ?? []) as { hour_start: number }[]).map((s) => s.hour_start)
+        )
+      )
+      if (slots.some((h) => ownedHours.has(h))) {
+        return NextResponse.json(
+          { error: 'You already have a booking or pending request for this slot.' },
+          { status: 409 }
+        )
+      }
+    }
+
     const { data: activeSlots, error: slotsErr } = await supabase
       .from('booking_slots')
       .select('booking_id, hour_start')

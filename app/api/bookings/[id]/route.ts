@@ -29,7 +29,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   if (action === 'cancel') {
     // Customer may cancel their own booking; admins may cancel any.
-    if (booking.customer_id !== user.id && !isAdmin) {
+    if ((booking.customer_id === null || booking.customer_id !== user.id) && !isAdmin) {
       return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })
     }
     if (booking.status !== 'pending' && booking.status !== 'confirmed') {
