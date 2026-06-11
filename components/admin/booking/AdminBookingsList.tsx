@@ -85,6 +85,34 @@ function getMyanmarTomorrow(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(d)
 }
 
+function getMyanmarCurrentHourFrac(): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Yangon',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date())
+  const h = parseInt(parts.find((p) => p.type === 'hour')?.value ?? '0', 10)
+  const m = parseInt(parts.find((p) => p.type === 'minute')?.value ?? '0', 10)
+  return h + m / 60
+}
+
+const GRACE_HOURS = 2
+
+function slotGraceState(
+  booking: AdminBooking,
+  todayMM: string,
+  nowHourFrac: number,
+): 'active' | 'grace' | 'expired' {
+  if (booking.booking_date !== todayMM) return 'active'
+  if (booking.hours.length === 0) return 'active'
+  const maxHour = Math.max(...booking.hours)
+  const slotEnd = maxHour + 1
+  if (nowHourFrac < slotEnd) return 'active'
+  if (nowHourFrac < slotEnd + GRACE_HOURS) return 'grace'
+  return 'expired'
+}
+
 function dateGroupLabel(bookingDate: string, todayMM: string, tomorrowMM: string): string {
   const [y, m, day] = bookingDate.split('-').map(Number)
   const monthDay = new Date(y, m - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -303,6 +331,28 @@ export default function AdminBookingsList({
   const [purgeCount, setPurgeCount] = useState<number | null>(null)
   const [purgeCountLoading, setPurgeCountLoading] = useState(false)
   const [purgeBusy, setPurgeBusy] = useState(false)
+
+  const nowHourFrac = getMyanmarCurrentHourFrac()
+
+  const graceIds = new Set<string>(
+    isHistory
+      ? []
+      : rows.filter((b) => slotGraceState(b, todayMM, nowHourFrac) === 'grace').map((b) => b.id),
+  )
+
+  const displayRows: AdminBooking[] = isHistory
+    ? rows
+    : (() => {
+        const active: AdminBooking[] = []
+        const grace: AdminBooking[] = []
+        for (const b of rows) {
+          const state = slotGraceState(b, todayMM, nowHourFrac)
+          if (state === 'expired') continue
+          if (state === 'grace') grace.push(b)
+          else active.push(b)
+        }
+        return [...active, ...grace]
+      })()
 
   function toggleNotes(id: string) {
     setExpandedNotes((prev) => {
@@ -802,7 +852,7 @@ export default function AdminBookingsList({
             {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         </>
-      ) : rows.length === 0 ? (
+      ) : displayRows.length === 0 ? (
         <p className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
           {t('booking.admin.noBookings')}
         </p>
@@ -844,9 +894,10 @@ export default function AdminBookingsList({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {rows.map((b, idx) => {
-                  const prev = rows[idx - 1]
+                {displayRows.map((b, idx) => {
+                  const prev = displayRows[idx - 1]
                   const isNewGroup = !prev || prev.booking_date !== b.booking_date
+                  const isFirstGraceInGroup = !isHistory && graceIds.has(b.id) && !graceIds.has(displayRows[idx - 1]?.id ?? '')
                   const isPast = b.booking_date < todayMM
                   const muted = b.status === 'cancelled' || b.status === 'closed' || isPast
                   const badgeStyle = isPast
@@ -865,7 +916,14 @@ export default function AdminBookingsList({
                           </td>
                         </tr>
                       )}
-                      <tr className={b.is_archived ? 'opacity-40' : muted ? 'opacity-50' : ''}>
+                      {isFirstGraceInGroup && (
+                        <tr>
+                          <td colSpan={isHistory ? 7 : 6} className="border-t border-amber-100 bg-amber-50/50 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-amber-600">
+                            Earlier today
+                          </td>
+                        </tr>
+                      )}
+                      <tr className={b.is_archived ? 'opacity-40' : (graceIds.has(b.id) || muted) ? 'opacity-50' : ''}>
                         {/* Checkbox (History tab) */}
                         {isHistory && (
                           <td className="px-4 py-3">
@@ -1023,9 +1081,10 @@ export default function AdminBookingsList({
 
           {/* ── Mobile cards (< md) ─────────────────────────────────────── */}
           <div className="space-y-3 md:hidden">
-            {rows.map((b, idx) => {
-              const prevRow = rows[idx - 1]
+            {displayRows.map((b, idx) => {
+              const prevRow = displayRows[idx - 1]
               const isNewGroup = !prevRow || prevRow.booking_date !== b.booking_date
+              const isFirstGraceInGroup = !isHistory && graceIds.has(b.id) && !graceIds.has(displayRows[idx - 1]?.id ?? '')
               const isPast = b.booking_date < todayMM
               const badgeStyle = isPast ? 'bg-gray-100 text-gray-500' : statusStyle[b.status]
               const isActionable = b.status !== 'cancelled' && b.status !== 'closed' && !isPast
@@ -1037,8 +1096,13 @@ export default function AdminBookingsList({
                   {dateGroupLabel(b.booking_date, todayMM, tomorrowMM)}
                 </div>
               )}
+              {isFirstGraceInGroup && (
+                <div className="px-1 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-amber-500">
+                  Earlier today
+                </div>
+              )}
               <div
-                className={`rounded-2xl bg-white p-4 shadow-sm${b.is_archived ? ' opacity-40' : isPast ? ' opacity-60' : ''}`}
+                className={`rounded-2xl bg-white p-4 shadow-sm${b.is_archived ? ' opacity-40' : (isPast || graceIds.has(b.id)) ? ' opacity-50' : ''}`}
                 style={b.override_request && b.status === 'pending'
                   ? { borderLeft: '3px solid #f59e0b' }
                   : undefined

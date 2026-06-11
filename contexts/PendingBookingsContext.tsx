@@ -22,6 +22,18 @@ function myanmarToday(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(new Date())
 }
 
+function getMyanmarCurrentHourFrac(): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Yangon',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date())
+  const h = parseInt(parts.find((p) => p.type === 'hour')?.value ?? '0', 10)
+  const m = parseInt(parts.find((p) => p.type === 'minute')?.value ?? '0', 10)
+  return h + m / 60
+}
+
 export function PendingBookingsProvider({
   initialCount,
   children,
@@ -33,13 +45,33 @@ export function PendingBookingsProvider({
 
   const fetchCount = useCallback(async () => {
     const supabase = createClient()
-    const { count: fresh, error } = await supabase
-      .from('bookings')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
-      .eq('deposit_received', false)
-      .gte('booking_date', myanmarToday())
-    if (!error && fresh !== null) setCount(fresh)
+    const today = myanmarToday()
+    const nowHourFrac = getMyanmarCurrentHourFrac()
+
+    const [futureResult, todayResult] = await Promise.all([
+      supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .eq('deposit_received', false)
+        .gt('booking_date', today),
+      supabase
+        .from('bookings')
+        .select('id, booking_slots(hour_start)')
+        .eq('status', 'pending')
+        .eq('deposit_received', false)
+        .eq('booking_date', today),
+    ])
+
+    if (!futureResult.error && !todayResult.error) {
+      const todayCount = (
+        (todayResult.data ?? []) as { id: string; booking_slots: { hour_start: number }[] }[]
+      ).filter((b) => {
+        const slots = b.booking_slots ?? []
+        return slots.length === 0 || slots.some((s) => s.hour_start + 1 > nowHourFrac)
+      }).length
+      setCount((futureResult.count ?? 0) + todayCount)
+    }
   }, [])
 
   useEffect(() => {
@@ -53,8 +85,14 @@ export function PendingBookingsProvider({
         (payload) => {
           try {
             const b = payload.new as { status: string; booking_date: string; deposit_received: boolean }
-            if (b.status === 'pending' && !b.deposit_received && b.booking_date >= myanmarToday()) {
+            if (b.status !== 'pending' || b.deposit_received) return
+            const today = myanmarToday()
+            if (b.booking_date < today) return
+            if (b.booking_date > today) {
               setCount((c) => c + 1)
+            } else {
+              // Today: need slot data to determine if future — refetch for accuracy
+              fetchCount()
             }
           } catch (err) {
             console.error('[admin-pending-bookings-badge] INSERT handler error:', err)
@@ -68,11 +106,17 @@ export function PendingBookingsProvider({
           try {
             const old = payload.old as { status?: string; deposit_received?: boolean; booking_date?: string }
             const neu = payload.new as { status: string; deposit_received: boolean; booking_date: string }
-            if (neu.booking_date < myanmarToday()) return
-            const prevInBadge = old.status === 'pending' && old.deposit_received === false
-            const nextInBadge = neu.status === 'pending' && neu.deposit_received === false
-            if (prevInBadge && !nextInBadge) setCount((c) => Math.max(0, c - 1))
-            else if (!prevInBadge && nextInBadge) setCount((c) => c + 1)
+            const today = myanmarToday()
+            if (neu.booking_date < today) return
+            if (neu.booking_date > today) {
+              const prevInBadge = old.status === 'pending' && old.deposit_received === false
+              const nextInBadge = neu.status === 'pending' && neu.deposit_received === false
+              if (prevInBadge && !nextInBadge) setCount((c) => Math.max(0, c - 1))
+              else if (!prevInBadge && nextInBadge) setCount((c) => c + 1)
+            } else {
+              // Today: need slot data to determine active/grace — refetch for accuracy
+              fetchCount()
+            }
           } catch (err) {
             console.error('[admin-pending-bookings-badge] UPDATE handler error:', err)
           }
