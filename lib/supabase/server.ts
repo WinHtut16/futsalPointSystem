@@ -50,20 +50,18 @@ export async function broadcastSlotChange(date: string): Promise<void> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 2000)
   try {
-    await fetch(`${supabaseUrl}/realtime/v1/api/broadcast`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceKey}`,
-        'apikey': serviceKey,
-      },
-      body: JSON.stringify({
-        messages: [
-          { topic: 'realtime:booking-slot-updates', event: 'slot_changed', payload: { date } },
-        ],
-      }),
-      signal: controller.signal,
-    })
+    await fetch(
+      `${supabaseUrl}/realtime/v1/api/broadcast/booking-slot-updates/events/slot_changed`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': serviceKey,
+        },
+        body: JSON.stringify({ date }),
+        signal: controller.signal,
+      }
+    )
   } catch {
     // Broadcast failure is non-critical — UI relies on realtime events only
   } finally {
