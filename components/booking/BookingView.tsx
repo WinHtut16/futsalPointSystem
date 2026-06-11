@@ -234,9 +234,9 @@ export default function BookingView({
         const info = dayInfoState[selectedDay!] ?? { booked: [], pending: [], closedHours: [], dayClosed: false }
         let state: SlotState = 'available'
         if (info.dayClosed || info.closedHours.includes(hour)) state = 'closed'
+        else if (!isSlotBookable(dateISO, hour)) state = 'closed'
         else if (info.booked.includes(hour)) state = 'booked'
         else if (info.pending.includes(hour)) state = 'pending'
-        else if (!isSlotBookable(dateISO, hour)) state = 'closed'
         return { hourStart: hour, price: priceForHour(dateISO, hour), state, tier: tierForHour(dateISO, hour) }
       })
     : []

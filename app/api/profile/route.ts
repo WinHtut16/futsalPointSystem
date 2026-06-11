@@ -34,9 +34,12 @@ export async function PATCH(req: Request) {
     const { data: { user: authUser } } = await svc.auth.admin.getUserById(user.id)
     const oldAuthEmail = authUser?.email ?? null
 
-    // Update auth email first — login depends on this being correct
+    // Update auth email first — login depends on this being correct.
+    // email_confirm: true bypasses Supabase email-confirmation flow; without it
+    // the change is queued as pending and the old email stays active for login.
     const { error: authErr } = await svc.auth.admin.updateUserById(user.id, {
       email: phoneToEmail(newPhone),
+      email_confirm: true,
     })
     if (authErr) return serverError(authErr.message)
 

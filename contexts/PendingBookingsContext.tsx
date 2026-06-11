@@ -75,6 +75,8 @@ export function PendingBookingsProvider({
   }, [])
 
   useEffect(() => {
+    fetchCount()
+
     const supabase = createClient()
 
     const channel = supabase

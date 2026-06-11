@@ -5,6 +5,20 @@ import { buildBookingFeedItem, buildTxnFeedItem, mergeFeed, type FeedBookingRow,
 import { serverError } from '@/lib/schemas'
 
 const LIMIT = 20
+const MYANMAR_OFFSET_MS = (6 * 60 + 30) * 60 * 1000
+const GRACE_MS = 2 * 60 * 60 * 1000
+
+function slotEndUTCMs(dateISO: string, lastHour: number): number {
+  const [y, m, d] = dateISO.split('-').map(Number)
+  return Date.UTC(y, m - 1, d, lastHour + 1, 0, 0) - MYANMAR_OFFSET_MS
+}
+
+function isHistoryEligible(r: FeedBookingRow): boolean {
+  if (r.status === 'cancelled') return true
+  const hours = (r.booking_slots ?? []).map(s => s.hour_start)
+  const lastHour = hours.length > 0 ? Math.max(...hours) : 23
+  return slotEndUTCMs(r.booking_date, lastHour) + GRACE_MS <= Date.now()
+}
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser()
@@ -33,8 +47,9 @@ export async function GET(request: NextRequest) {
     if (error) return serverError(error.message)
 
     const rows = (data ?? []) as FeedBookingRow[]
-    const hasMore = rows.length > LIMIT
-    const items = rows.slice(0, LIMIT).map(buildBookingFeedItem)
+    const eligible = rows.filter(isHistoryEligible)
+    const hasMore = eligible.length > LIMIT
+    const items = eligible.slice(0, LIMIT).map(buildBookingFeedItem)
     const nextCursor = hasMore ? items[items.length - 1].ts : null
     return NextResponse.json({ items, hasMore, nextCursor })
   }
@@ -85,7 +100,9 @@ export async function GET(request: NextRequest) {
     })(),
   ])
 
-  const bookingItems = ((bookingsRes.data ?? []) as FeedBookingRow[]).map(buildBookingFeedItem)
+  const bookingItems = ((bookingsRes.data ?? []) as FeedBookingRow[])
+    .filter(isHistoryEligible)
+    .map(buildBookingFeedItem)
   const txnItems = ((txnsRes.data ?? []) as unknown as FeedTxnRow[]).map(buildTxnFeedItem)
   const merged = mergeFeed(bookingItems, txnItems)
 

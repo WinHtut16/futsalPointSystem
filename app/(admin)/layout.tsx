@@ -16,18 +16,45 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const supabase = await createClient()
   const svc = createServiceClient()
   const todayMM = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(new Date())
-  const [{ count: initialPendingCount }, { count: initialPendingBookingsCount }] = await Promise.all([
-    supabase
-      .from('redemption_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending'),
-    svc
-      .from('bookings')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
-      .eq('deposit_received', false)
-      .gte('booking_date', todayMM),
-  ])
+
+  const nowParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Yangon',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date())
+  const nowHourFrac =
+    parseInt(nowParts.find((p) => p.type === 'hour')?.value ?? '0', 10) +
+    parseInt(nowParts.find((p) => p.type === 'minute')?.value ?? '0', 10) / 60
+
+  const [{ count: initialPendingCount }, { count: futureBookingsCount }, todayBookingsResult] =
+    await Promise.all([
+      supabase
+        .from('redemption_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending'),
+      svc
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .eq('deposit_received', false)
+        .gt('booking_date', todayMM),
+      svc
+        .from('bookings')
+        .select('id, booking_slots(hour_start)')
+        .eq('status', 'pending')
+        .eq('deposit_received', false)
+        .eq('booking_date', todayMM),
+    ])
+
+  const todayActiveCount = (
+    (todayBookingsResult.data ?? []) as { id: string; booking_slots: { hour_start: number }[] }[]
+  ).filter((b) => {
+    const slots = b.booking_slots ?? []
+    return slots.length === 0 || slots.some((s) => s.hour_start + 1 > nowHourFrac)
+  }).length
+
+  const initialPendingBookingsCount = (futureBookingsCount ?? 0) + todayActiveCount
 
   return (
     <PendingRedemptionsProvider initialCount={initialPendingCount ?? 0}>
