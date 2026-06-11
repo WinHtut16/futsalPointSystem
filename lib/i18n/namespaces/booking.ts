@@ -329,6 +329,8 @@ export const bookingEN = {
   // Realtime slot updates
   'booking.slotRemovedFromCart': 'A slot you selected is no longer available and has been removed from your cart.',
   'booking.slotsUpdated': 'Slot availability updated',
+
+  'booking.viewMyRewards': 'View My Rewards',
 } as const
 
 export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
@@ -662,4 +664,6 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   // Realtime slot updates
   'booking.slotRemovedFromCart': 'သင်ရွေးချယ်ထားသော အချိန်ကွက်တစ်ခု မရနိုင်တော့သောကြောင့် ခြင်းတောင်းမှ ဖယ်ရှားလိုက်ပါပြီ။',
   'booking.slotsUpdated': 'အချိန်ကွက် ရနိုင်မှု အပ်ဒိတ်ပြီး',
+
+  'booking.viewMyRewards': 'ဆုလာဘ်များ ကြည့်ရန်',
 }

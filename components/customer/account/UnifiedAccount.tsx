@@ -14,7 +14,7 @@ import type { DashboardBooking } from '@/components/booking/BookingsDashboard'
 import RewardsGrid from '@/components/customer/RewardsGrid'
 import { useRealtimePoints } from '@/hooks/useRealtimePoints'
 
-type Tab = 'upcoming' | 'history' | 'rewards'
+type Tab = 'upcoming' | 'history' | 'points'
 type Filter = 'all' | 'bookings' | 'points'
 type CursorMap = { all: string | null; bookings: string | null; points: string | null }
 
@@ -32,6 +32,7 @@ interface UnifiedAccountProps {
   initialPendingMap: Record<string, string>
   initialFeeds: { all: FeedItem[]; bookings: FeedItem[]; points: FeedItem[] }
   initialHasMore: { all: boolean; bookings: boolean; points: boolean }
+  initialTab?: 'upcoming' | 'history' | 'points'
 }
 
 export default function UnifiedAccount(props: UnifiedAccountProps) {
@@ -39,7 +40,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
   const router = useRouter()
   const livePoints = useRealtimePoints(props.userId, props.initialPoints, props.initialUpdatedAt)
   const my = lang === 'my' ? 'my' : ''
-  const [tab, setTab] = useState<Tab>('upcoming')
+  const [tab, setTab] = useState<Tab>(props.initialTab ?? 'upcoming')
   const [filter, setFilter] = useState<Filter>('all')
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
   const tabs: { k: Tab; label: string }[] = [
     { k: 'upcoming', label: t('account.tab.upcoming') },
     { k: 'history', label: t('account.tab.history') },
-    { k: 'rewards', label: t('account.tab.rewards') },
+    { k: 'points', label: t('account.tab.rewards') },
   ]
 
   function changeFilter(newFilter: Filter) {
@@ -162,7 +163,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
         )}
 
         {/* ---------- POINTS & REWARDS ---------- */}
-        {tab === 'rewards' && (
+        {tab === 'points' && (
           <div className="flex flex-col gap-[18px]">
             <div className="fb-card flex items-center gap-3.5 p-4">
               <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-[var(--r-md)] bg-primary-soft text-primary">

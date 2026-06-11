@@ -27,9 +27,21 @@ function todayYangon(): string {
 
 const FEED_LIMIT = 20
 
-export default async function AccountPage() {
+const VALID_TABS = ['upcoming', 'history', 'points'] as const
+type ValidTab = (typeof VALID_TABS)[number]
+
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>
+}) {
   const profile = await getCurrentUser()
   if (!profile) redirect('/login?next=/account')
+
+  const sp = await searchParams
+  const initialTab: ValidTab = (VALID_TABS as readonly string[]).includes(sp.tab ?? '')
+    ? (sp.tab as ValidTab)
+    : 'upcoming'
 
   const supabase = await createClient()
   const svc = createServiceClient()
@@ -155,6 +167,7 @@ export default async function AccountPage() {
           initialPendingMap={initialPendingMap}
           initialFeeds={initialFeeds}
           initialHasMore={initialHasMore}
+          initialTab={initialTab}
         />
       </div>
       <BottomNav active="me" />

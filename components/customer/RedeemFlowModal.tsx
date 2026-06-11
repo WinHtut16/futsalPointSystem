@@ -327,13 +327,12 @@ export default function RedeemFlowModal({
             </div>
 
             <div className="px-4 pb-5 pt-3 border-t border-gray-100 flex gap-2.5">
-              <Button
-                variant="secondary"
-                className="flex-1"
-                onClick={() => { window.location.href = '/account' }}
+              <a
+                href="/account?tab=points"
+                className="flex flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                {t('rewards.viewHistory' as never)}
-              </Button>
+                {t('booking.viewMyRewards')}
+              </a>
               <Button className="flex-1" onClick={onClose}>
                 {t('rewards.done' as never)}
               </Button>
