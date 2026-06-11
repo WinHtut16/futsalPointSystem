@@ -62,8 +62,20 @@ export default async function AdminBookingsPage({
       customerIds = (customers ?? []).map((c: { id: string }) => c.id)
     }
 
+    // Myanmar current time for slot-aware pending count (matches GRACE_HOURS=2 in AdminBookingsList)
+    const nowParts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Yangon',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date())
+    const nowH = parseInt(nowParts.find((p) => p.type === 'hour')?.value ?? '0', 10)
+    const nowM = parseInt(nowParts.find((p) => p.type === 'minute')?.value ?? '0', 10)
+    const nowHourFrac = nowH + nowM / 60
+    const STAT_GRACE_HOURS = 2
+
     // Stats + booking list queries in parallel.
-    const [wbResult, drResult, pcResult, tcResult] = await Promise.all([
+    const [wbResult, drResult, futurePcResult, todayPcResult, tcResult] = await Promise.all([
       supabase
         .from('bookings')
         .select('id', { count: 'exact', head: true })
@@ -79,12 +91,26 @@ export default async function AdminBookingsPage({
         .from('bookings')
         .select('id', { count: 'exact', head: true })
         .eq('status', 'pending')
-        .gte('booking_date', todayMyanmarISO),
+        .gt('booking_date', todayMyanmarISO),
+      supabase
+        .from('bookings')
+        .select('id, booking_slots(hour_start)')
+        .eq('status', 'pending')
+        .eq('booking_date', todayMyanmarISO),
       supabase
         .from('profiles')
         .select('id', { count: 'exact', head: true })
         .eq('role', 'customer'),
     ])
+
+    const todayActivePending = (
+      (todayPcResult.data ?? []) as { id: string; booking_slots: { hour_start: number }[] }[]
+    ).filter((b) => {
+      const hrs = (b.booking_slots ?? []).map((s) => s.hour_start)
+      if (hrs.length === 0) return true
+      const maxHour = Math.max(...hrs)
+      return nowHourFrac < maxHour + 1 + STAT_GRACE_HOURS
+    }).length
 
     stats = {
       bookingsThisWeek: wbResult.count ?? 0,
@@ -92,7 +118,7 @@ export default async function AdminBookingsPage({
         (s, r) => s + (r.deposit_total || 0),
         0
       ),
-      pendingCount: pcResult.count ?? 0,
+      pendingCount: (futurePcResult.count ?? 0) + todayActivePending,
       totalCustomers: tcResult.count ?? 0,
     }
 

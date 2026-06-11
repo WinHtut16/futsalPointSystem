@@ -182,10 +182,23 @@ function avatarColor(name: string): string {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-function timeLabel(hours: number[]) {
-  if (hours.length === 0) return '—'
+function slotRanges(hours: number[]): string[] {
+  if (hours.length === 0) return ['—']
   const sorted = [...hours].sort((a, b) => a - b)
-  return `${pad(sorted[0])}:00 – ${pad(sorted[sorted.length - 1] + 1)}:00`
+  const ranges: { start: number; end: number }[] = []
+  let start = sorted[0]
+  let prev = sorted[0]
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] === prev + 1) {
+      prev = sorted[i]
+    } else {
+      ranges.push({ start, end: prev + 1 })
+      start = sorted[i]
+      prev = sorted[i]
+    }
+  }
+  ranges.push({ start, end: prev + 1 })
+  return ranges.map((r) => `${pad(r.start)}:00 – ${pad(r.end)}:00`)
 }
 
 function SkeletonRow() {
@@ -961,7 +974,11 @@ export default function AdminBookingsList({
                               <span className="text-[10px] text-gray-400">{relLabel}</span>
                             )}
                           </div>
-                          <p className="font-mono text-xs text-gray-400">{timeLabel(b.hours)}</p>
+                          <div className="space-y-0.5">
+                            {slotRanges(b.hours).map((r, i) => (
+                              <p key={i} className="font-mono text-xs text-gray-400">{r}</p>
+                            ))}
+                          </div>
                         </td>
                         {/* Status */}
                         <td className="px-4 py-3">
@@ -1163,9 +1180,14 @@ export default function AdminBookingsList({
                       <span className="text-[10px] text-gray-400">{relLabel}</span>
                     )}
                   </div>
-                  <span className="flex items-center gap-1 font-mono text-xs text-gray-500">
-                    <Clock className="h-3 w-3" /> {timeLabel(b.hours)}
-                  </span>
+                  <div className="flex items-start gap-1 text-gray-500">
+                    <Clock className="h-3 w-3 mt-0.5 shrink-0" />
+                    <div className="space-y-0.5">
+                      {slotRanges(b.hours).map((r, i) => (
+                        <span key={i} className="block font-mono text-xs">{r}</span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
