@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient, broadcastSlotChange } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
 import { ClosureCreateSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
     }
     return serverError(error.message)
   }
+  await broadcastSlotChange(data.closure_date)
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -99,7 +100,13 @@ export async function DELETE(request: NextRequest) {
   if (!idParsed.success) return badRequest(idParsed.error)
 
   const supabase = await createServiceClient()
-  const { error } = await supabase.from('court_closures').delete().eq('id', id)
+  const { data: deleted, error } = await supabase
+    .from('court_closures')
+    .delete()
+    .eq('id', id)
+    .select('closure_date')
+    .single()
   if (error) return serverError(error.message)
+  await broadcastSlotChange(deleted.closure_date)
   return NextResponse.json({ ok: true })
 }

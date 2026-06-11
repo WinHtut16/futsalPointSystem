@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient, broadcastSlotChange } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { BookingActionSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 import { canCancel } from '@/lib/booking'
@@ -69,6 +69,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         { status: 409 }
       )
     }
+    await broadcastSlotChange(booking.booking_date)
     return NextResponse.json({ status: 'cancelled' })
   }
 
@@ -91,6 +92,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })
       }
       if (rpcErr) return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+      await broadcastSlotChange(booking.booking_date)
       return NextResponse.json({ status: 'confirmed' })
     }
 
@@ -107,6 +109,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         { status: 409 }
       )
     }
+    await broadcastSlotChange(booking.booking_date)
     return NextResponse.json({ status: 'confirmed' })
   }
 
@@ -124,6 +127,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         { status: 409 }
       )
     }
+    await broadcastSlotChange(booking.booking_date)
     return NextResponse.json({ status: 'pending' })
   }
 
@@ -141,6 +145,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         { status: 409 }
       )
     }
+    await broadcastSlotChange(booking.booking_date)
     return NextResponse.json({ status: 'closed' })
   }
 

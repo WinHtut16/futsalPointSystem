@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient, broadcastSlotChange } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
 import { AdminCreateBookingSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 import { priceForHour, tierForHour } from '@/lib/booking'
@@ -121,6 +121,7 @@ export async function POST(request: NextRequest) {
     }
 
     const booking = Array.isArray(data) ? data[0] : data
+    await broadcastSlotChange(booking_date)
     return NextResponse.json(
       {
         id: booking?.id,

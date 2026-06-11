@@ -28,50 +28,14 @@ export function useBookingSlotRealtime(
     const visibleSet = new Set(visibleDates)
     const supabase = createClient()
 
+    // Broadcast events sent by API routes via broadcastSlotChange() bypass RLS,
+    // so anonymous visitors and other customers' booking changes are all visible.
     const channel = supabase
       .channel('booking-slot-updates')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'bookings' },
-        (payload) => {
-          const date = (payload.new as { booking_date?: string }).booking_date
-          if (date && visibleSet.has(date)) onSlotChangeRef.current(date)
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'bookings' },
-        (payload) => {
-          const row = (payload.new ?? payload.old) as { booking_date?: string }
-          const date = row.booking_date
-          if (date && visibleSet.has(date)) onSlotChangeRef.current(date)
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'court_closures' },
-        (payload) => {
-          const date = (payload.new as { closure_date?: string }).closure_date
-          if (date && visibleSet.has(date)) onSlotChangeRef.current(date)
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'court_closures' },
-        (payload) => {
-          const row = (payload.new ?? payload.old) as { closure_date?: string }
-          const date = row.closure_date
-          if (date && visibleSet.has(date)) onSlotChangeRef.current(date)
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'court_closures' },
-        (payload) => {
-          const date = (payload.old as { closure_date?: string }).closure_date
-          if (date && visibleSet.has(date)) onSlotChangeRef.current(date)
-        }
-      )
+      .on('broadcast', { event: 'slot_changed' }, (payload) => {
+        const date = (payload.payload as { date?: string } | null)?.date
+        if (date && visibleSet.has(date)) onSlotChangeRef.current(date)
+      })
       .subscribe()
 
     return () => {
