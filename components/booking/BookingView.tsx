@@ -76,11 +76,9 @@ export default function BookingView({
   const [pendingSheetHour, setPendingSheetHour] = useState<number | null>(null)
   const [cartSheetOpen, setCartSheetOpen] = useState(false)
 
-  // Slot availability state — initialized from SSR props, updated by realtime/polling.
+  // Slot availability state — initialized from SSR props, updated by realtime events.
   const [dayInfoState, setDayInfoState] = useState<Record<number, DayInfo>>(initialDayInfo)
   const [calDataState, setCalDataState] = useState<CalendarData>(initialCalData)
-  // ISO dates currently being re-fetched after a realtime trigger.
-  const [refreshingDates, setRefreshingDates] = useState<Set<string>>(new Set())
   // Toast shown when a carted slot is removed because it became unavailable.
   const [slotRemovedToast, setSlotRemovedToast] = useState(false)
 
@@ -164,48 +162,44 @@ export default function BookingView({
     setCart(prev => prev.filter(s => !(s.date === date && s.hour === hour)))
   }
 
-  // Re-fetch slot availability for a single date after a realtime trigger.
+  // Re-fetch slot availability for a single date after a realtime event.
+  // Silent — no loading state, update happens in the background.
   const refreshDate = useCallback(async (dateISO: string) => {
-    setRefreshingDates(prev => { const s = new Set(prev); s.add(dateISO); return s })
-    try {
-      const res = await fetch(`/api/bookings/availability?date=${dateISO}`)
-      if (!res.ok) return
-      const data = await res.json() as DayInfo
+    const res = await fetch(`/api/bookings/availability?date=${dateISO}`)
+    if (!res.ok) return
+    const data = await res.json() as DayInfo
 
-      const day = Number(dateISO.split('-')[2])
+    const day = Number(dateISO.split('-')[2])
 
-      setDayInfoState(prev => ({ ...prev, [day]: data }))
+    setDayInfoState(prev => ({ ...prev, [day]: data }))
 
-      setCalDataState(prev => {
-        const closed = { ...prev.closed }
-        if (data.dayClosed) closed[day] = 'Closed'
-        else delete closed[day]
-        return {
-          ...prev,
-          closed,
-          booked: [...prev.booked.filter(d => d !== day), ...(data.booked.length ? [day] : [])],
-          pending: [...prev.pending.filter(d => d !== day), ...(data.pending.length ? [day] : [])],
-        }
+    setCalDataState(prev => {
+      const closed = { ...prev.closed }
+      if (data.dayClosed) closed[day] = 'Closed'
+      else delete closed[day]
+      return {
+        ...prev,
+        closed,
+        booked: [...prev.booked.filter(d => d !== day), ...(data.booked.length ? [day] : [])],
+        pending: [...prev.pending.filter(d => d !== day), ...(data.pending.length ? [day] : [])],
+      }
+    })
+
+    // Remove cart slots that became booked or closed after this refresh.
+    let hadRemoval = false
+    setCart(prevCart => {
+      const newCart = prevCart.filter(slot => {
+        if (slot.date !== dateISO) return true
+        const unavailable =
+          data.dayClosed ||
+          data.closedHours.includes(slot.hour) ||
+          data.booked.includes(slot.hour)
+        if (unavailable) hadRemoval = true
+        return !unavailable
       })
-
-      // Remove cart slots that became booked or closed after this refresh.
-      let hadRemoval = false
-      setCart(prevCart => {
-        const newCart = prevCart.filter(slot => {
-          if (slot.date !== dateISO) return true
-          const unavailable =
-            data.dayClosed ||
-            data.closedHours.includes(slot.hour) ||
-            data.booked.includes(slot.hour)
-          if (unavailable) hadRemoval = true
-          return !unavailable
-        })
-        return newCart
-      })
-      if (hadRemoval) setSlotRemovedToast(true)
-    } finally {
-      setRefreshingDates(prev => { const s = new Set(prev); s.delete(dateISO); return s })
-    }
+      return newCart
+    })
+    if (hadRemoval) setSlotRemovedToast(true)
   }, [])
 
   // All YYYY-MM-DD dates in the current calendar month, memoised so the hook
@@ -257,7 +251,6 @@ export default function BookingView({
     return `${wd}, ${MO_EN[monthIdx]} ${selectedDay}, ${year}`
   })()
 
-  const slotGridLoading = dateISO ? refreshingDates.has(dateISO) : false
 
   return (
     <div className="pb-36 md:pb-0">
@@ -342,7 +335,7 @@ export default function BookingView({
             <SlotLegend dense />
             {dateISO ? (
               <div
-                className={`mt-3 transition-opacity duration-200 ${slotGridLoading ? 'animate-pulse opacity-60 pointer-events-none' : ''}`}
+                className="mt-3"
               >
                 <TimeSlotGrid
                   slots={slots}

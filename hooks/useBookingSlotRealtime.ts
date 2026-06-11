@@ -7,11 +7,8 @@ import { createClient } from '@/lib/supabase/client'
  * Subscribes to booking and closure changes for the visible calendar month,
  * calling onSlotChange(dateISO) whenever a slot state may have changed.
  *
- * Two-tier pattern: realtime subscription (instant when RLS permits) +
- * 30-second polling fallback (guaranteed for all users regardless of auth).
- *
- * Channel name is a fixed string — slot state is public, not user-specific.
- * Re-subscribes only when visibleDates changes (i.e. the month changes).
+ * Event-driven only — no polling. Channel name is a fixed string (slot state
+ * is public, not user-specific). Re-subscribes only when visibleDates changes.
  */
 export function useBookingSlotRealtime(
   visibleDates: string[],
@@ -77,18 +74,8 @@ export function useBookingSlotRealtime(
       )
       .subscribe()
 
-    // 30-second polling fallback: refreshes all visible dates regardless of
-    // whether the realtime subscription is active (covers anon users and
-    // RLS-restricted cases).
-    const intervalId = setInterval(() => {
-      for (const date of visibleDates) {
-        onSlotChangeRef.current(date)
-      }
-    }, 30_000)
-
     return () => {
       supabase.removeChannel(channel)
-      clearInterval(intervalId)
     }
   }, [visibleDates]) // eslint-disable-line react-hooks/exhaustive-deps
 }

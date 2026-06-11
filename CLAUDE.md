@@ -206,7 +206,7 @@ Tables enabled: `bookings` (`booking-system-migration.sql`), `profiles` + `redem
 | `RewardsGrid` | `redemption_requests` | UPDATE (filtered by customer_id) | Customer rewards |
 | `UnifiedAccount` (via `useRealtimePoints`) | `profiles` | UPDATE (unfiltered, client-side id check) | Customer account — live points balance (passed as `points` prop to `AccountHeader` and as `livePoints` to `RewardsGrid`) |
 | `RealtimePointsBadge` | `profiles` | UPDATE (unfiltered, client-side id check) | Customer rewards, history |
-| `useBookingSlotRealtime` (hook) | `bookings` + `court_closures` | INSERT, UPDATE (bookings); INSERT, UPDATE, DELETE (court_closures) | Customer booking page — triggers `refreshDate(dateISO)` which re-fetches `/api/bookings/availability?date=…` and patches `dayInfoState`/`calDataState` in `BookingView`; 30s polling fallback covers anon users where RLS restricts realtime events; channel name `booking-slot-updates` (fixed, public) |
+| `useBookingSlotRealtime` (hook) | `bookings` + `court_closures` | INSERT, UPDATE (bookings); INSERT, UPDATE, DELETE (court_closures) | Customer booking page — triggers `refreshDate(dateISO)` which silently re-fetches `/api/bookings/availability?date=…` (no loading state) and patches `dayInfoState`/`calDataState` in `BookingView`; event-driven only, no polling; channel name `booking-slot-updates` (fixed, public) |
 
 ### Internationalization
 
@@ -266,7 +266,7 @@ Tables enabled: `bookings` (`booking-system-migration.sql`), `profiles` + `redem
 | `POST /api/admin/reset-customer-password` | admin/superadmin | Set temp password for a customer — `{ userId, tempPassword }`, IDOR guard (customer-only), service role; never logs the password |
 | `GET/POST /api/admin/staff` | superadmin | List / create staff admin accounts |
 | `GET/PUT/DELETE /api/admin/staff/[id]` | superadmin | Staff detail, reset password, delete |
-| `GET /api/bookings/availability` | public (no auth) | Returns slot availability for a date (`?date=YYYY-MM-DD`) — `{ booked: number[], pending: number[], closedHours: number[], dayClosed: boolean }`; used by `BookingView.refreshDate()` after realtime/polling triggers; service-role client (bypasses RLS); exposes no customer PII |
+| `GET /api/bookings/availability` | public (no auth) | Returns slot availability for a date (`?date=YYYY-MM-DD`) — `{ booked: number[], pending: number[], closedHours: number[], dayClosed: boolean }`; used by `BookingView.refreshDate()` after realtime events; service-role client (bypasses RLS); exposes no customer PII |
 | `GET /api/admin/slot-availability` | admin/superadmin | Returns slot states for a date (`?date=YYYY-MM-DD`) — `{ slots: [{ hour, state: 'available'\|'pending'\|'booked'\|'closed', tier, price }] }` for all 16 daily hours; used by `AdminNewBookingPanel` slot grid |
 | `POST /api/admin/bookings` | admin/superadmin | Admin manual booking entry — body: `AdminCreateBookingSchema`; source must be `phone\|walk_in\|other` (not `online`); guest booking requires `guest_name`; server recomputes tier/price; 409 on confirmed conflict; pending conflict triggers override path (`had_conflict=true`); returns 201 `{ id, ref, status, deposit_total, price_total, had_conflict }` |
 | `POST /api/admin/bookings/archive` | admin/superadmin | Bulk soft-archive bookings — body: `{ ids: string[] }` (max 100 UUIDs); sets `is_archived=true`; 400 if any target booking is `pending` or `confirmed` (must cancel/close first); two-step safety before hard-delete |
