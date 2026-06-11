@@ -325,6 +325,8 @@ export const bookingEN = {
   'booking.admin.historySubAll': 'All history',
   'booking.admin.historySubCancelled': 'Cancelled',
   'booking.admin.historySubEnded': 'Ended',
+  'booking.admin.pastSlotLabel': 'Past',
+  'booking.admin.pastDateWarning': 'Recording a past booking — walk-in or phone entry',
 
   // Realtime slot updates
   'booking.slotRemovedFromCart': 'A slot you selected is no longer available and has been removed from your cart.',
@@ -600,7 +602,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.admin.statCustomers': 'ဖောက်သည်စုစုပေါင်း',
   // Cancel confirmation dialog
   'booking.admin.cancelConfirmTitle': 'ဘွတ်ကင် ပယ်ဖျက်မလား?',
-  'booking.admin.cancelConfirmBody': 'ဤလုပ်ဆောင်ချက်ကို ပြန်မလှည့်နိုင်ပါ။',
+  'booking.admin.cancelConfirmBody': 'ဤလုပ်ဆောင်ချက်ကို ပြန်မပြင်နိုင်ပါ။',
   'booking.admin.keep': 'ဘွတ်ကင်ဆက်ထားမည်',
 
   // Admin — manual booking panel (run scripts/translate.mjs to update)
@@ -660,9 +662,11 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.admin.historySubAll': 'မှတ်တမ်း အားလုံး',
   'booking.admin.historySubCancelled': 'ပယ်ဖျက်ပြီး',
   'booking.admin.historySubEnded': 'ပြီးဆုံးပြီး',
+  'booking.admin.pastSlotLabel': 'အတိတ်',
+  'booking.admin.pastDateWarning': 'အတိတ်တွင် ဖြစ်ပြီးသော ဘွတ်ကင် မှတ်တမ်းတင်ခြင်း — တိုက်ရိုက်ဝင်ရောက် သို့မဟုတ် ဖုန်းဖြင့်',
 
   // Realtime slot updates
-  'booking.slotRemovedFromCart': 'သင်ရွေးချယ်ထားသော အချိန်ကွက်တစ်ခု မရနိုင်တော့သောကြောင့် ခြင်းတောင်းမှ ဖယ်ရှားလိုက်ပါပြီ။',
+  'booking.slotRemovedFromCart': 'သင်ရွေးချယ်ထားသော အချိန်ကွက်တစ်ခု မရနိုင်တော့သောကြောင့် မှတ်တမ်းမှ ဖယ်ရှားလိုက်ပါပြီ။',
   'booking.slotsUpdated': 'အချိန်ကွက် ရနိုင်မှု အပ်ဒိတ်ပြီး',
 
   'booking.viewMyRewards': 'ဆုလာဘ်များ ကြည့်ရန်',

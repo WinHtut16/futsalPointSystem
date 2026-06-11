@@ -61,6 +61,13 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
   const [selectedHours, setSelectedHours] = useState<number[]>([])
   const [maxSlotsError, setMaxSlotsError] = useState(false)
 
+  const todayISO = todayYangon()
+  const nowMyanmar = new Date(
+    new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' })
+  )
+  const currentHour = nowMyanmar.getHours()
+  const isPastDate = date < todayISO
+
   const hasPendingConflict = selectedHours.some(
     (h) => slotData?.find((s) => s.hour === h)?.state === 'pending'
   )
@@ -228,12 +235,12 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
 
-      {/* Panel: bottom sheet on mobile, right drawer on desktop */}
+      {/* Panel: bottom sheet on mobile, centered modal on desktop */}
       <div
         onWheel={(e) => e.stopPropagation()}
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white shadow-xl md:inset-x-auto md:inset-y-0 md:bottom-auto md:right-0 md:h-screen md:w-[420px] md:overflow-y-auto md:rounded-none md:rounded-l-2xl"
+        className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white shadow-xl md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-[580px] md:max-h-[90vh] md:rounded-xl"
       >
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
@@ -248,7 +255,7 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
           </button>
         </div>
 
-        <div className="space-y-5 p-4 pb-16">
+        <div className="space-y-5 p-4 pb-16 md:p-6 md:pb-6">
           {/* ── Section 1: Customer ─────────────────── */}
           <section>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -334,6 +341,13 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
               {t('booking.admin.pickSlots' as never)}
             </label>
 
+            {isPastDate && (
+              <div className="mb-2 flex items-center gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <AlertTriangle className="h-3 w-3 shrink-0" />
+                <span>{t('booking.admin.pastDateWarning' as never)}</span>
+              </div>
+            )}
+
             {loadingSlots ? (
               <div className="grid animate-pulse grid-cols-4 gap-1.5">
                 {dayHours().map((h) => (
@@ -342,22 +356,31 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
               </div>
             ) : slotData ? (
               <div className="grid grid-cols-4 gap-1.5">
-                {slotData.map((slot) => (
-                  <button
-                    key={slot.hour}
-                    type="button"
-                    onClick={() => handleSlotClick(slot.hour, slot.state)}
-                    disabled={slot.state === 'booked' || slot.state === 'closed'}
-                    className={`flex flex-col items-center rounded-lg border px-1 py-1.5 text-center transition-colors ${slotTileClass(slot)}`}
-                  >
-                    <span className="text-[11px] font-bold leading-tight">
-                      {pad(slot.hour)}:00
-                    </span>
-                    <span className="text-[9px] opacity-70">
-                      {(slot.price / 1000).toFixed(0)}k
-                    </span>
-                  </button>
-                ))}
+                {slotData.map((slot) => {
+                  const selected = selectedHours.includes(slot.hour)
+                  const isPastSlot = isPastDate || (date === todayISO && slot.hour < currentHour)
+                  return (
+                    <button
+                      key={slot.hour}
+                      type="button"
+                      onClick={() => handleSlotClick(slot.hour, slot.state)}
+                      disabled={slot.state === 'booked' || slot.state === 'closed'}
+                      className={`flex flex-col items-center rounded-lg border px-1 py-1.5 text-center transition-colors ${slotTileClass(slot)}${isPastSlot && !selected ? ' opacity-50' : ''}`}
+                    >
+                      <span className="text-[11px] font-bold leading-tight">
+                        {pad(slot.hour)}:00
+                      </span>
+                      <span className="text-[9px] opacity-70">
+                        {(slot.price / 1000).toFixed(0)}k
+                      </span>
+                      {isPastSlot && !selected && (
+                        <span className="text-[8px]">
+                          {t('booking.admin.pastSlotLabel' as never)}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             ) : (
               <p className="text-xs text-gray-400">Select a date to load slots.</p>
