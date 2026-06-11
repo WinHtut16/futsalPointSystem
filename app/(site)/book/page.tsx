@@ -110,6 +110,7 @@ export default async function BookPage({
       <SiteNavbar active="booking" mobileTitle={undefined} back />
       <div className="animate-page-in mx-auto max-w-6xl md:px-16 md:py-8">
         <BookingView
+          key={`${year}-${monthIdx}`}
           year={year}
           monthIdx={monthIdx}
           today={today}

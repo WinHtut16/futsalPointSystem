@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X, AlertTriangle, Check, Lock } from 'lucide-react'
@@ -24,6 +24,7 @@ import { PricingLegend } from './Pricing'
 import SlotLegend from './SlotLegend'
 import TimeSlotGrid, { type SlotView } from './TimeSlotGrid'
 import PendingSlotSheet from './PendingSlotSheet'
+import { useBookingSlotRealtime } from '@/hooks/useBookingSlotRealtime'
 
 export type DayInfo = {
   booked: number[]
@@ -53,8 +54,8 @@ export default function BookingView({
   year,
   monthIdx,
   today,
-  calData,
-  dayInfo,
+  calData: initialCalData,
+  dayInfo: initialDayInfo,
   initialDay,
   loggedIn,
 }: {
@@ -75,6 +76,14 @@ export default function BookingView({
   const [pendingSheetHour, setPendingSheetHour] = useState<number | null>(null)
   const [cartSheetOpen, setCartSheetOpen] = useState(false)
 
+  // Slot availability state — initialized from SSR props, updated by realtime/polling.
+  const [dayInfoState, setDayInfoState] = useState<Record<number, DayInfo>>(initialDayInfo)
+  const [calDataState, setCalDataState] = useState<CalendarData>(initialCalData)
+  // ISO dates currently being re-fetched after a realtime trigger.
+  const [refreshingDates, setRefreshingDates] = useState<Set<string>>(new Set())
+  // Toast shown when a carted slot is removed because it became unavailable.
+  const [slotRemovedToast, setSlotRemovedToast] = useState(false)
+
   // Post-login booking flow (mobile bottom-sheet). `loggedIn` is the initial
   // server value; once a customer signs in via the sheet we flip locally so the
   // cart is never lost to a navigation/refresh.
@@ -88,12 +97,19 @@ export default function BookingView({
     setWelcomeName(name)
   }
 
-  // auto-dismiss the welcome toast
+  // Auto-dismiss welcome toast.
   useEffect(() => {
     if (!welcomeName) return
     const id = setTimeout(() => setWelcomeName(null), 5000)
     return () => clearTimeout(id)
   }, [welcomeName])
+
+  // Auto-dismiss slot-removed toast.
+  useEffect(() => {
+    if (!slotRemovedToast) return
+    const id = setTimeout(() => setSlotRemovedToast(false), 5000)
+    return () => clearTimeout(id)
+  }, [slotRemovedToast])
 
   const selectDay = (d: number) => {
     setSelectedDay(d)
@@ -148,6 +164,61 @@ export default function BookingView({
     setCart(prev => prev.filter(s => !(s.date === date && s.hour === hour)))
   }
 
+  // Re-fetch slot availability for a single date after a realtime trigger.
+  const refreshDate = useCallback(async (dateISO: string) => {
+    setRefreshingDates(prev => { const s = new Set(prev); s.add(dateISO); return s })
+    try {
+      const res = await fetch(`/api/bookings/availability?date=${dateISO}`)
+      if (!res.ok) return
+      const data = await res.json() as DayInfo
+
+      const day = Number(dateISO.split('-')[2])
+
+      setDayInfoState(prev => ({ ...prev, [day]: data }))
+
+      setCalDataState(prev => {
+        const closed = { ...prev.closed }
+        if (data.dayClosed) closed[day] = 'Closed'
+        else delete closed[day]
+        return {
+          ...prev,
+          closed,
+          booked: [...prev.booked.filter(d => d !== day), ...(data.booked.length ? [day] : [])],
+          pending: [...prev.pending.filter(d => d !== day), ...(data.pending.length ? [day] : [])],
+        }
+      })
+
+      // Remove cart slots that became booked or closed after this refresh.
+      let hadRemoval = false
+      setCart(prevCart => {
+        const newCart = prevCart.filter(slot => {
+          if (slot.date !== dateISO) return true
+          const unavailable =
+            data.dayClosed ||
+            data.closedHours.includes(slot.hour) ||
+            data.booked.includes(slot.hour)
+          if (unavailable) hadRemoval = true
+          return !unavailable
+        })
+        return newCart
+      })
+      if (hadRemoval) setSlotRemovedToast(true)
+    } finally {
+      setRefreshingDates(prev => { const s = new Set(prev); s.delete(dateISO); return s })
+    }
+  }, [])
+
+  // All YYYY-MM-DD dates in the current calendar month, memoised so the hook
+  // dependency only changes when the month actually changes.
+  const visibleDates = useMemo(() => {
+    const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
+    return Array.from({ length: daysInMonth }, (_, i) =>
+      `${year}-${pad(monthIdx + 1)}-${pad(i + 1)}`
+    )
+  }, [year, monthIdx])
+
+  useBookingSlotRealtime(visibleDates, refreshDate)
+
   const dateISO = selectedDay ? `${year}-${pad(monthIdx + 1)}-${pad(selectedDay)}` : null
 
   const selectedHoursOnDate = cart
@@ -160,7 +231,7 @@ export default function BookingView({
 
   const slots: SlotView[] = dateISO
     ? dayHours().map((hour) => {
-        const info = dayInfo[selectedDay!] ?? { booked: [], pending: [], closedHours: [], dayClosed: false }
+        const info = dayInfoState[selectedDay!] ?? { booked: [], pending: [], closedHours: [], dayClosed: false }
         let state: SlotState = 'available'
         if (info.dayClosed || info.closedHours.includes(hour)) state = 'closed'
         else if (info.booked.includes(hour)) state = 'booked'
@@ -185,6 +256,8 @@ export default function BookingView({
     if (lang === 'my') return `${wd}နေ့ ၊ ${toMyDigits(selectedDay!)} ၊ ${toMyDigits(year)}`
     return `${wd}, ${MO_EN[monthIdx]} ${selectedDay}, ${year}`
   })()
+
+  const slotGridLoading = dateISO ? refreshingDates.has(dateISO) : false
 
   return (
     <div className="pb-36 md:pb-0">
@@ -231,7 +304,7 @@ export default function BookingView({
                 year={year}
                 monthIdx={monthIdx}
                 today={today}
-                data={calData}
+                data={calDataState}
                 selectedDay={selectedDay}
                 onSelect={selectDay}
                 onNav={navMonth}
@@ -268,7 +341,9 @@ export default function BookingView({
             </div>
             <SlotLegend dense />
             {dateISO ? (
-              <div className="mt-3">
+              <div
+                className={`mt-3 transition-opacity duration-200 ${slotGridLoading ? 'animate-pulse opacity-60 pointer-events-none' : ''}`}
+              >
                 <TimeSlotGrid
                   slots={slots}
                   selected={selectedHoursOnDate}
@@ -379,6 +454,20 @@ export default function BookingView({
           </div>
           <button type="button" onClick={() => setWelcomeName(null)} aria-label="Dismiss" className="shrink-0 opacity-70">
             <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Slot-removed toast (when a carted slot becomes unavailable) */}
+      {slotRemovedToast && (
+        <div
+          className="fixed inset-x-4 top-4 z-30 flex items-center gap-3 rounded-[var(--r-md)] bg-slot-booked px-3.5 py-3 text-white md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[360px]"
+          style={{ boxShadow: '0 10px 28px -6px rgba(0,0,0,0.3)' }}
+        >
+          <AlertTriangle size={16} className="shrink-0" />
+          <span className={`flex-1 text-[13px] leading-snug ${my}`}>{t('booking.slotRemovedFromCart')}</span>
+          <button type="button" onClick={() => setSlotRemovedToast(false)} aria-label="Dismiss" className="shrink-0 opacity-70">
+            <X size={14} />
           </button>
         </div>
       )}

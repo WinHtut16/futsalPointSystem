@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   MAX_SLOTS,
+  BOOKING_LEAD_MINUTES,
   TIER_PRICE,
   weekdayOf,
   isWeekend,
@@ -12,6 +13,7 @@ import {
   dayHours,
   depositFor,
   canCancel,
+  isSlotBookable,
 } from '@/lib/booking'
 
 // Reference dates (2026):
@@ -98,6 +100,32 @@ describe('depositFor', () => {
   it('is a flat 10,000 MMK regardless of slot count', () => {
     expect(depositFor(1)).toBe(10000)
     expect(depositFor(MAX_SLOTS)).toBe(10000)
+  })
+})
+
+describe('isSlotBookable', () => {
+  it(`allows booking when slot is >= ${BOOKING_LEAD_MINUTES} minutes away`, () => {
+    // now = 10:30 MMT = 04:00 UTC; slot 11:00 MMT = 04:30 UTC → 30 min away
+    const now = new Date('2026-06-01T04:00:00.000Z')
+    expect(isSlotBookable('2026-06-01', 11, now)).toBe(true)
+  })
+
+  it('blocks booking when slot is < 5 minutes away', () => {
+    // now = 10:56 MMT = 04:26 UTC; slot 11:00 MMT = 04:30 UTC → 4 min away
+    const now = new Date('2026-06-01T04:26:00.000Z')
+    expect(isSlotBookable('2026-06-01', 11, now)).toBe(false)
+  })
+
+  it('blocks booking for a slot that has already started', () => {
+    // now = 11:30 MMT = 05:00 UTC; slot 11:00 MMT = 04:30 UTC → past
+    const now = new Date('2026-06-01T05:00:00.000Z')
+    expect(isSlotBookable('2026-06-01', 11, now)).toBe(false)
+  })
+
+  it('allows booking exactly at the 5-minute boundary', () => {
+    // now = 10:55 MMT = 04:25 UTC; slot 11:00 MMT = 04:30 UTC → exactly 5 min
+    const now = new Date('2026-06-01T04:25:00.000Z')
+    expect(isSlotBookable('2026-06-01', 11, now)).toBe(true)
   })
 })
 

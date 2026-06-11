@@ -8,6 +8,7 @@ export const OPEN_HOUR = 6 // first slot starts 06:00
 export const CLOSE_HOUR = 22 // last slot ends 22:00 (last start = 21:00)
 export const DEPOSIT_PER_SLOT = 10000
 export const CANCEL_WINDOW_HOURS = 12
+export const BOOKING_LEAD_MINUTES = 5
 
 export const TIER_PRICE = {
   morning: 20000, // weekday 06:00–14:00
@@ -88,10 +89,11 @@ export function canCancel(bookingDate: string, hourStart: number, now: Date = ne
 // Myanmar is UTC+6:30. Converts a "date + hour" in Myanmar local time to UTC ms.
 const MYANMAR_OFFSET_MS = (6 * 60 + 30) * 60 * 1000
 
-// Returns false when the slot start time has already passed (slotStart <= now).
-// A slot is bookable only if its start time is strictly in the future.
+// Returns false when the slot start is fewer than BOOKING_LEAD_MINUTES away.
+// 5-minute buffer: prevents last-second bookings; still allows same-hour-next-slot booking
+// (e.g. booking 11:00 at 10:30 is fine — 30 min > 5 min threshold).
 export function isSlotBookable(dateISO: string, hourStart: number, now: Date = new Date()): boolean {
   const { y, m, d } = parseYmd(dateISO)
   const slotStartUTC = Date.UTC(y, m - 1, d, hourStart, 0, 0) - MYANMAR_OFFSET_MS
-  return slotStartUTC > now.getTime()
+  return slotStartUTC - now.getTime() >= BOOKING_LEAD_MINUTES * 60_000
 }

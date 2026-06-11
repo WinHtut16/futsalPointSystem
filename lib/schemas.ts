@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
+import { MAX_SLOTS } from '@/lib/booking'
 
 const uuid = z.string().uuid('Invalid id format.')
 const myanmarPhone = z.string().regex(/^09\d{7,9}$/, 'Enter a valid Myanmar phone number (e.g. 09XXXXXXXXX).')
@@ -85,7 +86,7 @@ export const CreateBookingSchema = z.object({
   slots: z
     .array(z.number().int().min(6, 'Invalid slot.').max(21, 'Invalid slot.'))
     .min(1, 'Select at least one slot.')
-    .max(2, 'Maximum 2 slots per booking.')
+    .max(MAX_SLOTS, `Maximum ${MAX_SLOTS} slots per booking.`)
     .refine((arr) => new Set(arr).size === arr.length, { message: 'Duplicate slots.' }),
   override_request: z.boolean().optional(),
 })
@@ -105,7 +106,7 @@ export const AdminCreateBookingSchema = z
     slots: z
       .array(z.number().int().min(6, 'Invalid slot.').max(21, 'Invalid slot.'))
       .min(1, 'Select at least one slot.')
-      .max(2, 'Maximum 2 slots per booking.')
+      .max(MAX_SLOTS, `Maximum ${MAX_SLOTS} slots per booking.`)
       .refine((arr) => new Set(arr).size === arr.length, { message: 'Duplicate slots.' }),
     deposit_total: z
       .number({ message: 'Deposit must be a number.' })

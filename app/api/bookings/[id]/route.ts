@@ -51,7 +51,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       if (!canCancel(booking.booking_date, slots[0].hour_start)) {
         return NextResponse.json(
           { error: 'Cancellation window has closed. Contact staff to cancel.' },
-          { status: 409 }
+          { status: 400 }
         )
       }
     }
