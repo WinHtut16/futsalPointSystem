@@ -15,6 +15,7 @@ export type DashboardBooking = {
   refCode: string
   deposit: string
   canCancel: boolean
+  isPast?: boolean
 }
 
 export default function BookingsDashboard({

@@ -136,6 +136,7 @@ export const bookingEN = {
   'booking.status.pending': 'Pending',
   'booking.status.closed': 'Closed',
   'booking.status.cancelled': 'Cancelled',
+  'booking.status.completed': 'Completed',
 
   // News
   'booking.news.title': 'News & promotions',
@@ -473,6 +474,7 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.status.pending': 'စောင့်ဆိုင်း',
   'booking.status.closed': 'ပိတ်',
   'booking.status.cancelled': 'ဖျက်ပြီး',
+  'booking.status.completed': 'ပြီးဆုံးပြီ',
 
   // News
   'booking.news.title': 'သတင်း & ပရိုမိုးရှင်း',

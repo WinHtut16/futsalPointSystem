@@ -16,13 +16,21 @@ export const dynamic = 'force-dynamic'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-function todayYangon(): string {
+const MYANMAR_OFFSET_MS = (6 * 60 + 30) * 60 * 1000
+const GRACE_MS = 2 * 60 * 60 * 1000
+
+function yangonDate(offsetDays = 0): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Yangon',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).format(new Date())
+  }).format(new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000))
+}
+
+function slotEndUTCMs(dateISO: string, lastHour: number): number {
+  const [y, m, d] = dateISO.split('-').map(Number)
+  return Date.UTC(y, m - 1, d, lastHour + 1, 0, 0) - MYANMAR_OFFSET_MS
 }
 
 const FEED_LIMIT = 20
@@ -46,7 +54,7 @@ export default async function AccountPage({
   const supabase = await createClient()
   const svc = createServiceClient()
 
-  const today = todayYangon()
+  const yesterday = yangonDate(-1)
 
   // Run all queries in parallel.
   // Stats: all txns (lightweight — just points_delta) for earned/redeemed totals.
@@ -64,7 +72,7 @@ export default async function AccountPage({
         .select('id, status, booking_date, deposit_total, ref, booking_slots(hour_start)')
         .eq('customer_id', profile.id)
         .in('status', ['pending', 'confirmed'])
-        .gte('booking_date', today)
+        .gte('booking_date', yesterday)
         .order('booking_date', { ascending: true })
         .then((r) => r, () => ({ data: null, error: null })),
 
@@ -103,16 +111,26 @@ export default async function AccountPage({
   const initialPendingMap: Record<string, string> = {}
   pendingRequests.data?.forEach((r) => { initialPendingMap[r.reward_id] = r.id })
 
-  // Upcoming bookings
+  // Upcoming bookings (includes yesterday to catch 2-hour grace window)
   let upcoming: DashboardBooking[] = []
+  const nowMs = Date.now()
   try {
     const rows = (upcomingRes.data ?? []) as FeedBookingRow[]
-    upcoming = rows.map((r) => {
+    upcoming = rows.reduce<DashboardBooking[]>((acc, r) => {
       const hours = (r.booking_slots ?? []).map((s) => s.hour_start).sort((a, b) => a - b)
       const timeLabel =
         hours.length > 0 ? `${pad(hours[0])}:00 – ${pad(hours[hours.length - 1] + 1)}:00` : '—'
       const earliest = hours.length > 0 ? hours[0] : 0
-      return {
+      const lastHour = hours.length > 0 ? hours[hours.length - 1] : 23
+
+      const slotEnd = slotEndUTCMs(r.booking_date, lastHour)
+      const slotEnded = slotEnd <= nowMs
+      const inGrace = slotEnded && slotEnd + GRACE_MS > nowMs
+
+      // Exclude bookings past the 2-hour grace window
+      if (slotEnded && !inGrace) return acc
+
+      acc.push({
         id: r.id,
         status: r.status as BookingStatus,
         dateLabel: formatDate(r.booking_date),
@@ -122,14 +140,21 @@ export default async function AccountPage({
         canCancel:
           (r.status === 'confirmed' || r.status === 'pending') &&
           canCancel(r.booking_date, earliest),
-      }
-    })
+        isPast: slotEnded,
+      })
+      return acc
+    }, [])
   } catch {
     // Booking tables not yet migrated — degrade gracefully.
   }
 
-  // Feed items for history tab
-  const histBookings = (histBookingsRes.data ?? []) as FeedBookingRow[]
+  // Feed items for history tab — exclude non-cancelled bookings still within the 2-hour grace window
+  const histBookings = ((histBookingsRes.data ?? []) as FeedBookingRow[]).filter(r => {
+    if (r.status === 'cancelled') return true
+    const hours = (r.booking_slots ?? []).map(s => s.hour_start)
+    const lastHour = hours.length > 0 ? Math.max(...hours) : 23
+    return slotEndUTCMs(r.booking_date, lastHour) + GRACE_MS <= nowMs
+  })
   const histTxns = (histTxnsRes.data ?? []) as unknown as FeedTxnRow[]
 
   const bookingFeedItems = histBookings.map(buildBookingFeedItem)

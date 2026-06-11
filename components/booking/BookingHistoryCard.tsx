@@ -15,6 +15,8 @@ const chip: Record<BookingStatus, string> = {
   cancelled: 'pill-booked',
 }
 
+const COMPLETED_CHIP = 'pill-closed'
+
 export default function BookingHistoryCard({
   id,
   status,
@@ -23,6 +25,7 @@ export default function BookingHistoryCard({
   refCode,
   deposit,
   canCancel,
+  isPast = false,
 }: {
   id: string
   status: BookingStatus
@@ -31,6 +34,7 @@ export default function BookingHistoryCard({
   refCode: string
   deposit: string
   canCancel: boolean
+  isPast?: boolean
 }) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
@@ -39,6 +43,7 @@ export default function BookingHistoryCard({
   const [showDetails, setShowDetails] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const effective: BookingStatus = cancelled ? 'cancelled' : status
+  const showCompleted = isPast && effective === 'confirmed'
 
   async function cancel() {
     if (!canCancel || busy) return
@@ -65,9 +70,9 @@ export default function BookingHistoryCard({
               <Clock size={12} /> <span className="font-fbmono">{timeLabel}</span>
             </div>
           </div>
-          <span className={`fb-chip ${chip[effective]} px-2.5 py-1`}>
+          <span className={`fb-chip ${showCompleted ? COMPLETED_CHIP : chip[effective]} px-2.5 py-1`}>
             <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            <span className={my}>{t(`booking.status.${effective}` as never)}</span>
+            <span className={my}>{showCompleted ? t('booking.status.completed' as never) : t(`booking.status.${effective}` as never)}</span>
           </span>
         </div>
 
@@ -81,7 +86,15 @@ export default function BookingHistoryCard({
           </div>
         </div>
 
-        {effective !== 'cancelled' && effective !== 'closed' && (
+        {isPast || effective === 'cancelled' || effective === 'closed' ? (
+          <button
+            type="button"
+            onClick={() => setShowDetails(true)}
+            className="fb-btn fb-btn-ghost mt-3 w-full !py-2.5 !text-xs"
+          >
+            <Receipt size={13} /> <span className={my}>{t('booking.dash.details')}</span>
+          </button>
+        ) : (
           <div className="mt-3 flex gap-2">
             <button
               type="button"
@@ -101,16 +114,6 @@ export default function BookingHistoryCard({
               <Receipt size={13} /> <span className={my}>{t('booking.dash.details')}</span>
             </button>
           </div>
-        )}
-
-        {(effective === 'cancelled' || effective === 'closed') && (
-          <button
-            type="button"
-            onClick={() => setShowDetails(true)}
-            className="fb-btn fb-btn-ghost mt-3 w-full !py-2.5 !text-xs"
-          >
-            <Receipt size={13} /> <span className={my}>{t('booking.dash.details')}</span>
-          </button>
         )}
       </div>
 
