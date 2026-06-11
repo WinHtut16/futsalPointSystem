@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Plus, Check, Search, AlertTriangle } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { dayHours, MAX_SLOTS, DEPOSIT_PER_SLOT } from '@/lib/booking'
@@ -220,7 +221,7 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
     }
   }
 
-  if (!isOpen) return null
+  if (!isOpen || typeof document === 'undefined') return null
 
   function slotTileClass(slot: SlotInfo): string {
     const selected = selectedHours.includes(slot.hour)
@@ -232,16 +233,18 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
     return 'bg-white border-gray-200 text-gray-700 cursor-pointer hover:border-primary'
   }
 
-  return (
+  return createPortal(
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
+      {/* Backdrop — portaled to body so it covers navbar and sidebar */}
+      <div className="fixed inset-0 z-[200] bg-black/50" onClick={onClose} />
 
       {/* Panel: bottom sheet on mobile, centered modal on desktop */}
+      {/* Outer — positioning + rounded corners + shadow. NO overflow-y-auto here to prevent corner clipping. */}
       <div
-        onWheel={(e) => e.stopPropagation()}
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white shadow-xl md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-[580px] md:max-h-[90vh] md:rounded-xl"
+        className="fixed inset-x-0 bottom-0 z-[201] overflow-hidden rounded-t-2xl bg-white shadow-xl md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-[580px] md:rounded-xl"
       >
+        {/* Inner — scroll container separate from the rounded outer shell */}
+        <div className="flex max-h-[90vh] flex-col overflow-y-auto" onWheel={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
           <h2 className="text-base font-bold text-gray-900">
@@ -493,7 +496,9 @@ export default function AdminNewBookingPanel({ isOpen, onClose, onSuccess }: Pro
             {t('booking.admin.createBooking' as never)}
           </button>
         </div>
+        </div>{/* end inner scroll container */}
       </div>
-    </>
+    </>,
+    document.body
   )
 }
