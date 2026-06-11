@@ -152,7 +152,6 @@ export default async function AccountPage() {
           phone={profile.phone}
           upcoming={upcoming}
           rewards={rewards}
-          userPoints={profile.total_points}
           initialPendingMap={initialPendingMap}
           initialFeeds={initialFeeds}
           initialHasMore={initialHasMore}

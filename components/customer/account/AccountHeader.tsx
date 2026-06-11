@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Award, Phone, LogOut, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { useRealtimePoints } from '@/hooks/useRealtimePoints'
 import { toMyDigits } from '@/lib/utils'
 
 function initials(name: string) {
@@ -18,20 +17,16 @@ const MY_MONTHS = ['ဇန်နဝါရီ', 'ဖေဖော်ဝါရီ',
 interface AccountHeaderProps {
   name: string
   userId: string
-  initialPoints: number
-  initialUpdatedAt: string
+  points: number
   earned: number
   redeemed: number
   joinedISO: string
   phone?: string | null
 }
 
-// Compact identity + flat points strip (no tiers). Points stay live via
-// useRealtimePoints (profile-points-${userId}) with updated_at ordering guard.
-export default function AccountHeader({ name, userId, initialPoints, initialUpdatedAt, earned, redeemed, joinedISO, phone }: AccountHeaderProps) {
+export default function AccountHeader({ name, userId, points, earned, redeemed, joinedISO, phone }: AccountHeaderProps) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
-  const points = useRealtimePoints(userId, initialPoints, initialUpdatedAt)
   const router = useRouter()
 
   async function handleSignOut() {

@@ -12,6 +12,7 @@ import UnifiedTimeline, { type FeedItem } from './UnifiedTimeline'
 import BookingHistoryCard from '@/components/booking/BookingHistoryCard'
 import type { DashboardBooking } from '@/components/booking/BookingsDashboard'
 import RewardsGrid from '@/components/customer/RewardsGrid'
+import { useRealtimePoints } from '@/hooks/useRealtimePoints'
 
 type Tab = 'upcoming' | 'history' | 'rewards'
 type Filter = 'all' | 'bookings' | 'points'
@@ -28,7 +29,6 @@ interface UnifiedAccountProps {
   phone?: string | null
   upcoming: DashboardBooking[]
   rewards: Reward[]
-  userPoints: number
   initialPendingMap: Record<string, string>
   initialFeeds: { all: FeedItem[]; bookings: FeedItem[]; points: FeedItem[] }
   initialHasMore: { all: boolean; bookings: boolean; points: boolean }
@@ -37,6 +37,7 @@ interface UnifiedAccountProps {
 export default function UnifiedAccount(props: UnifiedAccountProps) {
   const { t, lang } = useLanguage()
   const router = useRouter()
+  const livePoints = useRealtimePoints(props.userId, props.initialPoints, props.initialUpdatedAt)
   const my = lang === 'my' ? 'my' : ''
   const [tab, setTab] = useState<Tab>('upcoming')
   const [filter, setFilter] = useState<Filter>('all')
@@ -110,8 +111,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
       <AccountHeader
         name={props.name}
         userId={props.userId}
-        initialPoints={props.initialPoints}
-        initialUpdatedAt={props.initialUpdatedAt}
+        points={livePoints}
         earned={props.earned}
         redeemed={props.redeemed}
         joinedISO={props.joinedISO}
@@ -170,7 +170,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
               </div>
               <div className="flex-1">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-display text-2xl font-extrabold tracking-tight text-ink-primary">{props.userPoints.toLocaleString('en-US')}</span>
+                  <span className="font-display text-2xl font-extrabold tracking-tight text-ink-primary">{livePoints.toLocaleString('en-US')}</span>
                   <span className={`text-xs text-ink-muted ${my}`}>{t('account.pointsAvailable')}</span>
                 </div>
               </div>
@@ -182,7 +182,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
               <RewardsGrid
                 rewards={props.rewards}
                 userId={props.userId}
-                userPoints={props.userPoints}
+                userPoints={livePoints}
                 initialPendingMap={props.initialPendingMap}
               />
             </div>
