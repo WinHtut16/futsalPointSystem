@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { priceForHour, depositFor, formatHourRange, isWeekendRate, DEPOSIT_PER_SLOT } from '@/lib/booking'
+import { openViber } from '@/lib/viber'
 
 const WD_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const WD_MY = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ']
@@ -289,7 +290,7 @@ export default function ConfirmFlow({
             {t('booking.confirm.notifyUs')}
           </div>
 
-          <a href={VIBER_URL} className="fb-card flex items-center gap-3.5 p-4">
+          <a href={VIBER_URL} onClick={(e) => { e.preventDefault(); openViber() }} className="fb-card flex items-center gap-3.5 p-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] text-white" style={{ background: 'oklch(0.45 0.18 295)' }}>
               <MessageCircle size={20} />
             </div>
@@ -371,7 +372,7 @@ export default function ConfirmFlow({
           </div>
 
           <div className="mt-5 flex gap-2.5">
-            <a href={VIBER_URL} className="fb-btn fb-btn-ghost flex-1">
+            <a href={VIBER_URL} onClick={(e) => { e.preventDefault(); openViber() }} className="fb-btn fb-btn-ghost flex-1">
               <MessageCircle size={14} /> <span className={my}>{t('booking.confirm.openViber')}</span>
             </a>
             <a href="/account" className="fb-btn fb-btn-primary flex-1">

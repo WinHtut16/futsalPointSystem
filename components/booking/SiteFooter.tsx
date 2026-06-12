@@ -4,18 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Phone, MapPin, Clock, MessageCircle, ExternalLink, Bus } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { openViber } from '@/lib/viber'
 
 const VIBER_DEEP = 'viber://chat?number=%2B959797272000'
-const VIBER_MOBILE = 'https://invite.viber.com/?number=%2B959797272000'
-
-function handleViberClick(e: React.MouseEvent) {
-  e.preventDefault()
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-  // On mobile: invite.viber.com detects the device, opens the app if installed,
-  // or redirects to the App Store / Play Store if not — avoids iOS "Request Unavailable".
-  // On desktop: deep link works when Viber desktop is installed.
-  window.location.href = isMobile ? VIBER_MOBILE : VIBER_DEEP
-}
 
 export default function SiteFooter() {
   const { t, lang } = useLanguage()
@@ -47,7 +38,7 @@ export default function SiteFooter() {
               <Phone size={14} />
               <span className="font-fbmono">+95 9 797 272000</span>
             </a>
-            <a href={VIBER_DEEP} onClick={handleViberClick} className={btnCls}>
+            <a href={VIBER_DEEP} onClick={(e) => { e.preventDefault(); openViber() }} className={btnCls}>
               <MessageCircle size={14} />
               <span>Viber</span>
             </a>
