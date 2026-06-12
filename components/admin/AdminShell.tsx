@@ -78,7 +78,7 @@ export default function AdminShell({
         style={{ '--sidebar-w': `${sidebarW}px` } as React.CSSProperties}
       >
         {/* topbar */}
-        <header className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5 shadow-sm">
           <button
             type="button"
             onClick={() => setDrawer(true)}
