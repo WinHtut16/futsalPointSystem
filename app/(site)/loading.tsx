@@ -1,10 +1,8 @@
-import SiteNavbar from '@/components/booking/SiteNavbar'
 import BottomNav from '@/components/booking/BottomNav'
 
 export default function HomeLoading() {
   return (
     <>
-      <SiteNavbar active="home" />
       <div className="animate-pulse">
         {/* Hero */}
         <div className="relative h-[460px] bg-surface-alt md:h-[520px]">

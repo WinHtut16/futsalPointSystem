@@ -1,10 +1,8 @@
-import SiteNavbar from '@/components/booking/SiteNavbar'
 import BottomNav from '@/components/booking/BottomNav'
 
 export default function BookingsLoading() {
   return (
     <>
-      <SiteNavbar active="dashboard" />
       <div className="mx-auto max-w-2xl animate-pulse px-4 py-6">
         <div className="h-44 rounded-[var(--r-xl)] bg-surface-alt" />
         <div className="mt-5 flex gap-6">

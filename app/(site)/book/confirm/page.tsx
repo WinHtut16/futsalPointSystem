@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { MAX_SLOTS } from '@/lib/booking'
-import SiteNavbar from '@/components/booking/SiteNavbar'
 import ConfirmFlow from '@/components/booking/ConfirmFlow'
 
 export const dynamic = 'force-dynamic'
@@ -88,11 +87,8 @@ export default async function ConfirmPage({
   if (!user) redirect(`/login?next=${encodeURIComponent(self)}`)
 
   return (
-    <>
-      <SiteNavbar active="booking" mobileTitle="Confirm booking" back />
-      <div className="mx-auto max-w-xl md:py-6">
-        <ConfirmFlow bookings={bookings} />
-      </div>
-    </>
+    <div className="mx-auto max-w-xl md:py-6">
+      <ConfirmFlow bookings={bookings} />
+    </div>
   )
 }

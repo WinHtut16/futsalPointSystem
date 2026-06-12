@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Calendar, ArrowRight, Star, Shield, Sun, LogOut } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import SiteNavbar from './SiteNavbar'
 import BottomNav from './BottomNav'
 import SiteFooter from './SiteFooter'
 import PitchHero from './PitchHero'
@@ -46,8 +45,6 @@ export default function HomeContent({ posts, loggedOut = false }: { posts: NewsP
           {t('auth.loggedOutToast')}
         </div>
       )}
-
-      <SiteNavbar active="home" />
 
       <PitchHero height={460} className="md:h-[520px]">
         <div className="relative flex h-full flex-col justify-end p-5 md:max-w-2xl md:justify-center md:p-16">

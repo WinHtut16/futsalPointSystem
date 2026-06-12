@@ -2,7 +2,6 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { isThingyan } from '@/lib/booking'
 import { isHoliday, getHolidayName } from '@/lib/holidays'
-import SiteNavbar from '@/components/booking/SiteNavbar'
 import BookingView, { type DayInfo } from '@/components/booking/BookingView'
 import type { CalendarData } from '@/components/booking/BookingCalendar'
 
@@ -107,7 +106,6 @@ export default async function BookPage({
 
   return (
     <>
-      <SiteNavbar active="booking" mobileTitle={undefined} back />
       <div className="animate-page-in mx-auto max-w-6xl md:px-16 md:py-8">
         <BookingView
           key={`${year}-${monthIdx}`}

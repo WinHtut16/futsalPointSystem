@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, ChevronLeft, User } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
 import BookingLangToggle from './BookingLangToggle'
@@ -15,31 +16,62 @@ const navItems = [
   { k: 'account', href: '/account', key: 'booking.nav.account' },
 ] as const
 
-// Responsive top navigation: full bar on desktop, compact top bar on mobile.
+// Persistent top nav — rendered once in app/(site)/layout.tsx.
+// active/back/mobileTitle are derived from the current pathname so this
+// component never needs per-page props and never re-mounts on navigation.
+// initialFirstName seeds auth state server-side (no flash on first paint).
 export default function SiteNavbar({
-  active = 'home',
-  mobileTitle,
-  back = false,
+  initialFirstName,
 }: {
-  active?: string
-  mobileTitle?: string
-  back?: boolean
+  initialFirstName?: string | null
 }) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
-  const [firstName, setFirstName] = useState<string | null>(null)
-  const [hydrating, setHydrating] = useState(true)
+  const pathname = usePathname()
+
+  const active = pathname === '/' ? 'home'
+    : pathname.startsWith('/book') ? 'booking'
+    : pathname === '/news' ? 'news'
+    : pathname.startsWith('/account') ? 'account'
+    : 'home'
+  const back = pathname === '/book' || pathname.startsWith('/book/confirm')
+  const mobileTitle = pathname.startsWith('/book/confirm')
+    ? t('booking.confirm.title')
+    : pathname === '/news'
+    ? t('booking.news.title')
+    : undefined
+
+  const [firstName, setFirstName] = useState<string | null>(
+    initialFirstName !== undefined ? initialFirstName : null
+  )
+  const [hydrating, setHydrating] = useState(initialFirstName === undefined)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        const name = (user.user_metadata?.username as string | undefined) ?? user.email?.split('@')[0] ?? ''
+
+    if (initialFirstName === undefined) {
+      // Fallback for any render without server seeding (e.g. loading.tsx shim).
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          const name = (user.user_metadata?.username as string | undefined) ?? user.email?.split('@')[0] ?? ''
+          setFirstName(name.split(' ')[0] || null)
+        }
+        setHydrating(false)
+      })
+    }
+
+    // Keep in sync with login/logout events during the session.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const name = (session.user.user_metadata?.username as string | undefined) ?? session.user.email?.split('@')[0] ?? ''
         setFirstName(name.split(' ')[0] || null)
+      } else if (event === 'SIGNED_OUT') {
+        setFirstName(null)
       }
-      setHydrating(false)
     })
-  }, [])
+
+    return () => subscription.unsubscribe()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const accountHref = firstName ? '/account' : '/login'
 

@@ -5,7 +5,6 @@ import { getActiveRewards } from '@/lib/cached-queries'
 import { formatDate } from '@/lib/utils'
 import { canCancel } from '@/lib/booking'
 import { buildBookingFeedItem, buildTxnFeedItem, mergeFeed, type FeedBookingRow, type FeedTxnRow } from '@/lib/account-feed'
-import SiteNavbar from '@/components/booking/SiteNavbar'
 import BottomNav from '@/components/booking/BottomNav'
 import UnifiedAccount from '@/components/customer/account/UnifiedAccount'
 import type { DashboardBooking } from '@/components/booking/BookingsDashboard'
@@ -175,8 +174,7 @@ export default async function AccountPage({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteNavbar active="account" />
+    <div className="flex flex-col">
       <div className="mx-auto w-full max-w-2xl flex-1 pb-24 md:pb-8">
         <UnifiedAccount
           name={profile.username ?? 'Member'}

@@ -1,10 +1,8 @@
-import SiteNavbar from '@/components/booking/SiteNavbar'
 import BottomNav from '@/components/booking/BottomNav'
 
 export default function NewsLoading() {
   return (
     <>
-      <SiteNavbar active="news" />
       <div className="mx-auto max-w-6xl animate-pulse px-4 pb-24 pt-5 md:px-16 md:pt-10">
         {/* Section label — desktop only */}
         <div className="mb-5 hidden space-y-2 md:block">

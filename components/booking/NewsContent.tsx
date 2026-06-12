@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import SiteNavbar from './SiteNavbar'
 import BottomNav from './BottomNav'
 import SectionLabel from './SectionLabel'
 import NewsCardGrid, { type NewsPost } from './NewsCardGrid'
@@ -25,7 +24,6 @@ export default function NewsContent({ posts }: { posts: NewsPost[] }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteNavbar active="news" mobileTitle={t('booking.news.title')} />
       <div className={`mx-auto w-full max-w-6xl px-4 pb-4 pt-5 md:px-16 md:pt-10 ${isEmpty ? 'flex flex-1 flex-col' : 'flex-1'}`}>
         <div className="hidden md:block">
           <SectionLabel kicker={t('booking.news.title')} title={t('booking.news.whatsOn')} />
