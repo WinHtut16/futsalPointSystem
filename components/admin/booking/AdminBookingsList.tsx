@@ -693,48 +693,6 @@ export default function AdminBookingsList({
         </button>
       </div>
 
-      {/* Floating bulk-action toolbar (History tab only) */}
-      {isHistory && selected.size > 0 && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-lg">
-          <span className="mr-1 font-semibold">
-            {t('booking.admin.selectedCount' as never, { n: String(selected.size) })}
-          </span>
-          <button
-            disabled={!!bulkBusy}
-            onClick={() => setArchiveConfirmOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50"
-          >
-            <Archive className="h-3.5 w-3.5" />
-            {t('booking.admin.archiveSelected' as never)}
-          </button>
-          {isSuperAdmin && (
-            <>
-              <button
-                disabled={!!bulkBusy}
-                onClick={() => bulkAction('restore')}
-                className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                {t('booking.admin.restoreSelected' as never)}
-              </button>
-              <button
-                disabled={!!bulkBusy}
-                onClick={() => setHardDeleteConfirmOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-red-500/80 px-3 py-1.5 text-xs font-semibold hover:bg-red-500 disabled:opacity-50"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                {t('booking.admin.hardDeleteSelected' as never)}
-              </button>
-            </>
-          )}
-          <button
-            onClick={() => setSelected(new Set())}
-            className="ml-auto text-xs text-white/60 hover:text-white"
-          >
-            {t('booking.admin.clearSelection' as never)}
-          </button>
-        </div>
-      )}
 
       {successMsg && (
         <div className="rounded-xl bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-800">
@@ -898,6 +856,54 @@ export default function AdminBookingsList({
         </div>
       )}
 
+      {/* Bulk-action toolbar — appears just above the table when rows are selected */}
+      {isHistory && (
+        <div
+          className={`overflow-hidden transition-all duration-200 ${selected.size > 0 ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}
+          aria-hidden={selected.size === 0}
+        >
+          <div className="flex flex-wrap items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-lg">
+            <span className="mr-1 font-semibold">
+              {t('booking.admin.selectedCount' as never, { n: String(selected.size) })}
+            </span>
+            <button
+              disabled={!!bulkBusy}
+              onClick={() => setArchiveConfirmOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50"
+            >
+              <Archive className="h-3.5 w-3.5" />
+              {t('booking.admin.archiveSelected' as never)}
+            </button>
+            {isSuperAdmin && (
+              <>
+                <button
+                  disabled={!!bulkBusy}
+                  onClick={() => bulkAction('restore')}
+                  className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  {t('booking.admin.restoreSelected' as never)}
+                </button>
+                <button
+                  disabled={!!bulkBusy}
+                  onClick={() => setHardDeleteConfirmOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-red-500/80 px-3 py-1.5 text-xs font-semibold hover:bg-red-500 disabled:opacity-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t('booking.admin.hardDeleteSelected' as never)}
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setSelected(new Set())}
+              className="ml-auto text-xs text-white/60 hover:text-white"
+            >
+              {t('booking.admin.clearSelection' as never)}
+            </button>
+          </div>
+        </div>
+      )}
+
       {isTabPending ? (
         <>
           {/* ── Desktop skeleton (md+) ─────────────────────────────────── */}
@@ -949,9 +955,11 @@ export default function AdminBookingsList({
                   <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
                     {t('booking.admin.received')}
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                    {t('booking.admin.actions')}
-                  </th>
+                  {!isHistory && (
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                      {t('booking.admin.actions')}
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -972,14 +980,14 @@ export default function AdminBookingsList({
                     <Fragment key={b.id}>
                       {isNewGroup && (
                         <tr>
-                          <td colSpan={isHistory ? 7 : 6} className="border-t border-gray-100 bg-gray-50 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                          <td colSpan={6} className="border-t border-gray-100 bg-gray-50 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                             {dateGroupLabel(b.booking_date, todayMM, tomorrowMM)}
                           </td>
                         </tr>
                       )}
                       {isFirstGraceInGroup && (
                         <tr>
-                          <td colSpan={isHistory ? 7 : 6} className="border-t border-amber-100 bg-amber-50/50 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-amber-600">
+                          <td colSpan={6} className="border-t border-amber-100 bg-amber-50/50 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-amber-600">
                             Earlier today
                           </td>
                         </tr>
@@ -1092,45 +1100,47 @@ export default function AdminBookingsList({
                             <span className="text-xs text-gray-400">—</span>
                           )}
                         </td>
-                        {/* Actions */}
-                        <td className="px-4 py-3">
-                          {!muted && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() => setCancelConfirmId(b.id)}
-                                  disabled={isBusy}
-                                  title={t('booking.admin.cancelBooking')}
-                                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-red-500 hover:bg-red-50 disabled:opacity-40"
-                                >
-                                  {busyMap[b.id] === 'cancel' ? (
-                                    <Spinner />
-                                  ) : (
-                                    <X className="h-3.5 w-3.5" />
-                                  )}
-                                </button>
-                                {b.internal_notes && (
+                        {/* Actions (hidden on History tab) */}
+                        {!isHistory && (
+                          <td className="px-4 py-3">
+                            {!muted && (
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1">
                                   <button
-                                    onClick={() => toggleNotes(b.id)}
-                                    title="Internal notes"
-                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50"
+                                    onClick={() => setCancelConfirmId(b.id)}
+                                    disabled={isBusy}
+                                    title={t('booking.admin.cancelBooking')}
+                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-red-500 hover:bg-red-50 disabled:opacity-40"
                                   >
-                                    <ChevronDown
-                                      className={`h-3.5 w-3.5 transition-transform ${expandedNotes.has(b.id) ? 'rotate-180' : ''}`}
-                                    />
+                                    {busyMap[b.id] === 'cancel' ? (
+                                      <Spinner />
+                                    ) : (
+                                      <X className="h-3.5 w-3.5" />
+                                    )}
                                   </button>
+                                  {b.internal_notes && (
+                                    <button
+                                      onClick={() => toggleNotes(b.id)}
+                                      title="Internal notes"
+                                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50"
+                                    >
+                                      <ChevronDown
+                                        className={`h-3.5 w-3.5 transition-transform ${expandedNotes.has(b.id) ? 'rotate-180' : ''}`}
+                                      />
+                                    </button>
+                                  )}
+                                </div>
+                                {errorMap[b.id] && (
+                                  <p className="text-[10px] text-red-500">{errorMap[b.id]}</p>
                                 )}
                               </div>
-                              {errorMap[b.id] && (
-                                <p className="text-[10px] text-red-500">{errorMap[b.id]}</p>
-                              )}
-                            </div>
-                          )}
-                        </td>
+                            )}
+                          </td>
+                        )}
                       </tr>
                       {expandedNotes.has(b.id) && b.internal_notes && (
                         <tr key={`${b.id}-notes`}>
-                          <td colSpan={isHistory ? 7 : 6} className="bg-gray-50 px-4 pb-3 pt-0">
+                          <td colSpan={6} className="bg-gray-50 px-4 pb-3 pt-0">
                             <p className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
                               {b.internal_notes}
                             </p>
@@ -1146,6 +1156,18 @@ export default function AdminBookingsList({
 
           {/* ── Mobile cards (< md) ─────────────────────────────────────── */}
           <div className="space-y-3 md:hidden">
+            {/* Select-all row (History tab only) */}
+            {isHistory && displayRows.length > 0 && (
+              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 shadow-sm">
+                <input
+                  type="checkbox"
+                  checked={rows.length > 0 && selected.size === rows.length}
+                  onChange={toggleSelectAll}
+                  className="h-4 w-4 rounded border-gray-300 text-primary"
+                />
+                <span className="text-xs text-gray-400">Select all</span>
+              </div>
+            )}
             {displayRows.map((b, idx) => {
               const prevRow = displayRows[idx - 1]
               const isNewGroup = !prevRow || prevRow.booking_date !== b.booking_date
