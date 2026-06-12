@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 import RedemptionsList from '@/components/admin/RedemptionsList'
 import T from '@/components/ui/T'
 import type { RedemptionRequest } from '@/types'
 
 export default async function AdminRedemptionsPage() {
-  const supabase = await createClient()
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentUser()])
 
   const SELECT_QUERY =
     '*, reward:rewards(name, points_cost), customer:profiles!customer_id(username, phone, total_points)'
@@ -20,7 +21,7 @@ export default async function AdminRedemptionsPage() {
       .select(SELECT_QUERY)
       .in('status', ['approved', 'rejected', 'cancelled'])
       .order('resolved_at', { ascending: false })
-      .limit(50),
+      .limit(200),
   ])
 
   return (
@@ -31,6 +32,7 @@ export default async function AdminRedemptionsPage() {
       <RedemptionsList
         initialRequests={(pending ?? []) as RedemptionRequest[]}
         initialHistory={(history ?? []) as RedemptionRequest[]}
+        isSuperAdmin={profile?.role === 'superadmin'}
       />
     </div>
   )
