@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import T from '@/components/ui/T'
@@ -636,9 +637,14 @@ export default async function AdminDashboardPage({
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">
-              <T k="admin.recentActivity" />
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-gray-700">
+                <T k="admin.recentActivity" />
+              </h2>
+              <Link href="/admin/activity" className="text-xs text-gray-400 hover:text-gray-600 font-medium">
+                <T k="admin.activitySeeAll" /> →
+              </Link>
+            </div>
             <RecentActivityFeed items={activityFeed} />
           </div>
         </div>
@@ -726,9 +732,14 @@ export default async function AdminDashboardPage({
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            <T k="admin.recentActivity" />
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-gray-700">
+              <T k="admin.recentActivity" />
+            </h2>
+            <Link href="/admin/activity" className="text-xs text-gray-400 hover:text-gray-600 font-medium">
+              <T k="admin.activitySeeAll" /> →
+            </Link>
+          </div>
           <RecentActivityFeed items={activityFeed} />
         </div>
       </div>
