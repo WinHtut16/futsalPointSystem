@@ -12,9 +12,10 @@ import { createClient } from '@/lib/supabase/client'
 
 interface PendingBookingsContextValue {
   count: number
+  loaded: boolean
 }
 
-const PendingBookingsContext = createContext<PendingBookingsContextValue>({ count: 0 })
+const PendingBookingsContext = createContext<PendingBookingsContextValue>({ count: 0, loaded: false })
 
 const POLL_INTERVAL_MS = 15_000
 
@@ -42,6 +43,7 @@ export function PendingBookingsProvider({
   children: ReactNode
 }) {
   const [count, setCount] = useState(initialCount)
+  const [loaded, setLoaded] = useState(false)
 
   const fetchCount = useCallback(async () => {
     const supabase = createClient()
@@ -71,6 +73,7 @@ export function PendingBookingsProvider({
         return slots.length === 0 || slots.some((s) => s.hour_start + 1 > nowHourFrac)
       }).length
       setCount((futureResult.count ?? 0) + todayCount)
+      setLoaded(true)
     }
   }, [])
 
@@ -139,7 +142,7 @@ export function PendingBookingsProvider({
   }, [fetchCount])
 
   return (
-    <PendingBookingsContext.Provider value={{ count }}>
+    <PendingBookingsContext.Provider value={{ count, loaded }}>
       {children}
     </PendingBookingsContext.Provider>
   )

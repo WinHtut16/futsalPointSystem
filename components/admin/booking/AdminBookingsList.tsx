@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import AdminNewBookingPanel from './AdminNewBookingPanel'
+import { usePendingBookings } from '@/contexts/PendingBookingsContext'
 import type { UserRole } from '@/types'
 
 type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'closed'
@@ -319,6 +320,7 @@ export default function AdminBookingsList({
   const tomorrowMM = getMyanmarTomorrow()
   const isSuperAdmin = role === 'superadmin'
   const isHistory = currentStatus === 'history'
+  const { count: livePendingCount, loaded: livePendingLoaded } = usePendingBookings()
 
   const [isTabPending, startTabTransition] = useTransition()
 
@@ -656,15 +658,16 @@ export default function AdminBookingsList({
   const toIdx = Math.min(page * pageSize + localExtraCount, displayTotal)
 
   const statItems = [
-    { label: t('booking.admin.statBookingsWeek' as never), value: stats.bookingsThisWeek },
+    { label: t('booking.admin.statBookingsWeek' as never), value: stats.bookingsThisWeek, isPendingCard: false },
     {
       label: t('booking.admin.statDepositsWeek' as never),
       value: stats.depositsThisWeek > 0
         ? `${stats.depositsThisWeek.toLocaleString('en-US')} MMK`
         : '0 MMK',
+      isPendingCard: false,
     },
-    { label: t('booking.admin.statPending' as never), value: stats.pendingCount },
-    { label: t('booking.admin.statCustomers' as never), value: stats.totalCustomers },
+    { label: t('booking.admin.statPending' as never), value: stats.pendingCount, isPendingCard: true },
+    { label: t('booking.admin.statCustomers' as never), value: stats.totalCustomers, isPendingCard: false },
   ]
 
   return (
@@ -741,12 +744,57 @@ export default function AdminBookingsList({
 
       {/* Stats bar */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {statItems.map(({ label, value }) => (
-          <div key={label} className="rounded-2xl bg-white p-4 shadow-sm">
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="mt-0.5 text-xs text-gray-500">{label}</p>
-          </div>
-        ))}
+        {statItems.map(({ label, value, isPendingCard }) => {
+          if (isPendingCard) {
+            const displayCount = livePendingLoaded ? livePendingCount : null
+            const isWarning = displayCount !== null && displayCount >= 1 && displayCount < 5
+            const isUrgent = displayCount !== null && displayCount >= 5
+            return (
+              <div
+                key={label}
+                className={[
+                  'rounded-2xl p-4 shadow-sm transition-all duration-200',
+                  isUrgent
+                    ? 'border border-red-300 bg-red-50'
+                    : isWarning
+                    ? 'border border-amber-300 bg-amber-50'
+                    : 'bg-white',
+                ].join(' ')}
+              >
+                {displayCount === null ? (
+                  <div className="mb-1 h-8 w-12 animate-pulse rounded bg-gray-200" />
+                ) : (
+                  <p
+                    className={[
+                      'text-2xl font-bold transition-colors duration-200',
+                      isUrgent
+                        ? 'animate-pulse-number text-red-700'
+                        : isWarning
+                        ? 'text-amber-700'
+                        : 'text-gray-900',
+                    ].join(' ')}
+                  >
+                    {displayCount}
+                  </p>
+                )}
+                <p
+                  className={[
+                    'mt-0.5 text-xs transition-colors duration-200',
+                    isUrgent ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-gray-500',
+                  ].join(' ')}
+                >
+                  {label}
+                </p>
+              </div>
+            )
+          }
+          return (
+            <div key={label} className="rounded-2xl bg-white p-4 shadow-sm">
+              <p className="text-2xl font-bold text-gray-900">{value}</p>
+              <p className="mt-0.5 text-xs text-gray-500">{label}</p>
+            </div>
+          )
+        })}
       </div>
 
       {/* Status filter tabs */}

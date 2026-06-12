@@ -226,6 +226,35 @@ export const adminEN = {
   'admin.searchByNameOrPhone': 'Search by name or phone…',
   'admin.noHistory': 'No resolved requests yet.',
   'admin.historySection': 'History',
+
+  // Dashboard redesign v2 — Bookings section KPIs + charts
+  'admin.dashBookingsSection': 'Bookings',
+  'admin.dashBookingsWeek': 'Bookings this week',
+  'admin.dashRevenueMonth': 'Revenue this month',
+  'admin.dashAwaitingConf': 'Awaiting confirmation',
+  'admin.dashFirstInQueue': 'First in queue',
+  'admin.dashCourtUtil': 'Court utilization',
+  'admin.dashPeakHours': 'Peak booking hours',
+  // Dashboard redesign v2 — Loyalty section
+  'admin.dashLoyaltySection': 'Loyalty',
+  'admin.dashTotalRedeemedAllTime': 'Total redeemed',
+  // Dashboard redesign v2 — Activity feed
+  'admin.dashEvtBookingConfirmed': 'Booking confirmed',
+  'admin.dashEvtBookingPending': 'New booking request',
+  'admin.dashEvtRedemptionApproved': 'Reward redeemed',
+  'admin.dashEvtRedemptionRejected': 'Request declined',
+  'admin.dashEvtNewCustomer': 'New member joined',
+  'admin.dashNoRecentActivity': 'No recent activity',
+  'admin.dashJustNow': 'just now',
+  // Dashboard period filter — generic labels
+  'admin.dashBookings': 'Bookings',
+  'admin.dashRevenue': 'Revenue',
+  'admin.dashAllTime': 'All time',
+  'admin.dashOverviewSection': 'Overview',
+  'admin.dashTotalCustomers': 'Total customers',
+  'admin.dashJoinedPeriod': '{count} joined in {period}',
+  'admin.dashMostRedeemedRewards': 'Most redeemed rewards',
+  'admin.dashNoRedemptions': 'No rewards redeemed yet',
 } as const
 
 export const adminMY: { [K in keyof typeof adminEN]: string } = {
@@ -417,4 +446,33 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.searchByNameOrPhone': 'နာမည် သို့ ဖုန်းဖြင့် ရှာပါ…',
   'admin.noHistory': 'ပြင်ဆင်ပြီးသော တောင်းဆိုမှု မရှိသေးပါ။',
   'admin.historySection': 'မှတ်တမ်း',
+
+  // Dashboard redesign v2 — Bookings section
+  'admin.dashBookingsSection': 'ဘွတ်ကင်များ',
+  'admin.dashBookingsWeek': 'ဤအပတ် ဘွတ်ကင်',
+  'admin.dashRevenueMonth': 'ဤလ ဝင်ငွေ',
+  'admin.dashAwaitingConf': 'အတည်ပြုရန် စောင့်ဆိုင်း',
+  'admin.dashFirstInQueue': 'ပထမဆုံး',
+  'admin.dashCourtUtil': 'ကွင်း အသုံးချမှု',
+  'admin.dashPeakHours': 'ဘွတ်ကင်အများဆုံး အချိန်',
+  // Dashboard redesign v2 — Loyalty section
+  'admin.dashLoyaltySection': 'ပွိုင့်',
+  'admin.dashTotalRedeemedAllTime': 'စုစုပေါင်း ရယူပြီး',
+  // Dashboard redesign v2 — Activity feed
+  'admin.dashEvtBookingConfirmed': 'ဘွတ်ကင် အတည်ပြုပြီး',
+  'admin.dashEvtBookingPending': 'ဘွတ်ကင် တောင်းဆိုမှု',
+  'admin.dashEvtRedemptionApproved': 'ဆုလာဘ် ရယူပြီး',
+  'admin.dashEvtRedemptionRejected': 'တောင်းဆိုမှု ငြင်းပယ်',
+  'admin.dashEvtNewCustomer': 'အဖွဲ့ဝင်သစ်',
+  'admin.dashNoRecentActivity': 'မကြာမီ လှုပ်ရှားမှု မရှိသေး',
+  'admin.dashJustNow': 'ယခုပဲ',
+  // Dashboard period filter — generic labels
+  'admin.dashBookings': 'ဘွတ်ကင်',
+  'admin.dashRevenue': 'ဝင်ငွေ',
+  'admin.dashAllTime': 'စုစုပေါင်း',
+  'admin.dashOverviewSection': 'ခြုံငုံသုံးသပ်',
+  'admin.dashTotalCustomers': 'ဖောက်သည် စုစုပေါင်း',
+  'admin.dashJoinedPeriod': '{count} ဦး {period} တွင် ဝင်ရောက်',
+  'admin.dashMostRedeemedRewards': 'အများဆုံး ရယူသောဆုလာဘ်',
+  'admin.dashNoRedemptions': 'မည်သည့်ဆုလာဘ်မှ ရယူမထားသေး',
 }
