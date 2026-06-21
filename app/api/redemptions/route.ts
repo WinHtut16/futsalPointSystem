@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('redemption_requests')
-      .insert({ customer_id: customer.id, reward_id, status: 'pending' })
+      .insert({ customer_id: customer.id, reward_id, status: 'pending', points_cost_snapshot: reward.points_cost })
       .select()
       .single()
 
