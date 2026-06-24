@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
-import { requireSuperAdmin } from '@/lib/auth'
+import { requireAnyAdmin } from '@/lib/auth'
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -13,7 +13,7 @@ const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 export async function POST(request: NextRequest) {
   try {
-    await requireSuperAdmin()
+    await requireAnyAdmin()
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

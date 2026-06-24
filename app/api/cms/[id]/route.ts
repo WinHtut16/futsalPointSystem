@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireSuperAdmin } from '@/lib/auth'
+import { requireAnyAdmin } from '@/lib/auth'
 import { CmsPostSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireSuperAdmin()
+    await requireAnyAdmin()
   } catch (error) {
     if (error instanceof Error && error.message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
@@ -70,7 +70,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireSuperAdmin()
+    await requireAnyAdmin()
   } catch (error) {
     if (error instanceof Error && error.message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })

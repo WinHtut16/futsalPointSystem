@@ -30,7 +30,7 @@ const NAV: NavGroup[] = [
     { href: '/admin/customers', labelKey: 'admin.navCustomers', Icon: Users },
   ] },
   { labelKey: 'admin.groupContent', items: [
-    { href: '/admin/cms', labelKey: 'admin.navNews', Icon: FileText, superadmin: true },
+    { href: '/admin/cms', labelKey: 'admin.navNews', Icon: FileText },
     { href: '/admin/staff', labelKey: 'admin.navStaff', Icon: ShieldCheck, superadmin: true },
   ] },
 ]

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireSuperAdmin } from '@/lib/auth'
+import { requireAnyAdmin } from '@/lib/auth'
 import { CmsPostSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   let admin
   try {
-    admin = await requireSuperAdmin()
+    admin = await requireAnyAdmin()
   } catch (error) {
     if (error instanceof Error && error.message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })

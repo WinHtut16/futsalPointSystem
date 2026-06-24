@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation'
-import { requireSuperAdmin } from '@/lib/auth'
+import { requireAnyAdmin } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import CmsPostForm, { type CmsPostInput } from '@/components/admin/booking/CmsPostForm'
 
 export const dynamic = 'force-dynamic'
 
 export default async function EditCmsPostPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireSuperAdmin()
+  await requireAnyAdmin()
   const { id } = await params
 
   const supabase = createServiceClient()

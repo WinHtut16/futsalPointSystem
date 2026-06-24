@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { requireSuperAdmin } from '@/lib/auth'
+import { requireAnyAdmin } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import CmsPostList, { type CmsPostRow } from '@/components/admin/booking/CmsPostList'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminCmsPage() {
-  await requireSuperAdmin()
+  await requireAnyAdmin()
 
   let rows: CmsPostRow[] = []
   try {
