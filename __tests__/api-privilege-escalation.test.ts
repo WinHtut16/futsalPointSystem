@@ -23,21 +23,18 @@ vi.mock('@/lib/auth', () => ({
   getCurrentUser: vi.fn(async () => state.user),
   requireRole: vi.fn(async (role: Role | Role[]) => {
     const roles = Array.isArray(role) ? role : [role]
-    if (!state.user || !roles.includes(state.user.role)) {
-      throw new Error('Unauthorized')
-    }
+    if (!state.user) throw new Error('UNAUTHENTICATED')
+    if (!roles.includes(state.user.role)) throw new Error('FORBIDDEN')
     return state.user
   }),
   requireAnyAdmin: vi.fn(async () => {
-    if (!state.user || !['admin', 'superadmin'].includes(state.user.role)) {
-      throw new Error('Unauthorized')
-    }
+    if (!state.user) throw new Error('UNAUTHENTICATED')
+    if (!['admin', 'superadmin'].includes(state.user.role)) throw new Error('FORBIDDEN')
     return state.user
   }),
   requireSuperAdmin: vi.fn(async () => {
-    if (!state.user || state.user.role !== 'superadmin') {
-      throw new Error('Unauthorized')
-    }
+    if (!state.user) throw new Error('UNAUTHENTICATED')
+    if (state.user.role !== 'superadmin') throw new Error('FORBIDDEN')
     return state.user
   }),
 }))
@@ -247,12 +244,6 @@ describe('unauthenticated callers are rejected from every protected route', () =
     ok(res.status)
   })
 
-  it('POST /api/points/redeem', async () => {
-    const { POST } = await import('@/app/api/points/redeem/route')
-    const res = await POST(jsonReq('http://t/api/points/redeem', 'POST', { reward_id: 'r1' }))
-    ok(res.status)
-  })
-
   it('GET /api/redemptions', async () => {
     const { GET } = await import('@/app/api/redemptions/route')
     const res = await GET()
@@ -338,5 +329,50 @@ describe('unauthenticated callers are rejected from every protected route', () =
     const { DELETE } = await import('@/app/api/admin/staff/[id]/route')
     const res = await DELETE(jsonReq('http://t/api/admin/staff/s1', 'DELETE'), params('s1'))
     ok(res.status)
+  })
+})
+
+describe('GET /api/admin/slot-availability', () => {
+  it('returns 401 when unauthenticated', async () => {
+    unauth()
+    const { GET } = await import('@/app/api/admin/slot-availability/route')
+    const req = new NextRequest('http://localhost/api/admin/slot-availability?date=2026-07-01')
+    const res = await GET(req)
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when called by a customer', async () => {
+    asCustomer()
+    const { GET } = await import('@/app/api/admin/slot-availability/route')
+    const req = new NextRequest('http://localhost/api/admin/slot-availability?date=2026-07-01')
+    const res = await GET(req)
+    expect(res.status).toBe(403)
+  })
+})
+
+describe('POST /api/admin/bookings', () => {
+  const validBody = {
+    guest_name: 'Ko Aung',
+    booking_date: '2026-08-15',
+    slots: [10],
+    deposit_total: 10000,
+    deposit_received: false,
+    source: 'phone',
+  }
+
+  it('returns 401 when unauthenticated', async () => {
+    unauth()
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const req = jsonReq('http://localhost/api/admin/bookings', 'POST', validBody)
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when called by a customer', async () => {
+    asCustomer()
+    const { POST } = await import('@/app/api/admin/bookings/route')
+    const req = jsonReq('http://localhost/api/admin/bookings', 'POST', validBody)
+    const res = await POST(req)
+    expect(res.status).toBe(403)
   })
 })

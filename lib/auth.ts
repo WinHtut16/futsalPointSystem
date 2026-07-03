@@ -19,9 +19,8 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> => {
 export async function requireRole(role: UserRole | UserRole[]): Promise<Profile> {
   const profile = await getCurrentUser()
   const roles = Array.isArray(role) ? role : [role]
-  if (!profile || !roles.includes(profile.role)) {
-    throw new Error('Unauthorized')
-  }
+  if (!profile) throw new Error('UNAUTHENTICATED')
+  if (!roles.includes(profile.role)) throw new Error('FORBIDDEN')
   return profile
 }
 

@@ -50,6 +50,8 @@ function makeChain() {
     single:      vi.fn(async () => next()),
     maybySingle: vi.fn(async () => next()), // Supabase SDK has two spellings in the wild
     maybeSingle: vi.fn(async () => next()), // keep both to avoid test fragility
+    // Support `await chain` for update().eq().select() returning patterns (PTS-2/PTS-7)
+    then:        vi.fn((resolve: (v: unknown) => void) => resolve(next())),
   }
   for (const m of ['select', 'eq', 'neq', 'order', 'limit', 'insert',
                    'update', 'upsert', 'delete', 'lt', 'gt']) {
@@ -105,8 +107,12 @@ beforeEach(() => {
 describe('PATCH /api/redemptions/[id] — customer cancel', () => {
   it('customer cancels own pending request → 200 {success:true}, RPC not called', async () => {
     asCustomer()
-    // Route: fetches {customer_id, status}; status=pending + customer_id matches user.id → success
-    mockQuery({ data: { status: 'pending', customer_id: CUSTOMER_ID } })
+    // Route: SELECT {customer_id, status} → status check → ownership check → UPDATE
+    // PTS-2: UPDATE uses .eq('status','pending').select('id'); non-empty result → 200
+    mockQuery(
+      { data: { status: 'pending', customer_id: CUSTOMER_ID } }, // SELECT
+      { data: [{ id: REQUEST_ID }] },                             // UPDATE returning id (1 row)
+    )
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(patch({ action: 'cancel' }), routeParams(REQUEST_ID))
@@ -114,6 +120,24 @@ describe('PATCH /api/redemptions/[id] — customer cancel', () => {
     expect(res.status).toBe(200)
     expect((await res.json()).success).toBe(true)
     expect(mockRpc).not.toHaveBeenCalled() // cancel uses direct update, not RPC
+  })
+
+  it('TOCTOU: approve committed between cancel SELECT and UPDATE → 409 (PTS-2 fix)', async () => {
+    // Simulates: cancel SELECT reads 'pending' (check passes), but approve_redemption
+    // commits status='approved' before cancel UPDATE fires. The UPDATE's
+    // .eq('status','pending') finds 0 matching rows → cancelled is [] → 409.
+    asCustomer()
+    mockQuery(
+      { data: { status: 'pending', customer_id: CUSTOMER_ID } }, // SELECT sees 'pending'
+      { data: [] },                                               // UPDATE: 0 rows (already approved)
+    )
+
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const res = await PATCH(patch({ action: 'cancel' }), routeParams(REQUEST_ID))
+
+    expect(res.status).toBe(409)
+    expect((await res.json()).error).toMatch(/already been actioned/)
+    expect(mockRpc).not.toHaveBeenCalled()
   })
 
   it('cancel already-resolved request → 400 "Only pending requests can be actioned."', async () => {
@@ -138,15 +162,15 @@ describe('PATCH /api/redemptions/[id] — customer cancel', () => {
     expect(res.status).toBe(404)
   })
 
-  it('customer cancels another customer\'s request → 403 Forbidden', async () => {
+  it('customer cancels another customer\'s request → 404 (ownership hidden)', async () => {
     asCustomer() // user.id = CUSTOMER_ID
-    // Request owned by a different customer — ownership check fires after status check
+    // Returns 404, not 403, to avoid leaking that the request exists but isn't theirs
     mockQuery({ data: { status: 'pending', customer_id: OTHER_CUSTOMER_ID } })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(patch({ action: 'cancel' }), routeParams(REQUEST_ID))
 
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 })
 

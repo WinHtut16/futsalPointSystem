@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 interface Props {
   staffId: string
@@ -15,9 +16,10 @@ export default function DeleteStaffButton({ staffId, staffUsername }: Props) {
   const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showConfirm, setShowConfirm] = useState(false)
 
   async function handleDelete() {
-    if (!confirm(t('admin.deleteAdminConfirm', { name: staffUsername }))) return
+    setShowConfirm(false)
     setError('')
     setLoading(true)
 
@@ -40,9 +42,20 @@ export default function DeleteStaffButton({ staffId, staffUsername }: Props) {
         {t('admin.deleteAdminNote')}
       </p>
       {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
-      <Button variant="danger" size="sm" loading={loading} onClick={handleDelete}>
+      <Button variant="danger" size="sm" loading={loading} onClick={() => setShowConfirm(true)}>
         {t('admin.deleteAdminButton')}
       </Button>
+
+      <ConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleDelete}
+        title="Remove staff member"
+        message="This person will lose access to the admin panel immediately."
+        confirmLabel="Remove"
+        variant="danger"
+        isLoading={loading}
+      />
     </div>
   )
 }

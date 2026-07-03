@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
 import { calculatePoints } from '@/lib/points'
-import { AddPointsSchema, badRequest, parseJson } from '@/lib/schemas'
+import { AddPointsSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,9 +34,10 @@ export async function POST(request: NextRequest) {
       p_reward_id: null,
       p_note: note ?? null,
       p_created_by: admin.id,
+      p_min_balance: 0,
     })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
 
     const { data: updated } = await supabase
       .from('profiles')
@@ -45,7 +46,10 @@ export async function POST(request: NextRequest) {
       .single()
 
     return NextResponse.json({ points_added, total_points: updated?.total_points })
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }

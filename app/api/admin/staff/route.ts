@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireSuperAdmin } from '@/lib/auth'
 import { usernameToAdminEmail } from '@/lib/utils'
-import { StaffCreateSchema, badRequest, parseJson } from '@/lib/schemas'
+import { StaffCreateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function GET() {
   try {
@@ -13,10 +13,13 @@ export async function GET() {
       .select('id, username, role, created_at')
       .eq('role', 'admin')
       .order('created_at', { ascending: false })
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }
 
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
       .eq('username', username)
       .maybeSingle()
     if (existing) {
-      return NextResponse.json({ error: 'Username already taken.' }, { status: 400 })
+      return NextResponse.json({ error: 'Username already taken.' }, { status: 409 })
     }
 
     const email = usernameToAdminEmail(username)
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
       email_confirm: true,
       user_metadata: { username },
     })
-    if (authError) return NextResponse.json({ error: authError.message }, { status: 500 })
+    if (authError) return serverError(authError.message)
 
     const { error: profileError } = await supabase
       .from('profiles')
@@ -61,11 +64,14 @@ export async function POST(request: NextRequest) {
 
     if (profileError) {
       await supabase.auth.admin.deleteUser(authData.user.id)
-      return NextResponse.json({ error: profileError.message }, { status: 500 })
+      return serverError(profileError.message)
     }
 
     return NextResponse.json({ id: authData.user.id, username, role: 'admin' }, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }

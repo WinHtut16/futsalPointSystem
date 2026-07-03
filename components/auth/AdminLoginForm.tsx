@@ -84,7 +84,7 @@ export default function AdminLoginForm() {
         {t('auth.signIn')}
       </Button>
       <p className="text-center text-sm text-gray-500">
-        <Link href="/admin/forgot-password" className="text-brand-600 font-medium hover:underline">
+        <Link href="/admin/forgot-password" className="text-primary font-medium hover:underline">
           {t('auth.forgotPassword')}
         </Link>
       </p>

@@ -34,3 +34,37 @@ export function createServiceClient() {
     { auth: { autoRefreshToken: false, persistSession: false } }
   )
 }
+
+/**
+ * Sends a Realtime broadcast to the booking-slot-updates channel via the
+ * Supabase REST API (no WebSocket, no RLS — works for all users including
+ * anonymous). Called by API routes after any booking or closure change so
+ * the public /book page receives an event-driven slot refresh.
+ *
+ * Non-blocking: resolves quickly, errors are swallowed (notification is
+ * best-effort and does not affect the core booking operation).
+ */
+export async function broadcastSlotChange(date: string): Promise<void> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 2000)
+  try {
+    await fetch(
+      `${supabaseUrl}/realtime/v1/api/broadcast/booking-slot-updates/events/slot_changed`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': serviceKey,
+        },
+        body: JSON.stringify({ date }),
+        signal: controller.signal,
+      }
+    )
+  } catch {
+    // Broadcast failure is non-critical — UI relies on realtime events only
+  } finally {
+    clearTimeout(timer)
+  }
+}

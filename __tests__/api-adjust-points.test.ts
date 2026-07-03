@@ -238,15 +238,19 @@ describe('POST /api/points/adjust — business logic', () => {
     expect((await res.json()).total_points).toBe(0)
   })
 
-  it('balance would go negative: -101 on balance 100 → 400, RPC not called', async () => {
-    // Route guard: if (customer.total_points + points_delta < 0) → 400
-    mockQuery({ data: { id: CUSTOMER_ID, role: 'customer', total_points: 100 } })
+  it('balance would go negative: -101 → 400, RPC returns insufficient_balance', async () => {
+    // Balance guard is now atomic inside add_points_transaction() RPC (FOR UPDATE lock).
+    // The route removes the racy app-layer pre-check and relies on the RPC exception.
+    mockQuery({ data: { id: CUSTOMER_ID, role: 'customer' } }) // customer lookup
+    mockRpcOnce({ error: { message: 'insufficient_balance' } }) // RPC enforces atomically
 
     const { POST } = await import('@/app/api/points/adjust/route')
     const res = await POST(post({ customer_id: CUSTOMER_ID, points_delta: -101, reason: 'overdraft' }))
 
     expect(res.status).toBe(400)
-    expect(mockRpc).not.toHaveBeenCalled()
+    expect(mockRpc).toHaveBeenCalledWith('add_points_transaction', expect.objectContaining({
+      p_min_balance: 0,
+    }))
   })
 
   it('non-existent customer → 404, RPC not called', async () => {

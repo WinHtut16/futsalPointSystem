@@ -4,8 +4,6 @@ import dynamic from 'next/dynamic'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { DailyPoint } from './PointsBarChart'
 import type { StatusEntry } from './StatusDonut'
-import type { RewardEntry } from './TopRewardsBar'
-import type { CustomerEntry } from './TopCustomersBar'
 
 const ChartSkeleton = ({ h = 200 }: { h?: number }) => (
   <div className="w-full bg-gray-100 animate-pulse rounded-xl" style={{ height: h }} />
@@ -18,14 +16,6 @@ const PointsBarChart = dynamic(() => import('./PointsBarChart'), {
 const StatusDonut = dynamic(() => import('./StatusDonut'), {
   ssr: false,
   loading: () => <ChartSkeleton />,
-})
-const TopRewardsBar = dynamic(() => import('./TopRewardsBar'), {
-  ssr: false,
-  loading: () => <ChartSkeleton h={180} />,
-})
-const TopCustomersBar = dynamic(() => import('./TopCustomersBar'), {
-  ssr: false,
-  loading: () => <ChartSkeleton h={180} />,
 })
 
 const MONTH_KEYS = [
@@ -46,20 +36,14 @@ const MONTH_KEYS = [
 interface ChartsSectionProps {
   pointsChartData: DailyPoint[]
   donutData: StatusEntry[]
-  topRewards: RewardEntry[]
-  topCustomers: CustomerEntry[]
-  /** Selected month (1–12) and year, used to label the points chart. */
   month: number
   year: number
-  /** When true, chart areas show a skeleton placeholder instead of chart content. */
   isPending?: boolean
 }
 
 export default function ChartsSection({
   pointsChartData,
   donutData,
-  topRewards,
-  topCustomers,
   month,
   year,
   isPending = false,
@@ -69,44 +53,22 @@ export default function ChartsSection({
   const pointsTitle = t('admin.pointsForMonth', { period })
 
   return (
-    <>
-      {/* Charts row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
-          <h2 className="text-sm font-semibold text-gray-700 mb-2">{pointsTitle}</h2>
-          {isPending ? <ChartSkeleton /> : <PointsBarChart data={pointsChartData} />}
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
-          <h2 className="text-sm font-semibold text-gray-700 mb-2">
-            {t('admin.redemptionStatus')}
-          </h2>
-          {isPending ? <ChartSkeleton /> : <StatusDonut data={donutData} />}
-        </div>
+    /* 1/3 donut + 2/3 points chart */
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
+        <h2 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+          {t('admin.redemptionStatus')}
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 font-medium">
+            {t('admin.dashAllTime')}
+          </span>
+        </h2>
+        {isPending ? <ChartSkeleton /> : <StatusDonut data={donutData} />}
       </div>
 
-      {/* Top lists row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
-          <h2 className="text-sm font-semibold text-gray-700 mb-1">
-            {t('admin.topRewards')}
-            <span className="text-xs font-normal text-gray-400 ml-1">
-              ({t('admin.byApprovals')})
-            </span>
-          </h2>
-          {isPending ? <ChartSkeleton h={180} /> : <TopRewardsBar data={topRewards} />}
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
-          <h2 className="text-sm font-semibold text-gray-700 mb-1">
-            {t('admin.topCustomers')}
-            <span className="text-xs font-normal text-gray-400 ml-1">
-              ({t('admin.byPoints')})
-            </span>
-          </h2>
-          {isPending ? <ChartSkeleton h={180} /> : <TopCustomersBar data={topCustomers} />}
-        </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:col-span-2">
+        <h2 className="text-sm font-semibold text-gray-700 mb-2">{pointsTitle}</h2>
+        {isPending ? <ChartSkeleton /> : <PointsBarChart data={pointsChartData} />}
       </div>
-    </>
+    </div>
   )
 }

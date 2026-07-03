@@ -1,20 +1,21 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import TransactionItem from '@/components/customer/TransactionItem'
 import AddPointsForm from '@/components/admin/AddPointsForm'
 import AdjustPointsForm from '@/components/admin/AdjustPointsForm'
-import ResetPasswordForm from '@/components/admin/ResetPasswordForm'
 import DeleteCustomerButton from '@/components/admin/DeleteCustomerButton'
 import T from '@/components/ui/T'
 import type { PointTransaction } from '@/types'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [supabase, currentUser] = await Promise.all([createClient(), getCurrentUser()])
+  const supabase = createServiceClient()
+  const currentUser = await getCurrentUser()
 
   const { data: customer } = await supabase
     .from('profiles')
@@ -33,38 +34,37 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   const canDelete = currentUser?.role === 'admin' || currentUser?.role === 'superadmin'
 
+  const safeName = customer.username ?? ''
+  const totalPoints = customer.total_points ?? 0
+
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2">
-        <Link href="/admin/customers" className="text-sm text-brand-600 hover:underline">
+        <Link href="/admin/customers" className="flex items-center gap-1 text-sm text-brand-600 hover:underline">
+          <ArrowLeft size={14} />
           <T k="admin.backToCustomers" />
         </Link>
       </div>
 
       <Card>
-        <p className="text-xl font-bold text-gray-900">{customer.username}</p>
+        <p className="text-xl font-bold text-gray-900">{safeName || '—'}</p>
         <p className="text-sm text-gray-500">{customer.phone}</p>
         <p className="text-xs text-gray-400 mt-0.5">
           <T k="admin.memberSince" />: {formatDateTime(customer.created_at)}
         </p>
         <p className="text-3xl font-bold text-brand-600 mt-3">
-          {customer.total_points.toLocaleString()} <span className="text-base font-normal text-gray-400"><T k="common.pts" /></span>
+          {totalPoints.toLocaleString()} <span className="text-base font-normal text-gray-400"><T k="common.pts" /></span>
         </p>
       </Card>
 
       <Card>
         <h2 className="font-semibold text-gray-900 mb-4"><T k="admin.addPointsSection" /></h2>
-        <AddPointsForm customerId={id} customerName={customer.username} />
+        <AddPointsForm customerId={id} customerName={safeName} />
       </Card>
 
       <Card>
         <h2 className="font-semibold text-gray-900 mb-4"><T k="admin.adjustPointsSection" /></h2>
-        <AdjustPointsForm customerId={id} customerName={customer.username} />
-      </Card>
-
-      <Card>
-        <h2 className="font-semibold text-gray-900 mb-4"><T k="admin.resetPasswordSection" /></h2>
-        <ResetPasswordForm customerId={id} customerName={customer.username} />
+        <AdjustPointsForm customerId={id} customerName={safeName} />
       </Card>
 
       <Card className="p-0">
@@ -85,7 +85,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           <h2 className="font-semibold text-gray-900 mb-3"><T k="admin.dangerZone" /></h2>
           <DeleteCustomerButton
             customerId={id}
-            customerName={customer.username}
+            customerName={safeName}
             customerPhone={customer.phone ?? ''}
           />
         </Card>

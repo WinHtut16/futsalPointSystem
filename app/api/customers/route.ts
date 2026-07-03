@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAnyAdmin } from '@/lib/auth'
-import { CustomersQuerySchema, badRequest } from '@/lib/schemas'
+import { CustomersQuerySchema, badRequest, serverError } from '@/lib/schemas'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,10 +24,13 @@ export async function GET(request: NextRequest) {
 
     if (phone) query = query.ilike('phone', `%${phone}%`)
 
-    const { data, error } = await query.limit(50)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    const { data, error } = await query.limit(200)
+    if (error) return serverError(error.message)
     return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }

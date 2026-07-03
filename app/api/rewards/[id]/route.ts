@@ -1,8 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireAnyAdmin, requireSuperAdmin } from '@/lib/auth'
-import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, parseJson } from '@/lib/schemas'
+import { getCurrentUser, requireAnyAdmin, requireSuperAdmin } from '@/lib/auth'
+import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
+
+export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const profile = await getCurrentUser()
+  if (!profile) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+
+  const { id } = await params
+  const idParsed = IdParamSchema.safeParse({ id })
+  if (!idParsed.success) return badRequest(idParsed.error)
+
+  const supabase = await createServiceClient()
+  const { data, error } = await supabase
+    .from('rewards')
+    .select('*')
+    .eq('id', idParsed.data.id)
+    .single()
+
+  if (error?.code === 'PGRST116' || !data) {
+    return NextResponse.json({ error: 'Reward not found.' }, { status: 404 })
+  }
+  if (error) return serverError(error.message)
+
+  if (data.is_deleted && profile.role !== 'superadmin') {
+    return NextResponse.json({ error: 'Reward not found.' }, { status: 404 })
+  }
+
+  return NextResponse.json(data)
+}
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -37,11 +64,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error?.code === 'PGRST116') {
+      return NextResponse.json({ error: 'Reward not found.' }, { status: 404 })
+    }
+    if (error) return serverError(error.message)
     revalidateTag('rewards', 'default')
     return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }
 
@@ -58,10 +91,13 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
       .from('rewards')
       .update({ is_deleted: true, is_active: false, updated_at: new Date().toISOString() })
       .eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(error.message)
     revalidateTag('rewards', 'default')
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    }
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
   }
 }

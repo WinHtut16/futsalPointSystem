@@ -124,7 +124,7 @@ describe('POST /api/auth/register', () => {
       password: 'Password123',
     }))
 
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(201)
     expect((await res.json()).success).toBe(true)
   })
 

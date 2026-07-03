@@ -1,17 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { phoneToEmail } from '@/lib/utils'
+import { phoneToEmail, safeRedirect } from '@/lib/utils'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
+
 export default function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useLanguage()
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -48,12 +51,26 @@ export default function LoginForm() {
       .single()
 
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
-    router.push(isAdmin ? '/admin/dashboard' : '/dashboard')
+    router.push(isAdmin ? '/admin/dashboard' : safeRedirect(searchParams.get('next'), '/account'))
     router.refresh()
   }
 
+  const nextParam = searchParams.get('next')
+  const bookingReturn = !!nextParam && nextParam.includes('/book/confirm')
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {bookingReturn && (
+        <div className="flex items-center gap-2.5 rounded-xl bg-primary-soft px-3 py-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-primary">
+            <Calendar size={18} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12.5px] font-semibold text-ink-primary">{t('booking.login.bookingHeld')}</p>
+            <p className="text-[11px] text-ink-muted">{t('booking.login.bringBack')}</p>
+          </div>
+        </div>
+      )}
       <Input
         id="phone"
         label={t('auth.phone')}
@@ -79,9 +96,12 @@ export default function LoginForm() {
       <Button type="submit" size="lg" loading={loading}>
         {t('auth.signIn')}
       </Button>
-      <p className="text-center text-sm text-gray-500">
+      <p className="text-center text-sm text-ink-muted">
         {t('auth.noAccount')}{' '}
-        <Link href="/register" className="text-brand-600 font-medium hover:underline">
+        <Link
+          href={searchParams.get('next') ? `/register?next=${encodeURIComponent(searchParams.get('next')!)}` : '/register'}
+          className="text-primary font-medium hover:underline"
+        >
           {t('auth.register')}
         </Link>
       </p>

@@ -46,6 +46,34 @@ export const authEN = {
   'auth.strengthFair': 'Fair password',
   'auth.strengthGood': 'Good password',
   'auth.strengthStrong': 'Strong password',
+  // Customer forgot password (inline section on login page)
+  'auth.resetByEmail': 'Reset by email',
+  'auth.enterEmailForReset': 'Enter your email address',
+  'auth.sendResetLink': 'Send Reset Link',
+  'auth.resetLinkSent': 'If this email is linked to an account, a reset link has been sent. Check your inbox.',
+  'auth.noEmailSaved': 'No email saved? Contact us to reset:',
+  'auth.backToLogin': 'Back to login',
+  'auth.tempPasswordNote': 'Admin will set a temporary password for you. You can also ask at the counter. Change it after logging in.',
+  // Customer reset password page
+  'auth.setNewPasswordSub': 'Enter your new password below',
+  'auth.newPassword': 'New Password',
+  'auth.confirmPassword': 'Confirm New Password',
+  'auth.passwordMismatch': 'Passwords do not match',
+  'auth.passwordResetSuccess': 'Password reset successfully. Welcome back.',
+  'auth.resetLinkExpired': 'This reset link has expired or is invalid. Please request a new one.',
+  // Account settings — email for recovery
+  'auth.emailForRecovery': 'Add email for password recovery (optional)',
+  'auth.emailRecoveryHelper': 'Used only for password recovery if you forget your password',
+  'auth.emailConfirmationSent': 'A confirmation email has been sent. Please verify it to activate password recovery.',
+  // Post-logout toast
+  'auth.loggedOutToast': 'You have been logged out',
+  // Customer forgot password — phone-first flow
+  'auth.enterPhoneForReset': 'Enter your phone number',
+  'auth.continueReset': 'Continue',
+  'auth.resetLinkWillSend': 'Reset link will be sent to your email',
+  'auth.noEmailForReset': 'You have not added an email to your account yet.',
+  'auth.contactForReset': 'Contact us and our admin will set a temporary password. You can change it after logging in from Account Settings.',
+  'auth.phoneNotFound': 'No account found with this phone number.',
 } as const
 
 export const authMY: { [K in keyof typeof authEN]: string } = {
@@ -96,4 +124,32 @@ export const authMY: { [K in keyof typeof authEN]: string } = {
   'auth.strengthFair': 'ပုံမှန် စကားဝှက်',
   'auth.strengthGood': 'ကောင်းသော စကားဝှက်',
   'auth.strengthStrong': 'အားကောင်းသော စကားဝှက်',
+  // Customer forgot password (inline section on login page)
+  'auth.resetByEmail': 'အီးမေးလ်ဖြင့်ပြန်လည်သတ်မှတ်ရန်',
+  'auth.enterEmailForReset': 'အီးမေးလ်လိပ်စာထည့်ပါ',
+  'auth.sendResetLink': 'ပြန်လည်သတ်မှတ်ရန်လင့်ပို့ရန်',
+  'auth.resetLinkSent': 'ဤအီးမေးလ်နှင့်ချိတ်ဆက်ထားသောအကောင့်ရှိပါက ပြန်လည်သတ်မှတ်ရန်လင့်ပို့ပြီးပါပြီ။',
+  'auth.noEmailSaved': 'အီးမေးလ်မသိမ်းဆည်းထားဘူးလား? ကျွန်ုပ်တို့ထံဆက်သွယ်ပါ:',
+  'auth.backToLogin': 'လော့ဂ်အင်သို့ပြန်သွားရန်',
+  'auth.tempPasswordNote': 'အက်မင်မှ ယာယီစကားဝှက်သတ်မှတ်ပေးမည်။ ကောင်တာတွင်လည်း မေးမြန်းနိုင်သည်။ ဝင်ပြီးနောက် ပြောင်းလဲပါ။',
+  // Customer reset password page
+  'auth.setNewPasswordSub': 'စကားဝှက်အသစ်ထည့်သွင်းပါ',
+  'auth.newPassword': 'စကားဝှက်အသစ်',
+  'auth.confirmPassword': 'စကားဝှက်အတည်ပြုရန်',
+  'auth.passwordMismatch': 'စကားဝှက်များမတူညီပါ',
+  'auth.passwordResetSuccess': 'စကားဝှက်ပြန်လည်သတ်မှတ်ပြီးပါပြီ။ ကြိုဆိုပါသည်။',
+  'auth.resetLinkExpired': 'ဤပြန်လည်သတ်မှတ်ရန်လင့်သက်တမ်းကုန်ဆုံးပြီ သို့မဟုတ် မမှန်ကန်ပါ။ လင့်အသစ် တောင်းဆိုပါ။',
+  // Account settings — email for recovery
+  'auth.emailForRecovery': 'စကားဝှက်ပြန်လည်ရယူရန် အီးမေးလ်ထည့်ပါ (မဖြစ်မနေမဟုတ်)',
+  'auth.emailRecoveryHelper': 'စကားဝှက်မေ့သွားပါက ပြန်လည်ရယူရန်သာအသုံးပြုသည်',
+  'auth.emailConfirmationSent': 'အတည်ပြုချက်အီးမေးလ်ပို့ပြီးပါပြီ။ စကားဝှက်ပြန်လည်ရယူနိုင်ရန် အတည်ပြုပါ။',
+  // Post-logout toast
+  'auth.loggedOutToast': 'ထွက်ပြီးပါပြီ',
+  // Customer forgot password — phone-first flow
+  'auth.enterPhoneForReset': 'ဖုန်းနံပါတ်ထည့်ပါ',
+  'auth.continueReset': 'ဆက်လက်လုပ်ဆောင်ရန်',
+  'auth.resetLinkWillSend': 'သင်၏အီးမေးလ်သို့ပြန်လည်သတ်မှတ်ရန်လင့်ပို့ပါမည်',
+  'auth.noEmailForReset': 'သင်၏အကောင့်တွင် အီးမေးလ်မထည့်ရသေးပါ။',
+  'auth.contactForReset': 'ကျွန်ုပ်တို့ထံဆက်သွယ်ပါ၊ အက်ဒမင်မှ ယာယီစကားဝှက်သတ်မှတ်ပေးပါမည်။ ဝင်ပြီးနောက် Account Settings မှ ပြောင်းနိုင်သည်။',
+  'auth.phoneNotFound': 'ဤဖုန်းနံပါတ်ဖြင့် အကောင့်မတွေ့ပါ။',
 }

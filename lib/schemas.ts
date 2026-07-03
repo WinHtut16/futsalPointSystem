@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
+import { MAX_SLOTS } from '@/lib/booking'
 
 const uuid = z.string().uuid('Invalid id format.')
 const myanmarPhone = z.string().regex(/^09\d{7,9}$/, 'Enter a valid Myanmar phone number (e.g. 09XXXXXXXXX).')
@@ -74,6 +75,84 @@ export const AdjustPointsSchema = z.object({
 
 export const RedeemSchema = z.object({ reward_id: uuid })
 
+export const CreateBookingSchema = z.object({
+  booking_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format.')
+    .refine((val) => {
+      const d = new Date(val)
+      return !isNaN(d.getTime()) && val === d.toISOString().slice(0, 10)
+    }, 'Invalid calendar date.'),
+  slots: z
+    .array(z.number().int().min(6, 'Invalid slot.').max(21, 'Invalid slot.'))
+    .min(1, 'Select at least one slot.')
+    .max(MAX_SLOTS, `Maximum ${MAX_SLOTS} slots per booking.`)
+    .refine((arr) => new Set(arr).size === arr.length, { message: 'Duplicate slots.' }),
+  override_request: z.boolean().optional(),
+})
+
+export const AdminCreateBookingSchema = z
+  .object({
+    customer_id: uuid.optional(),
+    guest_name: z.string().trim().max(100, 'Guest name is too long.').optional(),
+    guest_phone: z.string().trim().max(20, 'Guest phone is too long.').optional(),
+    booking_date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format.')
+      .refine((val) => {
+        const d = new Date(val)
+        return !isNaN(d.getTime()) && val === d.toISOString().slice(0, 10)
+      }, 'Invalid calendar date.'),
+    slots: z
+      .array(z.number().int().min(6, 'Invalid slot.').max(21, 'Invalid slot.'))
+      .min(1, 'Select at least one slot.')
+      .max(MAX_SLOTS, `Maximum ${MAX_SLOTS} slots per booking.`)
+      .refine((arr) => new Set(arr).size === arr.length, { message: 'Duplicate slots.' }),
+    deposit_total: z
+      .number({ message: 'Deposit must be a number.' })
+      .int('Deposit must be an integer.')
+      .min(0, 'Deposit cannot be negative.')
+      .max(500_000, 'Deposit is too large.'),
+    deposit_received: z.boolean({ message: 'deposit_received must be a boolean.' }),
+    source: z.enum(['phone', 'walk_in', 'other'], { message: 'Invalid source.' }),
+    internal_notes: z.string().trim().max(1000, 'Notes are too long.').optional(),
+  })
+  .refine(
+    (d) =>
+      d.customer_id !== undefined ||
+      (d.guest_name !== undefined && d.guest_name.trim().length > 0),
+    { message: 'Link a customer or enter guest details.', path: ['customer_id'] }
+  )
+
+export const BookingActionSchema = z
+  .object({
+    action: z.enum(['cancel', 'confirm', 'unconfirm', 'close'], { message: 'Invalid action.' }),
+  })
+  .strict()
+
+export const ClosureCreateSchema = z.object({
+  closure_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date.'),
+  hour_start: z.number().int().min(6).max(21).nullish(),
+  reason: safeText(200).nullish(),
+})
+
+export const CmsPostSchema = z.object({
+  slug: z
+    .string()
+    .trim()
+    .min(1, 'Slug is required.')
+    .max(120)
+    .regex(/^[a-z0-9-]+$/, 'Slug may contain only lowercase letters, numbers and hyphens.'),
+  category: z.enum(['news', 'promotion', 'league', 'event'], { message: 'Invalid category.' }),
+  title: safeText(200).min(1, 'Title is required.'),
+  title_my: safeText(200).nullish(),
+  excerpt: safeText(2000).nullish(),
+  excerpt_my: safeText(2000).nullish(),
+  source_url: safeText(2000).nullish(),
+  manual_image_url: safeText(2000).nullish(),
+  published: z.boolean().optional(),
+})
+
 export const RedemptionActionSchema = z.object({
   action: z.enum(['cancel', 'approve', 'reject'], { message: 'Invalid action.' }),
   notes: safeText(500).nullish(),
@@ -115,6 +194,17 @@ export const StaffCreateSchema = z.object({
 export const StaffPasswordUpdateSchema = z.object({ password }).strict()
 
 export const IdParamSchema = z.object({ id: uuid })
+
+export function serverError(detail?: string): NextResponse {
+  if (detail) console.error('[server error]', detail)
+  return NextResponse.json(
+    {
+      error: 'An unexpected error occurred',
+      ...(process.env.NODE_ENV !== 'production' && detail ? { detail } : {}),
+    },
+    { status: 500 }
+  )
+}
 
 export function badRequest(error: z.ZodError) {
   const first = error.issues[0]

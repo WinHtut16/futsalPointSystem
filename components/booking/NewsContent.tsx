@@ -1,0 +1,59 @@
+'use client'
+
+import { useState } from 'react'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
+import BottomNav from './BottomNav'
+import SectionLabel from './SectionLabel'
+import NewsCardGrid, { type NewsPost } from './NewsCardGrid'
+
+type Cat = 'all' | NewsPost['category']
+const CATS: { k: Cat; key: string }[] = [
+  { k: 'all', key: 'booking.news.all' },
+  { k: 'news', key: 'booking.news.catNews' },
+  { k: 'promotion', key: 'booking.news.catPromotion' },
+  { k: 'league', key: 'booking.news.catLeague' },
+  { k: 'event', key: 'booking.news.catEvent' },
+]
+
+export default function NewsContent({ posts }: { posts: NewsPost[] }) {
+  const { t, lang } = useLanguage()
+  const my = lang === 'my' ? 'my' : ''
+  const [cat, setCat] = useState<Cat>('all')
+  const visible = cat === 'all' ? posts : posts.filter((p) => p.category === cat)
+  const isEmpty = visible.length === 0
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <div className={`mx-auto w-full max-w-6xl px-4 pb-4 pt-5 md:px-16 md:pt-10 ${isEmpty ? 'flex flex-1 flex-col' : 'flex-1'}`}>
+        <div className="hidden md:block">
+          <SectionLabel kicker={t('booking.news.title')} title={t('booking.news.whatsOn')} />
+        </div>
+
+        <div className="mb-4 flex gap-2 overflow-x-auto">
+          {CATS.map(({ k, key }) => (
+            <button
+              key={k}
+              onClick={() => setCat(k)}
+              className={`whitespace-nowrap rounded-full border px-3 py-1.5 font-display text-xs font-semibold ${my} ${
+                cat === k ? 'border-transparent bg-primary text-primary-on' : 'border-line bg-surface text-ink-muted'
+              }`}
+            >
+              {t(key as never)}
+            </button>
+          ))}
+        </div>
+
+        {isEmpty ? (
+          <div className="flex flex-1 items-center justify-center py-8">
+            <div className="fb-card p-8 text-center text-sm text-ink-muted">
+              <span className={my}>{t('booking.news.empty')}</span>
+            </div>
+          </div>
+        ) : (
+          <NewsCardGrid posts={visible} columns={3} />
+        )}
+      </div>
+      <BottomNav active="news" />
+    </div>
+  )
+}

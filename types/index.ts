@@ -22,6 +22,7 @@ export interface Profile {
   role: UserRole
   total_points: number
   created_at: string
+  updated_at: string
 }
 
 export interface Reward {
@@ -38,7 +39,7 @@ export interface Reward {
   updated_at: string
 }
 
-export type TransactionType = 'earn' | 'redeem' | 'adjustment'
+export type TransactionType = 'earn' | 'redeem' | 'adjustment' | 'booking'
 
 export interface PointTransaction {
   id: string
