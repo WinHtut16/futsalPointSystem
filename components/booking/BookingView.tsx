@@ -362,7 +362,7 @@ export default function BookingView({
         </div>
 
         {/* Desktop summary sidebar */}
-        <div className="hidden md:block">
+        <div className="hidden md:mt-7 md:block">
           <div className="sticky top-6 self-start">
             <Summary
               cart={cart}
