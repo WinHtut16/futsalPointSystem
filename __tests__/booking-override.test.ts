@@ -11,12 +11,24 @@ const mockNeq = vi.fn()
 const mockSingle = vi.fn()
 const mockUpdate = vi.fn()
 
-vi.mock('@/lib/auth', () => ({ getCurrentUser: mockGetCurrentUser }))
+vi.mock('@/lib/auth', () => ({
+  getCurrentUser: mockGetCurrentUser,
+  requireRole: async (role: string | string[]) => {
+    const profile = await mockGetCurrentUser()
+    const roles = Array.isArray(role) ? role : [role]
+    if (!profile) throw new Error('UNAUTHENTICATED')
+    if (!roles.includes(profile.role)) throw new Error('FORBIDDEN')
+    return profile
+  },
+}))
+const mockBroadcastSlotChange = vi.fn().mockResolvedValue(undefined)
+
 vi.mock('@/lib/supabase/server', () => ({
   createServiceClient: () => ({
     rpc: mockRpc,
     from: mockFrom,
   }),
+  broadcastSlotChange: (...args: unknown[]) => mockBroadcastSlotChange(...args),
 }))
 
 beforeEach(() => {
@@ -57,6 +69,18 @@ describe('POST /api/bookings — override_request', () => {
     mockFrom.mockImplementationOnce(() => ({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ data: [] }),
+      }),
+    }))
+    // No existing own bookings on this date — .select().eq('customer_id').eq('booking_date').neq('status').limit()
+    mockFrom.mockImplementationOnce(() => ({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            neq: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: [] }),
+            }),
+          }),
+        }),
       }),
     }))
     // Active slot exists — a pending booking holds slot 9 on this date.
@@ -101,6 +125,18 @@ describe('POST /api/bookings — override_request', () => {
     // No closures
     mockFrom.mockImplementationOnce(() => ({
       select: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: [] }) }),
+    }))
+    // No existing own bookings on this date — .select().eq('customer_id').eq('booking_date').neq('status').limit()
+    mockFrom.mockImplementationOnce(() => ({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            neq: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: [] }),
+            }),
+          }),
+        }),
+      }),
     }))
     // Active slot found — .select().eq('booking_date').eq('active').in('hour_start')
     mockFrom.mockImplementationOnce(() => {
