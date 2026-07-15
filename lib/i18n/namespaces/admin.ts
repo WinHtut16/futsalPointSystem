@@ -273,6 +273,26 @@ export const adminEN = {
   'admin.dashJoinedPeriod': '{count} joined in {period}',
   'admin.dashMostRedeemedRewards': 'Most redeemed rewards',
   'admin.dashNoRedemptions': 'No rewards redeemed yet',
+
+  // Data export / backup
+  'admin.navBackup': 'Backup & Export',
+  'admin.groupData': 'Data',
+  'admin.exportTitle': 'Backup & Export',
+  'admin.exportSubtitle': 'Download a copy of your records as an Excel file. Keep it safe in case the database is ever lost.',
+  'admin.exportScopeFull': 'Full backup',
+  'admin.exportScopeFullHint': 'Everything, all-time. Recommended for a safety backup.',
+  'admin.exportScopeThisMonth': 'This month',
+  'admin.exportScopeMonth': 'Pick a month',
+  'admin.exportScopeRange': 'Custom range',
+  'admin.exportFrom': 'From',
+  'admin.exportTo': 'To',
+  'admin.exportDownload': 'Download Excel file',
+  'admin.exportDownloadFull': 'Download full backup',
+  'admin.exportGenerating': 'Preparing file…',
+  'admin.exportSuccess': 'Download started.',
+  'admin.exportError': 'Export failed. Please try again.',
+  'admin.exportRangeError': 'Please choose both a start and end date.',
+  'admin.exportNote': 'Customers and rewards are always included in full. Booking, points and redemption records follow the range you pick.',
 } as const
 
 export const adminMY: { [K in keyof typeof adminEN]: string } = {
@@ -511,4 +531,24 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.dashJoinedPeriod': '{count} ဦး {period} တွင် ဝင်ရောက်',
   'admin.dashMostRedeemedRewards': 'အများဆုံး ရယူသောဆုလာဘ်',
   'admin.dashNoRedemptions': 'မည်သည့်ဆုလာဘ်မှ ရယူမထားသေး',
+
+  // Data export / backup
+  'admin.navBackup': 'အရန်ကူး & ထုတ်ယူ',
+  'admin.groupData': 'ဒေတာ',
+  'admin.exportTitle': 'အရန်ကူး & ထုတ်ယူ',
+  'admin.exportSubtitle': 'မှတ်တမ်းများကို Excel ဖိုင်အဖြစ် ကူးယူသိမ်းဆည်းပါ။ ဒေတာဘေ့စ် ပျက်စီးသွားပါက ပြန်လည်ရယူနိုင်ရန် လုံခြုံစွာ သိမ်းထားပါ။',
+  'admin.exportScopeFull': 'အပြည့်အစုံ အရန်ကူး',
+  'admin.exportScopeFullHint': 'အားလုံး၊ အချိန်အားလုံး။ လုံခြုံရေး အရန်ကူးအတွက် အကြံပြုသည်။',
+  'admin.exportScopeThisMonth': 'ယခုလ',
+  'admin.exportScopeMonth': 'လ ရွေးရန်',
+  'admin.exportScopeRange': 'ရက်စွဲအပိုင်းအခြား',
+  'admin.exportFrom': 'မှ',
+  'admin.exportTo': 'အထိ',
+  'admin.exportDownload': 'Excel ဖိုင် ဒေါင်းလုဒ်',
+  'admin.exportDownloadFull': 'အပြည့်အစုံ အရန်ကူး ဒေါင်းလုဒ်',
+  'admin.exportGenerating': 'ဖိုင် ပြင်ဆင်နေသည်…',
+  'admin.exportSuccess': 'ဒေါင်းလုဒ် စတင်ပါပြီ။',
+  'admin.exportError': 'ထုတ်ယူမှု မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။',
+  'admin.exportRangeError': 'စတင်ရက်နှင့် ပြီးဆုံးရက် နှစ်ခုလုံး ရွေးပါ။',
+  'admin.exportNote': 'ဖောက်သည်များနှင့် ဆုလာဘ်များကို အမြဲ အပြည့်အစုံ ထည့်သွင်းသည်။ ဘွတ်ကင်၊ ပွိုင့်နှင့် ဆုလာဘ်ရယူမှု မှတ်တမ်းများသည် ရွေးချယ်သည့် အပိုင်းအခြားအတိုင်း ဖြစ်သည်။',
 }

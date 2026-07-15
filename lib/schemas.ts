@@ -45,6 +45,26 @@ export const CustomersQuerySchema = z.object({
     .optional(),
 })
 
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD.')
+
+export const ExportQuerySchema = z
+  .object({
+    scope: z.enum(['all', 'month', 'range']),
+    month: z.coerce.number().int().min(1).max(12).optional(),
+    year: z.coerce.number().int().min(2020).max(2100).optional(),
+    from: isoDate.optional(),
+    to: isoDate.optional(),
+  })
+  .refine((o) => o.scope !== 'month' || (o.month !== undefined && o.year !== undefined), {
+    message: 'month and year are required when scope=month.',
+  })
+  .refine((o) => o.scope !== 'range' || (o.from !== undefined && o.to !== undefined), {
+    message: 'from and to are required when scope=range.',
+  })
+  .refine((o) => o.scope !== 'range' || o.from === undefined || o.to === undefined || o.from <= o.to, {
+    message: 'from must be on or before to.',
+  })
+
 export const CustomerPasswordResetSchema = z.object({ password }).strict()
 export const CustomerProfileUpdateSchema = z
   .object({

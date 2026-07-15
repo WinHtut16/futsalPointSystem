@@ -93,7 +93,7 @@ export async function middleware(request: NextRequest) {
   // ── Superadmin-only paths ─────────────────────────────────────────────────────
   if (
     isAdminRoute &&
-    pathname.startsWith('/admin/staff') &&
+    (pathname.startsWith('/admin/staff') || pathname.startsWith('/admin/export')) &&
     role !== 'superadmin'
   ) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
