@@ -1,3 +1,4 @@
+import type { Metadata, Viewport } from 'next'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
@@ -6,6 +7,24 @@ import { PendingRedemptionsProvider } from '@/contexts/PendingRedemptionsContext
 import { PendingBookingsProvider } from '@/contexts/PendingBookingsContext'
 import PendingSoundAlert from '@/components/admin/PendingSoundAlert'
 import PendingBookingsSoundAlert from '@/components/admin/PendingBookingsSoundAlert'
+
+// Installable-PWA metadata — scoped to this layout only, so the
+// <link rel="manifest"> and apple-touch-icon never appear on customer-facing
+// routes ((site)/(customer)/(auth)). This is the entire admin-only
+// enforcement mechanism for the PWA install prompt. Do NOT move the manifest
+// link to app/manifest.ts — that auto-injects it site-wide.
+export const metadata: Metadata = {
+  manifest: '/pwa/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'MyaThida Admin', statusBarStyle: 'default' },
+  icons: { icon: '/logo_black.jpg', apple: '/pwa/apple-touch-icon-180.png' },
+}
+
+// Merges field-by-field with the root layout's viewport (width/initialScale/
+// maximumScale/viewportFit) — only themeColor is added here, and only for
+// /admin/* pages. Value matches --color-primary in app/globals.css.
+export const viewport: Viewport = {
+  themeColor: '#0b4327',
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await getCurrentUser()

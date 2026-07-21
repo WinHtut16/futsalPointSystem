@@ -293,6 +293,19 @@ export const adminEN = {
   'admin.exportError': 'Export failed. Please try again.',
   'admin.exportRangeError': 'Please choose both a start and end date.',
   'admin.exportNote': 'Customers and rewards are always included in full. Booking, points and redemption records follow the range you pick.',
+
+  // Install app (admin-only PWA)
+  'admin.installTitle': 'Install App',
+  'admin.installDesc': 'Add this admin panel to your device as an app for quick access, without opening a browser.',
+  'admin.installButton': 'Install App',
+  'admin.installHowButton': 'How to Install',
+  'admin.installed': 'App installed on this device',
+  'admin.installIosTitle': 'Install on iPhone / iPad',
+  'admin.installIosSteps': 'Tap the Share icon in Safari, then choose "Add to Home Screen".',
+  'admin.installMacTitle': 'Install on Mac',
+  'admin.installMacSteps': 'In Safari, open the File menu and choose "Add to Dock".',
+  'admin.installOtherTitle': 'Install this app',
+  'admin.installOtherSteps': 'Open this page in Chrome or Edge to install it as an app.',
 } as const
 
 export const adminMY: { [K in keyof typeof adminEN]: string } = {
@@ -551,4 +564,17 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.exportError': 'ထုတ်ယူမှု မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။',
   'admin.exportRangeError': 'စတင်ရက်နှင့် ပြီးဆုံးရက် နှစ်ခုလုံး ရွေးပါ။',
   'admin.exportNote': 'ဖောက်သည်များနှင့် ဆုလာဘ်များကို အမြဲ အပြည့်အစုံ ထည့်သွင်းသည်။ ဘွတ်ကင်၊ ပွိုင့်နှင့် ဆုလာဘ်ရယူမှု မှတ်တမ်းများသည် ရွေးချယ်သည့် အပိုင်းအခြားအတိုင်း ဖြစ်သည်။',
+
+  // Install app (admin-only PWA) — draft translation, flagged for client confirmation
+  'admin.installTitle': 'အက်ပ် ထည့်သွင်းရန်',
+  'admin.installDesc': 'ဘရောင်ဇာ မဖွင့်ဘဲ လျင်မြန်စွာ အသုံးပြုနိုင်ရန် ဤအက်မင် ပြားဘုတ်ကို သင့်စက်ပေါ်တွင် အက်ပ်အဖြစ် ထည့်သွင်းပါ။',
+  'admin.installButton': 'အက်ပ် ထည့်သွင်းရန်',
+  'admin.installHowButton': 'ထည့်သွင်းနည်း',
+  'admin.installed': 'ဤစက်ပေါ်တွင် အက်ပ် ထည့်သွင်းပြီးပါပြီ',
+  'admin.installIosTitle': 'iPhone / iPad တွင် ထည့်သွင်းရန်',
+  'admin.installIosSteps': 'Safari ရှိ Share အိုင်ကွန်ကို တို့ပြီး "Add to Home Screen" ကို ရွေးပါ။',
+  'admin.installMacTitle': 'Mac တွင် ထည့်သွင်းရန်',
+  'admin.installMacSteps': 'Safari ၏ File မီနူးကို ဖွင့်ပြီး "Add to Dock" ကို ရွေးပါ။',
+  'admin.installOtherTitle': 'ဤအက်ပ်ကို ထည့်သွင်းရန်',
+  'admin.installOtherSteps': 'အက်ပ်အဖြစ် ထည့်သွင်းရန် ဤစာမျက်နှာကို Chrome သို့မဟုတ် Edge ဖြင့် ဖွင့်ပါ။',
 }

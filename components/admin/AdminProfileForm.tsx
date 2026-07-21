@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
+import InstallAppCard from '@/components/admin/InstallAppCard'
 
 interface Props {
   initialName: string
@@ -160,6 +161,9 @@ export default function AdminProfileForm({ initialName }: Props) {
           <span className={my}>{t('settings.updatePassword')}</span>
         </button>
       </form>
+
+      {/* Section 3 — Install App */}
+      <InstallAppCard />
 
       {/* Toast */}
       {toast && (
