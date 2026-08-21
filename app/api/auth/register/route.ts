@@ -3,6 +3,8 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { phoneToEmail, normalizePhone } from '@/lib/utils'
 import { RegisterSchema, badRequest, parseJson } from '@/lib/schemas'
 
+export const maxDuration = 15
+
 export async function POST(request: NextRequest) {
   const body = await parseJson(request)
   const parsed = RegisterSchema.safeParse(

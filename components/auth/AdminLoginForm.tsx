@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { usernameToAdminEmail } from '@/lib/utils'
+import { isTimeoutOrNetworkError } from '@/lib/fetchWithTimeout'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
@@ -28,26 +29,42 @@ export default function AdminLoginForm() {
 
     const email = identifier.includes('@') ? identifier.trim() : usernameToAdminEmail(identifier)
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    const credentials = { email, password }
+
+    let authError
+    try {
+      ;({ error: authError } = await supabase.auth.signInWithPassword(credentials))
+      if (authError && isTimeoutOrNetworkError(authError)) {
+        ;({ error: authError } = await supabase.auth.signInWithPassword(credentials))
+      }
+    } catch (err) {
+      authError = err
+    }
 
     if (authError) {
-      setError(t('auth.adminInvalidCredentials'))
+      setError(isTimeoutOrNetworkError(authError) ? t('auth.connectionIssue') : t('auth.adminInvalidCredentials'))
       setLoading(false)
       return
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setError(t('auth.adminAuthFailed')); setLoading(false); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setError(t('auth.adminAuthFailed')); setLoading(false); return }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
 
-    if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
-      await supabase.auth.signOut()
-      setError(t('auth.adminAccessDenied'))
+      if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        await supabase.auth.signOut()
+        setError(t('auth.adminAccessDenied'))
+        setLoading(false)
+        return
+      }
+    } catch (err) {
+      setError(isTimeoutOrNetworkError(err) ? t('auth.connectionIssue') : t('auth.adminAuthFailed'))
       setLoading(false)
       return
     }

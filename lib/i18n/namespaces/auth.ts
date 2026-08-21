@@ -24,6 +24,8 @@ export const authEN = {
   'auth.passwordWeak': 'Password is too weak. Add numbers or uppercase letters.',
   'auth.registrationFailed': 'Registration failed. Please try again.',
   'auth.accountCreated': 'Account created! Please go to the login page to sign in.',
+  'auth.connectionIssue': 'Your connection seems slow or unstable right now. Please check your signal and try again.',
+  'auth.alreadyRegisteredSignIn': 'This phone number is already registered. Please sign in instead.',
   // Admin login
   'auth.adminPortalTagline': 'Staff portal',
   'auth.adminUsernameLabel': 'Username or Email',
@@ -102,6 +104,8 @@ export const authMY: { [K in keyof typeof authEN]: string } = {
   'auth.passwordWeak': 'စကားဝှက် အားနည်းနေသည်။ ဂဏန်းများ သို့မဟုတ် စာလုံးကြီးများ ထည့်ပါ။',
   'auth.registrationFailed': 'မှတ်ပုံတင်ခြင်း မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။',
   'auth.accountCreated': 'အကောင့်ဖွင့်ပြီးပါပြီ! ဝင်ရောက်ရန် စာမျက်နှာသို့ သွားပါ။',
+  'auth.connectionIssue': 'သင့်အင်တာနက်ချိတ်ဆက်မှု နှေးကွေးနေပုံရသည်။ လိုင်းအားစစ်ဆေးပြီး ထပ်ကြိုးစားပါ။',
+  'auth.alreadyRegisteredSignIn': 'ဤဖုန်းနံပါတ်သည် မှတ်ပုံတင်ပြီးဖြစ်သည်။ ဝင်ရောက်ရန် လော့ဂ်အင်ဝင်ပါ။',
   // Admin login
   'auth.adminPortalTagline': 'ဝန်ထမ်းဝင်ပေါက်',
   'auth.adminUsernameLabel': 'အမည် သို့မဟုတ် အီးမေးလ်',

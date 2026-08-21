@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { fetchWithTimeout, MIDDLEWARE_AUTH_TIMEOUT_MS } from '@/lib/fetchWithTimeout'
 
 // These paths skip the "must be logged in" admin guard
 const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
@@ -35,10 +36,24 @@ export async function middleware(request: NextRequest) {
           )
         },
       },
+      global: {
+        fetch: (input, init) => fetchWithTimeout(input, init, MIDDLEWARE_AUTH_TIMEOUT_MS),
+      },
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Bounded + defensive: a slow or erroring Supabase call (timeout, or a thrown
+  // AuthApiError e.g. stale/invalid refresh token cookie) must not hang or crash
+  // this function — Vercel force-kills middleware that doesn't respond within 25s.
+  // Falling back to user=null reuses the existing "logged out" redirect below,
+  // no new branching needed.
+  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user'] = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    user = null
+  }
   const { pathname } = request.nextUrl
 
   const isAdminPublicPath = ADMIN_PUBLIC_PATHS.some(p => pathname.startsWith(p))

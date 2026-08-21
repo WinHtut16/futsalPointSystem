@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { phoneToEmail, safeRedirect } from '@/lib/utils'
+import { isTimeoutOrNetworkError } from '@/lib/fetchWithTimeout'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
@@ -27,30 +28,50 @@ export default function LoginForm() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: phoneToEmail(phone),
-      password,
-    })
+    const credentials = { email: phoneToEmail(phone), password }
+
+    let authError
+    try {
+      ;({ error: authError } = await supabase.auth.signInWithPassword(credentials))
+      // Idempotent — safe to retry once on a network/timeout-classified failure
+      // before showing anything, since a slow-but-working connection often
+      // succeeds on the second try.
+      if (authError && isTimeoutOrNetworkError(authError)) {
+        ;({ error: authError } = await supabase.auth.signInWithPassword(credentials))
+      }
+    } catch (err) {
+      authError = err
+    }
 
     if (authError) {
-      const msg = authError.message.toLowerCase()
+      const err = authError as { message?: string }
+      const msg = (err.message ?? '').toLowerCase()
       setError(
-        msg.includes('rate limit') || msg.includes('too many')
-          ? t('auth.tooManyAttempts')
-          : t('auth.invalidCredentials')
+        isTimeoutOrNetworkError(authError)
+          ? t('auth.connectionIssue')
+          : msg.includes('rate limit') || msg.includes('too many')
+            ? t('auth.tooManyAttempts')
+            : t('auth.invalidCredentials')
       )
       setLoading(false)
       return
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user!.id)
-      .single()
+    // Sign-in already succeeded at this point — if this lookup fails, don't strand
+    // the user on an infinite spinner. Default to the safe, self-recoverable redirect.
+    let isAdmin = false
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user!.id)
+        .single()
+      isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
+    } catch {
+      isAdmin = false
+    }
 
-    const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
     router.push(isAdmin ? '/admin/dashboard' : safeRedirect(searchParams.get('next'), '/account'))
     router.refresh()
   }
