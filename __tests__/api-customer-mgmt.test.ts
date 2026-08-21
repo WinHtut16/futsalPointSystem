@@ -2,7 +2,8 @@
  * Customer management + registration success paths.
  *
  * Covers:
- *   - POST /api/auth/register     — success, duplicate phone (app-level + auth-level fallback)
+ *   - POST /api/auth/register     — success, duplicate phone (app-level + auth-level fallback),
+ *                                   idempotent retry recovery (correct password → session, not 409)
  *   - GET  /api/customers          — list all, phone filter
  *   - GET  /api/customers/[id]     — found, not found
  *   - PUT  /api/customers/[id]     — password reset (success, error), profile update (success)
@@ -79,6 +80,31 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 // ---------------------------------------------------------------------------
+// @supabase/ssr mock — POST /api/auth/register builds a cookie-writing anon
+// client and signs the user in server-side, so the session rides back on the
+// registration response instead of costing the browser a second round trip.
+//
+// mockSignIn is therefore the switch that decides what a duplicate phone means:
+//   password authenticates -> this is our own retry landing on an attempt that
+//                             already succeeded -> success
+//   password rejected      -> the number belongs to someone else -> 409
+// ---------------------------------------------------------------------------
+type SignInResult = { data: unknown; error: { message: string } | null }
+
+const SIGN_IN_OK: SignInResult = { data: {}, error: null }
+const WRONG_PASSWORD: SignInResult = { data: null, error: { message: 'Invalid login credentials' } }
+
+const mockSignIn = vi.fn(
+  async (_creds: { email: string; password: string }): Promise<SignInResult> => SIGN_IN_OK
+)
+
+vi.mock('@supabase/ssr', () => ({
+  createServerClient: vi.fn(() => ({
+    auth: { signInWithPassword: mockSignIn },
+  })),
+}))
+
+// ---------------------------------------------------------------------------
 // UUIDs + helpers
 // ---------------------------------------------------------------------------
 const ADMIN_ID    = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
@@ -104,6 +130,8 @@ beforeEach(() => {
   mockAuthAdmin.createUser.mockClear()
   mockAuthAdmin.updateUserById.mockClear()
   mockAuthAdmin.deleteUser.mockClear()
+  mockSignIn.mockReset()
+  mockSignIn.mockResolvedValue(SIGN_IN_OK)
   vi.mocked(createServiceClient).mockClear()
 })
 
@@ -113,7 +141,7 @@ beforeEach(() => {
 describe('POST /api/auth/register', () => {
   // Public endpoint — no auth state required
 
-  it('valid body → 200 {success:true}', async () => {
+  it('valid body → 201 {success:true, session:true}, signed in server-side', async () => {
     mockQuery({ data: null }) // maybySingle: no existing phone → proceed
     mockAuthAdmin.createUser.mockResolvedValueOnce({ data: { user: { id: 'new-id' } }, error: null })
 
@@ -125,11 +153,33 @@ describe('POST /api/auth/register', () => {
     }))
 
     expect(res.status).toBe(201)
-    expect((await res.json()).success).toBe(true)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.session).toBe(true)
+    expect(mockSignIn).toHaveBeenCalledWith({ email: '0912345678@akoatp.com', password: 'Password123' })
   })
 
-  it('duplicate phone (app-level check) → 409, createUser NOT called', async () => {
+  it('new account but server-side sign-in fails → 201 {session:false} so the client falls back', async () => {
+    mockQuery({ data: null })
+    mockAuthAdmin.createUser.mockResolvedValueOnce({ data: { user: { id: 'new-id' } }, error: null })
+    mockSignIn.mockResolvedValueOnce(WRONG_PASSWORD)
+
+    const { POST } = await import('@/app/api/auth/register/route')
+    const res = await POST(jsonReq('http://t/api/auth/register', 'POST', {
+      phone: '0912345678',
+      username: 'NewUser',
+      password: 'Password123',
+    }))
+
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.session).toBe(false)
+  })
+
+  it('duplicate phone + WRONG password (app-level check) → 409, createUser NOT called', async () => {
     mockQuery({ data: { id: 'existing-id' } }) // maybySingle: existing phone found
+    mockSignIn.mockResolvedValueOnce(WRONG_PASSWORD)
 
     const { POST } = await import('@/app/api/auth/register/route')
     const res = await POST(jsonReq('http://t/api/auth/register', 'POST', {
@@ -143,12 +193,13 @@ describe('POST /api/auth/register', () => {
     expect(mockAuthAdmin.createUser).not.toHaveBeenCalled()
   })
 
-  it('duplicate phone (auth-level fallback: createUser returns "already exists") → 409', async () => {
+  it('duplicate phone (auth-level fallback: createUser returns "already exists") + WRONG password → 409', async () => {
     mockQuery({ data: null }) // maybySingle: app check passes
     mockAuthAdmin.createUser.mockResolvedValueOnce({
       data: null,
       error: { message: 'Email already exists' }, // contains 'already' → caught by route
     })
+    mockSignIn.mockResolvedValueOnce(WRONG_PASSWORD)
 
     const { POST } = await import('@/app/api/auth/register/route')
     const res = await POST(jsonReq('http://t/api/auth/register', 'POST', {
@@ -159,7 +210,70 @@ describe('POST /api/auth/register', () => {
 
     expect(res.status).toBe(409)
   })
+
+  // -------------------------------------------------------------------------
+  // Idempotency: the Myanmar bug. The first POST creates the account but its
+  // response is lost on the way back, the client times out and retries, and the
+  // retry must NOT report the customer's own brand-new account as a duplicate.
+  // -------------------------------------------------------------------------
+  it('duplicate phone + CORRECT password (our own retry) → 200 recovered, not 409', async () => {
+    mockQuery({ data: { id: 'existing-id' } }) // the account our lost first attempt created
+    // mockSignIn defaults to success → the password matches
+
+    const { POST } = await import('@/app/api/auth/register/route')
+    const res = await POST(jsonReq('http://t/api/auth/register', 'POST', {
+      phone: '0912345678',
+      username: 'NewUser',
+      password: 'Password123',
+    }))
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.session).toBe(true)
+    expect(body.recovered).toBe(true)
+    expect(mockAuthAdmin.createUser).not.toHaveBeenCalled()
+  })
+
+  it('retry racing its own in-flight first attempt (createUser "already registered") + CORRECT password → 200 recovered', async () => {
+    // The profiles row had not committed yet when this retry read it, so the
+    // app-level check passes and the collision surfaces from auth instead.
+    mockQuery({ data: null })
+    mockAuthAdmin.createUser.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'User already registered' },
+    })
+
+    const { POST } = await import('@/app/api/auth/register/route')
+    const res = await POST(jsonReq('http://t/api/auth/register', 'POST', {
+      phone: '0912345678',
+      username: 'NewUser',
+      password: 'Password123',
+    }))
+
+    expect(res.status).toBe(200)
+    expect((await res.json()).recovered).toBe(true)
+  })
+
+  it('unexpected createUser error → 500, never leaks the driver message', async () => {
+    mockQuery({ data: null })
+    mockAuthAdmin.createUser.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'connection to database failed at 10.0.0.4:5432' },
+    })
+
+    const { POST } = await import('@/app/api/auth/register/route')
+    const res = await POST(jsonReq('http://t/api/auth/register', 'POST', {
+      phone: '0912345678',
+      username: 'NewUser',
+      password: 'Password123',
+    }))
+
+    expect(res.status).toBe(500)
+    expect((await res.json()).error).toBe('Registration failed. Please try again.')
+  })
 })
+
 
 // ===========================================================================
 // GET /api/customers

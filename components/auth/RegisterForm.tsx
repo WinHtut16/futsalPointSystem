@@ -70,8 +70,10 @@ export default function RegisterForm() {
         return
       }
       try {
-        // Safe to retry: a retry landing on an already-succeeded first attempt
-        // resolves gracefully via the 409 handling below, never duplicates or confuses.
+        // Safe to retry: POST /api/auth/register is idempotent. If the first
+        // attempt actually succeeded server-side but its response was lost on the
+        // way back, the retry authenticates that same account and returns success
+        // — it no longer degrades into a spurious "already registered" error.
         res = await postRegister(normalized)
       } catch {
         setError(t('auth.connectionIssue'))
@@ -83,32 +85,10 @@ export default function RegisterForm() {
     const json = await res.json().catch(() => ({}))
 
     if (res.status === 409) {
-      // Likely our own retry landed on an attempt that actually succeeded —
-      // sign in with what the user just typed instead of showing a raw error.
-      // Retry this too: on a slow connection the original POST is often still
-      // running server-side (aborting the client fetch does not cancel it),
-      // so this sign-in racing that in-flight success is itself timing-sensitive.
-      const supabase = createClient()
-      let signInError
-      try {
-        ;({ error: signInError } = await supabase.auth.signInWithPassword({
-          email: phoneToEmail(normalized),
-          password,
-        }))
-        if (signInError && isTimeoutOrNetworkError(signInError)) {
-          ;({ error: signInError } = await supabase.auth.signInWithPassword({
-            email: phoneToEmail(normalized),
-            password,
-          }))
-        }
-      } catch (err) {
-        signInError = err
-      }
-      if (!signInError) {
-        router.push(safeRedirect(searchParams.get('next'), '/account'))
-        router.refresh()
-        return
-      }
+      // Authoritative now. The server already tested the submitted password against
+      // the existing account; a 409 means it did not match, so this number really
+      // does belong to somebody else. No client-side sign-in attempt to make here,
+      // which also removes a 15-30s dead wait from the failure path.
       setAlreadyRegistered(true)
       setError(t('auth.alreadyRegisteredSignIn'))
       setLoading(false)
@@ -121,6 +101,18 @@ export default function RegisterForm() {
       return
     }
 
+    // Normal path: the server signed this account in and attached the session
+    // cookies to the response we just read. The browser is already logged in —
+    // no second round trip to *.supabase.co, which is the whole point.
+    if (json.session) {
+      router.push(safeRedirect(searchParams.get('next'), '/account'))
+      router.refresh()
+      return
+    }
+
+    // Rare: account exists but the server-side sign-in did not stick. Fall back to
+    // signing in from the browser (also covers a client running against an older
+    // deployment that does not send `session`).
     const supabase = createClient()
     try {
       const { error: signInError } = await supabase.auth.signInWithPassword({
