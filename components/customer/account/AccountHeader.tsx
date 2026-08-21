@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Award, Phone, LogOut, Settings } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { toMyDigits } from '@/lib/utils'
 
@@ -30,9 +29,11 @@ export default function AccountHeader({ name, userId, points, earned, redeemed, 
   const router = useRouter()
 
   async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    // Server-side sign-out (see app/api/auth/logout/route.ts) — reliable even
+    // when the browser's own direct connection to Supabase is blocked.
+    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
     router.push('/?logged_out=1')
+    router.refresh()
   }
 
   const jd = new Date(joinedISO)
