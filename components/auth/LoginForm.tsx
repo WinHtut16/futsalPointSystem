@@ -80,7 +80,7 @@ export default function LoginForm() {
   const bookingReturn = !!nextParam && nextParam.includes('/book/confirm')
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       {bookingReturn && (
         <div className="flex items-center gap-2.5 rounded-xl bg-primary-soft px-3 py-2.5">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-primary">

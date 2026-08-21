@@ -10,7 +10,6 @@ const staffUsername = z.string().regex(
 )
 const customerUsername = z.string().trim().min(2, 'Username must be at least 2 characters.').max(60, 'Username is too long.')
 const password = z.string().min(8, 'Password must be at least 8 characters.').max(72, 'Password is too long.')
-const customerPassword = z.string().min(6, 'Password must be at least 6 characters.').max(72, 'Password is too long.')
 const safeText = (max: number) => z.string().trim().max(max, `Field exceeds ${max} characters.`)
 
 const pointsAmount = z
@@ -34,7 +33,7 @@ const hoursPlayed = z
 export const RegisterSchema = z.object({
   phone: myanmarPhone,
   username: customerUsername,
-  password: customerPassword,
+  password,
 })
 
 export const CustomersQuerySchema = z.object({

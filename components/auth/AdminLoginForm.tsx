@@ -74,7 +74,7 @@ export default function AdminLoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <Input
         id="identifier"
         label={t('auth.adminUsernameLabel')}

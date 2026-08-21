@@ -85,11 +85,25 @@ export default function RegisterForm() {
     if (res.status === 409) {
       // Likely our own retry landed on an attempt that actually succeeded —
       // sign in with what the user just typed instead of showing a raw error.
+      // Retry this too: on a slow connection the original POST is often still
+      // running server-side (aborting the client fetch does not cancel it),
+      // so this sign-in racing that in-flight success is itself timing-sensitive.
       const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: phoneToEmail(normalized),
-        password,
-      })
+      let signInError
+      try {
+        ;({ error: signInError } = await supabase.auth.signInWithPassword({
+          email: phoneToEmail(normalized),
+          password,
+        }))
+        if (signInError && isTimeoutOrNetworkError(signInError)) {
+          ;({ error: signInError } = await supabase.auth.signInWithPassword({
+            email: phoneToEmail(normalized),
+            password,
+          }))
+        }
+      } catch (err) {
+        signInError = err
+      }
       if (!signInError) {
         router.push(safeRedirect(searchParams.get('next'), '/account'))
         router.refresh()
@@ -129,7 +143,11 @@ export default function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    // noValidate: without this, the browser's own built-in validation (from the
+    // `required`/`minLength` attributes below) silently blocks the submit and shows
+    // its own popup before handleSubmit ever runs — our translated, styled error
+    // messages below never render. All validation already happens in handleSubmit.
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <Input
         id="phone"
         label={t('auth.phone')}
