@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Calendar, Clock, Info, ArrowRight, MapPin, Sun, X, AlertTriangle, Check, Lock } from 'lucide-react'
@@ -24,7 +24,7 @@ import { PricingLegend } from './Pricing'
 import SlotLegend from './SlotLegend'
 import TimeSlotGrid, { type SlotView } from './TimeSlotGrid'
 import PendingSlotSheet from './PendingSlotSheet'
-import { useBookingSlotRealtime } from '@/hooks/useBookingSlotRealtime'
+import { useBookingSlotRefresh } from '@/hooks/useBookingSlotRefresh'
 
 export type DayInfo = {
   booked: number[]
@@ -202,18 +202,12 @@ export default function BookingView({
     if (hadRemoval) setSlotRemovedToast(true)
   }, [])
 
-  // All YYYY-MM-DD dates in the current calendar month, memoised so the hook
-  // dependency only changes when the month actually changes.
-  const visibleDates = useMemo(() => {
-    const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
-    return Array.from({ length: daysInMonth }, (_, i) =>
-      `${year}-${pad(monthIdx + 1)}-${pad(i + 1)}`
-    )
-  }, [year, monthIdx])
-
-  useBookingSlotRealtime(visibleDates, refreshDate)
-
   const dateISO = selectedDay ? `${year}-${pad(monthIdx + 1)}-${pad(selectedDay)}` : null
+
+  // Was a Realtime subscription across every date in the visible month. Now polls
+  // just the selected day -- see hooks/useBookingSlotRefresh.ts for why the
+  // WebSocket had to go.
+  useBookingSlotRefresh(dateISO, refreshDate)
 
   const selectedHoursOnDate = cart
     .filter(s => s.date === dateISO && !s.override)

@@ -35,6 +35,8 @@ interface UnifiedAccountProps {
   initialTab?: 'upcoming' | 'history' | 'points'
 }
 
+const BOOKING_REFRESH_MS = 30_000
+
 export default function UnifiedAccount(props: UnifiedAccountProps) {
   const { t, lang } = useLanguage()
   const router = useRouter()
@@ -65,6 +67,31 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [props.userId, router])
+
+  /**
+   * Fallback for the subscription above, which is now expected to fail for most
+   * customers: Realtime is a WebSocket to *.supabase.co, refused outright by the
+   * Myanmar operators that filter Supabase, and it cannot follow the rest of our
+   * traffic through the /sb rewrite because Vercel does not upgrade WebSockets
+   * across a rewrite.
+   *
+   * That subscription was the ONLY thing refreshing this page after an admin
+   * confirmed or cancelled a booking. Without this, an affected customer would
+   * sit on a stale "pending" booking indefinitely. router.refresh() re-renders
+   * the server component over ordinary HTTP, which every network reaches.
+   */
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return
+      router.refresh()
+    }
+    const timer = setInterval(refresh, BOOKING_REFRESH_MS)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [router])
 
   // Per-filter feed state
   const [feeds, setFeeds] = useState(props.initialFeeds)

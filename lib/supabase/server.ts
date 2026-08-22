@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { SUPABASE_AUTH_COOKIE_NAME } from '@/lib/supabase/config'
 
 export async function createClient() {
   const cookieStore = await cookies()
@@ -9,6 +10,9 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // Pinned rather than derived. The browser client talks to /sb, so its
+      // derived default would differ from the server's -- see lib/supabase/config.ts.
+      cookieOptions: { name: SUPABASE_AUTH_COOKIE_NAME },
       cookies: {
         getAll() {
           return cookieStore.getAll()

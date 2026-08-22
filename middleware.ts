@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { fetchWithTimeout, MIDDLEWARE_AUTH_TIMEOUT_MS } from '@/lib/fetchWithTimeout'
+import { SUPABASE_AUTH_COOKIE_NAME } from '@/lib/supabase/config'
 
 // These paths skip the "must be logged in" admin guard
 const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
@@ -22,6 +23,8 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // Must match what the browser client writes; see lib/supabase/config.ts.
+      cookieOptions: { name: SUPABASE_AUTH_COOKIE_NAME },
       cookies: {
         getAll() {
           return request.cookies.getAll()
