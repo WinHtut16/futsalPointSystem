@@ -119,10 +119,18 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // sb/ is the same-origin Supabase passthrough (next.config.js rewrites) — running
+    // auth middleware on proxied API traffic would add a getUser() round trip to every
+    // single Supabase call and rewrite its cookies. It must pass straight through.
+    //
+    // net-check is the standalone network diagnostic. It must render even when
+    // Supabase is unreachable, so it cannot sit behind a getUser() call that would
+    // spend 5s timing out before the page appears.
+    //
     // sw.js and pwa/ (manifest + icons) are excluded so the admin PWA's
     // service-worker update checks and manifest fetch never hit the
     // Supabase getUser() round-trip below — those requests carry no
     // session cookie and would otherwise 307 to /admin/login.
-    '/((?!_next/static|_next/image|favicon.ico|api/|sw\\.js|pwa/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/|sb/|net-check|sw\\.js|pwa/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
