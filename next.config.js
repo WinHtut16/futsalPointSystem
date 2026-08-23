@@ -8,6 +8,20 @@ const isDev = process.env.NODE_ENV === 'development'
  */
 const supabaseOrigin = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/+$/, '')
 
+/**
+ * Provider-reachability probes on /net-check are opt-in, because switching them on
+ * also has to widen connect-src below — the browser would otherwise block the very
+ * requests we are trying to time, and report a CSP refusal as if it were an ISP one.
+ *
+ * Turn on by setting NEXT_PUBLIC_NETCHECK_PROVIDERS=1 in Vercel and redeploying;
+ * turn it back off once the measurement is collected. Leaving the app's CSP
+ * permanently wider for a one-off diagnostic is not a good trade.
+ */
+const probeProviders = process.env.NEXT_PUBLIC_NETCHECK_PROVIDERS === '1'
+const providerProbeHosts = probeProviders
+  ? ' https://*.googleapis.com https://firebaseio.com https://neon.tech https://cloud.appwrite.io https://nhost.io https://workers.dev'
+  : ''
+
 // CSP notes:
 // - 'unsafe-eval': only in dev (Next.js HMR source-maps). Not needed in production —
 //   no eval()/new Function()/dangerouslySetInnerHTML in this codebase.
@@ -22,7 +36,7 @@ const csp = [
   "font-src 'self'",
   // Supabase REST + Realtime websocket. Direct *.supabase.co stays listed while the
   // browser still calls it; the /sb proxy below is same-origin and covered by 'self'.
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  `connect-src 'self' https://*.supabase.co wss://*.supabase.co${providerProbeHosts}`,
   "frame-src 'self' https://www.google.com https://maps.google.com https://maps.googleapis.com https://www.facebook.com https://www.facebook.com/plugins/",
   "frame-ancestors 'none'",
   // Admin PWA install (public/pwa/manifest.webmanifest, public/sw.js).

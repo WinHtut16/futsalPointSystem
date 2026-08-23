@@ -161,6 +161,94 @@ const TESTS: TestDef[] = [
   },
 ]
 
+/**
+ * Optional second experiment: is any OTHER backend provider actually more
+ * reachable from this network than Supabase?
+ *
+ * Worth measuring rather than guessing, because "switch to Firebase / Neon /
+ * Appwrite" is a weeks-long decision that is usually made on vibes. The honest
+ * answer is region-specific and changes over time.
+ *
+ * Off unless NEXT_PUBLIC_NETCHECK_PROVIDERS=1, because enabling it also widens
+ * this app's Content-Security-Policy (see next.config.js) to permit connections
+ * to those hosts. That is fine for a one-off diagnostic and should not be left
+ * on permanently.
+ */
+const PROBE_PROVIDERS = process.env.NEXT_PUBLIC_NETCHECK_PROVIDERS === '1'
+
+const PROVIDER_ROUNDS = 2
+
+type ProviderTest = { id: string; label: string; url: string; note: string }
+
+const PROVIDER_TESTS: ProviderTest[] = [
+  {
+    id: 'google',
+    label: 'Firebase Auth / Firestore',
+    url: 'https://firestore.googleapis.com/',
+    note: 'Both run on googleapis.com, shared with much of Google. Blocking it has wide collateral damage, which is the main argument for Firebase here.',
+  },
+  {
+    id: 'firebaseio',
+    label: 'Firebase Realtime Database',
+    url: 'https://firebaseio.com/',
+    note: 'A separate hostname from googleapis.com, so it can be filtered independently.',
+  },
+  {
+    id: 'neon',
+    label: 'Neon (Postgres)',
+    url: 'https://neon.tech/',
+    note: 'Only matters if the browser ever talks to it. With server-side Postgres it never does, which is the point.',
+  },
+  {
+    id: 'appwrite',
+    label: 'Appwrite Cloud',
+    url: 'https://cloud.appwrite.io/v1/health',
+    note: 'Same browser-facing shape as Supabase — same exposure.',
+  },
+  {
+    id: 'nhost',
+    label: 'Nhost',
+    url: 'https://nhost.io/',
+    note: 'Same browser-facing shape as Supabase — same exposure.',
+  },
+  {
+    id: 'workers',
+    label: 'Cloudflare Workers',
+    url: 'https://workers.dev/',
+    note: 'The fallback proxy host if *.vercel.app is ever filtered.',
+  },
+]
+
+/**
+ * Reachability only. mode:'no-cors' means we cannot read the status -- and do not
+ * need to. The question is whether the connection was permitted to happen at all:
+ * an opaque response means it reached the network, a rejection means DNS, TLS or
+ * the connection itself failed. This works regardless of whether the far end sends
+ * CORS headers, which most of these do not.
+ */
+async function probeReachability(url: string): Promise<Probe> {
+  const started = performance.now()
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), HTTP_TIMEOUT_MS)
+  try {
+    await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: controller.signal })
+    const ms = Math.round(performance.now() - started)
+    return { ms, status: classify(ms), detail: 'reachable' }
+  } catch (err) {
+    const ms = Math.round(performance.now() - started)
+    if (controller.signal.aborted) {
+      return { ms, status: 'timeout', detail: `no reply in ${HTTP_TIMEOUT_MS / 1000}s` }
+    }
+    return {
+      ms,
+      status: ms < FAST_FAIL_MS ? 'blocked' : 'error',
+      detail: err instanceof Error ? err.message : 'network error',
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 const OPERATORS = ['MPT', 'ATOM', 'Ooredoo', 'Mytel', 'Other / WiFi', 'Not in Myanmar']
 
 type ServerInfo = {
@@ -179,6 +267,7 @@ export default function NetCheckPage() {
   const [results, setResults] = useState<Record<string, Probe[]>>({})
   const [server, setServer] = useState<ServerInfo | null>(null)
   const [copied, setCopied] = useState(false)
+  const [providerResults, setProviderResults] = useState<Record<string, Probe[]>>({})
 
   const my = lang === 'my'
 
@@ -186,6 +275,7 @@ export default function NetCheckPage() {
     setRunning(true)
     setResults({})
     setServer(null)
+    setProviderResults({})
     setCopied(false)
 
     const collected: Record<string, Probe[]> = {}
@@ -198,6 +288,18 @@ export default function NetCheckPage() {
         // Re-set a fresh object each time so React sees the change and the user
         // watches results fill in rather than staring at a spinner for a minute.
         setResults({ ...collected })
+      }
+    }
+
+    if (PROBE_PROVIDERS) {
+      const collectedProviders: Record<string, Probe[]> = {}
+      for (let round = 1; round <= PROVIDER_ROUNDS; round++) {
+        for (const provider of PROVIDER_TESTS) {
+          setProgress(`${my ? 'ဝန်ဆောင်မှုများ စစ်ဆေးနေသည်' : 'Checking providers'} ${round}/${PROVIDER_ROUNDS} — ${provider.label}`)
+          const probe = await probeReachability(provider.url)
+          collectedProviders[provider.id] = [...(collectedProviders[provider.id] ?? []), probe]
+          setProviderResults({ ...collectedProviders })
+        }
       }
     }
 
@@ -214,7 +316,7 @@ export default function NetCheckPage() {
   }
 
   const verdict = buildVerdict(results)
-  const report = buildReport({ results, server, operator, connType, verdict })
+  const report = buildReport({ results, server, operator, connType, verdict, providerResults })
 
   async function copyReport() {
     try {
@@ -329,6 +431,46 @@ export default function NetCheckPage() {
           </section>
         )}
 
+        {PROBE_PROVIDERS && Object.keys(providerResults).length > 0 && (
+          <section className="space-y-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {my ? 'အခြား ဝန်ဆောင်မှုများ' : 'Other backend providers'}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                {my
+                  ? 'Supabase အစား အခြားဝန်ဆောင်မှုများ ဤကွန်ရက်မှ ရောက်ရှိနိုင်မနိုင် စစ်ဆေးခြင်း။'
+                  : 'Whether a different provider would actually be reachable from this network.'}
+              </p>
+            </div>
+            {PROVIDER_TESTS.map((provider) => {
+              const probes = providerResults[provider.id] ?? []
+              return (
+                <div key={provider.id} className="rounded-xl border border-gray-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-gray-900">{provider.label}</p>
+                  <p className="mt-0.5 text-xs text-gray-500">{provider.note}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {probes.map((p, i) => (
+                      <span
+                        key={i}
+                        className={`rounded-md px-2 py-1 font-mono text-xs ${STATUS_STYLE[p.status]}`}
+                        title={p.detail}
+                      >
+                        {STATUS_LABEL[p.status]} · {p.ms}ms
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+            <p className="text-xs text-gray-500">
+              {my
+                ? 'PocketBase ကဲ့သို့ ကိုယ်ပိုင် server များသည် သင့်ကိုယ်ပိုင် domain ကို သုံးသဖြင့် ဤစာရင်းတွင် မပါဝင်ပါ။'
+                : 'Self-hosted options (PocketBase, self-hosted Appwrite) are not listed: they run on a domain you choose, so their reachability is whatever your own domain\u2019s is.'}
+            </p>
+          </section>
+        )}
+
         {done && (
           <>
             <section className="rounded-xl border-2 border-gray-900 bg-white p-4">
@@ -393,8 +535,9 @@ function buildReport(input: {
   operator: string
   connType: string
   verdict: string
+  providerResults: Record<string, Probe[]>
 }): string {
-  const { results, server, operator, connType, verdict } = input
+  const { results, server, operator, connType, verdict, providerResults } = input
   const lines: string[] = []
   lines.push('=== AKO ATP CONNECTION TEST ===')
   lines.push(`time      : ${new Date().toISOString()}`)
@@ -416,6 +559,16 @@ function buildReport(input: {
     lines.push(`${test.en}`)
     lines.push(`   ${cells || 'not run'}`)
   }
+  if (PROBE_PROVIDERS && Object.keys(providerResults).length) {
+    lines.push('')
+    lines.push('-- other providers, reachability only --')
+    for (const provider of PROVIDER_TESTS) {
+      const probes = providerResults[provider.id] ?? []
+      const cells = probes.map((p) => `${STATUS_LABEL[p.status]} ${p.ms}ms`).join(' | ')
+      lines.push(`${provider.label.padEnd(28)} ${cells || 'not run'}`)
+    }
+  }
+
   lines.push('')
   lines.push(`VERDICT: ${verdict}`)
   return lines.join('\n')
