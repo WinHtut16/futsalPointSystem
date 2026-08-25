@@ -190,13 +190,13 @@ const PROVIDER_TESTS: ProviderTest[] = [
   {
     id: 'firebaseio',
     label: 'Firebase Realtime Database',
-    url: 'https://firebaseio.com/',
+    url: 'https://netcheck-probe.firebaseio.com/.json',
     note: 'A separate hostname from googleapis.com, so it can be filtered independently.',
   },
   {
     id: 'neon',
     label: 'Neon (Postgres)',
-    url: 'https://neon.tech/',
+    url: 'https://console.neon.tech/',
     note: 'Only matters if the browser ever talks to it. With server-side Postgres it never does, which is the point.',
   },
   {
@@ -214,7 +214,7 @@ const PROVIDER_TESTS: ProviderTest[] = [
   {
     id: 'workers',
     label: 'Cloudflare Workers',
-    url: 'https://workers.dev/',
+    url: 'https://netcheck-probe.workers.dev/',
     note: 'The fallback proxy host if *.vercel.app is ever filtered.',
   },
 ]
@@ -440,7 +440,7 @@ export default function NetCheckPage() {
               <p className="mt-1 text-xs text-gray-500">
                 {my
                   ? 'Supabase အစား အခြားဝန်ဆောင်မှုများ ဤကွန်ရက်မှ ရောက်ရှိနိုင်မနိုင် စစ်ဆေးခြင်း။'
-                  : 'Whether a different provider would actually be reachable from this network.'}
+                  : 'Whether a different provider would actually be reachable from this network. A BLOCKED result here is weaker evidence than in the tests above — check the browser console for "Refused to connect" (a Content-Security-Policy refusal) before believing it.'}
               </p>
             </div>
             {PROVIDER_TESTS.map((provider) => {

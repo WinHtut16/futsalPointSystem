@@ -19,7 +19,9 @@ const supabaseOrigin = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/+
  */
 const probeProviders = process.env.NEXT_PUBLIC_NETCHECK_PROVIDERS === '1'
 const providerProbeHosts = probeProviders
-  ? ' https://*.googleapis.com https://firebaseio.com https://neon.tech https://cloud.appwrite.io https://nhost.io https://workers.dev'
+  ? ' https://*.googleapis.com https://*.firebaseio.com https://*.neon.tech https://neon.tech'
+    + ' https://*.appwrite.io https://*.nhost.io https://nhost.io https://*.workers.dev'
+    + ' https://firebase.google.com https://*.cloudflare.com https://neon.com'
   : ''
 
 // CSP notes:
