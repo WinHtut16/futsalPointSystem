@@ -9,6 +9,13 @@ const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/re
 // (reset-password is excluded — user must be logged in to set a new password)
 const ADMIN_AUTH_ONLY_PATHS = ['/admin/login', '/admin/forgot-password']
 
+// Admin paths served by another deployment (Next.js zones, rewritten in
+// next.config.js). Entering one needs a grant for that specific business, not
+// merely an admin role.
+const ZONE_PREFIXES: { path: string; app: string }[] = [
+  { path: '/admin/billiards', app: 'billiards' },
+]
+
 // Routes that require a logged-in session (any role)
 const CUSTOMER_AUTH_ROUTES = ['/dashboard', '/history', '/rewards', '/bookings', '/account']
 // Customer-facing routes that an authenticated admin should never land on — redirect to admin panel.
@@ -115,6 +122,23 @@ export async function middleware(request: NextRequest) {
   // ── Non-admin on protected admin route → customer home ───────────────────────
   if (isAdminRoute && !isAdmin) {
     return NextResponse.redirect(new URL('/account', request.url))
+  }
+
+  // ── Zone routes need a grant for THAT business ────────────────────────────────
+  // Checked here so an admin without the grant never reaches the zone at all,
+  // rather than being bounced back out of it. The zone re-checks server-side
+  // anyway; this is the cheap first gate, and it costs nothing on /admin/* paths
+  // that are not zones.
+  const zone = ZONE_PREFIXES.find(z => pathname === z.path || pathname.startsWith(z.path + '/'))
+  if (zone) {
+    let allowed = false
+    try {
+      const { data } = await supabase.rpc('has_app_access', { p_app: zone.app })
+      allowed = data === true
+    } catch {
+      allowed = false
+    }
+    if (!allowed) return NextResponse.redirect(new URL('/admin/apps', request.url))
   }
 
   // ── Superadmin-only paths ─────────────────────────────────────────────────────

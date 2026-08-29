@@ -20,7 +20,7 @@ const supabaseOrigin = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/+
 const probeProviders = process.env.NEXT_PUBLIC_NETCHECK_PROVIDERS === '1'
 const providerProbeHosts = probeProviders
   ? ' https://*.googleapis.com https://*.firebaseio.com https://*.neon.tech https://neon.tech'
-    + ' https://*.appwrite.io https://*.nhost.io https://nhost.io https://*.workers.dev'
+    + ' https://*.appwrite.io https://*.nhost.io https://nhost.io'
     + ' https://firebase.google.com https://*.cloudflare.com https://neon.com'
   : ''
 
@@ -69,10 +69,37 @@ const nextConfig = {
    * (wss://) cannot use this path; that needs a polling fallback instead.
    */
   async rewrites() {
-    if (!supabaseOrigin) return []
-    return [
-      { source: '/sb/:path*', destination: `${supabaseOrigin}/:path*` },
-    ]
+    const rules = []
+
+    if (supabaseOrigin) {
+      rules.push({ source: '/sb/:path*', destination: `${supabaseOrigin}/:path*` })
+    }
+
+    /**
+     * Next.js multi-zone: the billiards POS is a separate repo and a separate
+     * deployment, served from this origin under /admin/billiards.
+     *
+     * Same origin is the whole point. vercel.app is on the Public Suffix List,
+     * so two *.vercel.app subdomains can never share a session cookie - the
+     * browser refuses. Proxying instead of linking out means the browser only
+     * ever sees this host, so one login covers every business with no custom
+     * domain and no SSO handshake.
+     *
+     * The zone app sets basePath '/admin/billiards', so its pages AND its
+     * _next assets both live under that prefix and this one rule covers both.
+     *
+     * Unset BILLIARDS_ZONE_URL and the rule simply is not added: /admin/billiards
+     * 404s and the rest of the admin panel is untouched. That is the rollback.
+     */
+    const billiardsZone = process.env.BILLIARDS_ZONE_URL?.replace(/\/$/, '')
+    if (billiardsZone) {
+      rules.push({
+        source: '/admin/billiards/:path*',
+        destination: `${billiardsZone}/admin/billiards/:path*`,
+      })
+    }
+
+    return rules
   },
 
   async headers() {

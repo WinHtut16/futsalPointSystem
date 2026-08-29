@@ -274,4 +274,40 @@ describe('middleware', () => {
     const res = await middleware(req('/admin/staff'))
     expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
   })
+
+  // ── Zone access ────────────────────────────────────────────────────────────
+
+  it('admin WITHOUT a billiards grant never reaches the zone', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    mockRpc.mockResolvedValue({ data: false, error: null })
+    const res = await middleware(req('/admin/billiards/dashboard'))
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/apps')
+    expect(mockRpc).toHaveBeenCalledWith('has_app_access', { p_app: 'billiards' })
+  })
+
+  it('admin WITH a billiards grant is passed through to the zone', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    mockRpc.mockResolvedValue({ data: true, error: null })
+    const res = await middleware(req('/admin/billiards/session/abc'))
+    expect(res.headers.get('location')).toBeNull()
+  })
+
+  it('a failing grant lookup keeps them out rather than letting them in', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    mockRpc.mockRejectedValue(new Error('connection reset'))
+    const res = await middleware(req('/admin/billiards'))
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/apps')
+  })
+
+  it('a path merely starting with the same letters is not treated as the zone', async () => {
+    // /admin/billiardsomething must not match /admin/billiards
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    const res = await middleware(req('/admin/billiardsxyz'))
+    expect(mockRpc).not.toHaveBeenCalled()
+    expect(res.headers.get('location')).toBeNull()
+  })
 })
