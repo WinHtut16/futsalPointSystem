@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getCurrentUser, requireAnyAdmin, requireSuperAdmin } from '@/lib/auth'
+import { getCurrentUser, requireAnyAdmin, requireSuperAdmin, isFutsalSuperAdmin } from '@/lib/auth'
 import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -24,7 +24,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   }
   if (error) return serverError(error.message)
 
-  if (data.is_deleted && profile.role !== 'superadmin') {
+  if (data.is_deleted && !(await isFutsalSuperAdmin())) {
     return NextResponse.json({ error: 'Reward not found.' }, { status: 404 })
   }
 

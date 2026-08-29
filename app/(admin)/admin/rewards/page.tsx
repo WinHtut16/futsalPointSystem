@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, isFutsalSuperAdmin } from '@/lib/auth'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import RewardAdminRow from '@/components/admin/RewardAdminRow'
@@ -15,7 +15,7 @@ export default async function AdminRewardsPage() {
     .eq('is_deleted', false)
     .order('points_cost', { ascending: true })
 
-  const canManage = profile?.role === 'superadmin'
+  const canManage = await isFutsalSuperAdmin()
   const canToggle = profile?.role === 'admin' || profile?.role === 'superadmin'
 
   const active = rewards?.filter((r) => r.is_active) ?? []

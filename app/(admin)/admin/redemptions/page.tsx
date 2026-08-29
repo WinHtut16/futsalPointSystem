@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, isFutsalSuperAdmin } from '@/lib/auth'
 import RedemptionsList from '@/components/admin/RedemptionsList'
 import T from '@/components/ui/T'
 import type { RedemptionRequest } from '@/types'
@@ -32,7 +32,7 @@ export default async function AdminRedemptionsPage() {
       <RedemptionsList
         initialRequests={(pending ?? []) as RedemptionRequest[]}
         initialHistory={(history ?? []) as RedemptionRequest[]}
-        isSuperAdmin={profile?.role === 'superadmin'}
+        isSuperAdmin={await isFutsalSuperAdmin()}
       />
     </div>
   )

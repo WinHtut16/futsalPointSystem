@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, isFutsalSuperAdmin } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import RewardForm from '@/components/admin/RewardForm'
 import Link from 'next/link'
@@ -8,7 +8,7 @@ import type { Reward } from '@/types'
 
 export default async function EditRewardPage({ params }: { params: Promise<{ id: string }> }) {
   const [profile, { id }] = await Promise.all([getCurrentUser(), params])
-  if (profile?.role !== 'superadmin') redirect('/admin/rewards')
+  if (!(await isFutsalSuperAdmin())) redirect('/admin/rewards')
 
   const supabase = await createClient()
   const { data: reward } = await supabase.from('rewards').select('*').eq('id', id).single()

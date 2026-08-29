@@ -8,6 +8,7 @@ process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 // ── Mock @supabase/ssr ───────────────────────────────────────────────────────
 const mockGetUser = vi.fn()
 const mockProfileSingle = vi.fn()
+const mockRpc = vi.fn()
 
 const profileChain = {
   select: vi.fn(),
@@ -23,6 +24,7 @@ vi.mock('@supabase/ssr', () => ({
       getUser: mockGetUser,
     },
     from: vi.fn(() => profileChain),
+    rpc: mockRpc,
   })),
 }))
 
@@ -52,6 +54,8 @@ describe('middleware', () => {
     // Default: no session, no profile
     mockGetUser.mockResolvedValue({ data: { user: null } })
     mockProfileSingle.mockResolvedValue({ data: null, error: null })
+    // Default: no per-business rank. Individual tests override.
+    mockRpc.mockResolvedValue({ data: null, error: null })
   })
 
   // ── Unauthenticated guards ─────────────────────────────────────────────────
@@ -233,5 +237,41 @@ describe('middleware', () => {
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
     const res = await middleware(req('/admin/apps'))
     expect(res.headers.get('location')).toBeNull()
+  })
+
+  // ── Per-business superadmin rank ───────────────────────────────────────────
+
+  it('global superadmin reaches /admin/staff without an app_role lookup', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'superadmin' }, error: null })
+    const res = await middleware(req('/admin/staff'))
+    expect(res.headers.get('location')).toBeNull()
+    // the common case must stay free: no extra round trip
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+
+  it('admin who is superadmin of futsal only reaches /admin/staff', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    mockRpc.mockResolvedValue({ data: 'superadmin', error: null })
+    const res = await middleware(req('/admin/staff'))
+    expect(res.headers.get('location')).toBeNull()
+    expect(mockRpc).toHaveBeenCalledWith('app_role', { p_app: 'futsal' })
+  })
+
+  it('plain admin with no futsal rank is turned away from /admin/export', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    mockRpc.mockResolvedValue({ data: 'admin', error: null })
+    const res = await middleware(req('/admin/export'))
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+  })
+
+  it('a failing app_role lookup denies rather than admits', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    mockRpc.mockRejectedValue(new Error('connection reset'))
+    const res = await middleware(req('/admin/staff'))
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
   })
 })

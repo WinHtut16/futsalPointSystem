@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getMyApps } from '@/lib/apps'
+import { getMyApps, getAppRole } from '@/lib/apps'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AdminShell from '@/components/admin/AdminShell'
 import { PendingRedemptionsProvider } from '@/contexts/PendingRedemptionsContext'
@@ -41,6 +41,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (apps && !apps.some((a) => a.app === 'futsal')) {
     redirect('/admin/apps')
   }
+
+  // Rank inside this business. Falls back to the global role only when the
+  // lookup failed, for the same reason as above.
+  const futsalRole = (await getAppRole('futsal')) ?? (profile.role === 'superadmin' ? 'superadmin' : 'admin')
 
   const supabase = await createClient()
   const svc = createServiceClient()
@@ -88,7 +92,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <PendingRedemptionsProvider initialCount={initialPendingCount ?? 0}>
       <PendingBookingsProvider initialCount={initialPendingBookingsCount ?? 0}>
-        <AdminShell role={profile.role} username={profile.username} apps={apps ?? []}>
+        <AdminShell role={futsalRole} username={profile.username} apps={apps ?? []}>
           {children}
         </AdminShell>
         <PendingSoundAlert />

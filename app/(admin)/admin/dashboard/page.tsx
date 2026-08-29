@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, isFutsalSuperAdmin } from '@/lib/auth'
 import T from '@/components/ui/T'
 import DashboardPeriodSection from '@/components/admin/analytics/DashboardPeriodSection'
 import EarningRuleCard from '@/components/admin/EarningRuleCard'
@@ -214,7 +214,7 @@ export default async function AdminDashboardPage({
 }) {
   const profile = await getCurrentUser()
   const supabase = await createClient()
-  const isSuperAdmin = profile?.role === 'superadmin'
+  const isSuperAdmin = await isFutsalSuperAdmin()
 
   // ── Period params (parsed for all roles; only used by superadmin) ──────────
   const now = new Date()

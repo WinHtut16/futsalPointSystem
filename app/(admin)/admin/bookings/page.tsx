@@ -1,4 +1,4 @@
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireAnyAdmin, isFutsalSuperAdmin } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import AdminBookingsList, { type AdminBooking } from '@/components/admin/booking/AdminBookingsList'
 import type { UserRole } from '@/types'
@@ -231,7 +231,7 @@ export default async function AdminBookingsPage({
         currentFrom={from ?? ''}
         currentTo={to ?? ''}
         stats={stats}
-        role={role}
+        role={(await isFutsalSuperAdmin()) ? 'superadmin' : 'admin'}
       />
     </div>
   )

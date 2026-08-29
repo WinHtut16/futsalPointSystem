@@ -120,10 +120,22 @@ export async function middleware(request: NextRequest) {
   // ── Superadmin-only paths ─────────────────────────────────────────────────────
   if (
     isAdminRoute &&
-    (pathname.startsWith('/admin/staff') || pathname.startsWith('/admin/export')) &&
-    role !== 'superadmin'
+    (pathname.startsWith('/admin/staff') || pathname.startsWith('/admin/export'))
   ) {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    // A global superadmin passes without any extra work, which is every
+    // superadmin today - so this costs nothing on the current data. Only a
+    // plain admin pays for the app_role lookup, and only on these two rarely
+    // visited paths, never on the hot admin routes.
+    let allowed = role === 'superadmin'
+    if (!allowed) {
+      try {
+        const { data } = await supabase.rpc('app_role', { p_app: 'futsal' })
+        allowed = data === 'superadmin'
+      } catch {
+        allowed = false
+      }
+    }
+    if (!allowed) return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
   return supabaseResponse

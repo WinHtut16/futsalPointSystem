@@ -8,8 +8,7 @@ import {
   Menu, X, ChevronsLeft, ChevronsRight, DatabaseBackup,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import type { UserRole } from '@/types'
-import type { AppGrant } from '@/lib/apps'
+import type { AppGrant, AppRole } from '@/lib/apps'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { usePendingRedemptions } from '@/contexts/PendingRedemptionsContext'
 import { usePendingBookings } from '@/contexts/PendingBookingsContext'
@@ -49,7 +48,9 @@ export default function AdminShell({
   apps,
   children,
 }: {
-  role: UserRole
+  /** Rank within futsal specifically - drives the superadmin-only nav items
+   *  and the label under the username. Not the global profiles.role. */
+  role: AppRole
   username: string
   /** Businesses this account can reach. Drives the switcher; empty or single
    *  means no switcher is shown at all. */
@@ -116,7 +117,7 @@ function Sidebar({
   mobile = false,
   onToggle,
 }: {
-  role: UserRole
+  role: AppRole
   username: string
   apps: AppGrant[]
   collapsed: boolean
