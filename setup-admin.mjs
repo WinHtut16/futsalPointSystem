@@ -28,9 +28,17 @@ console.log('Setting up superadmin account...')
 const { data: existingUsers } = await supabase.auth.admin.listUsers()
 let adminUser = existingUsers?.users?.find(u => u.email === SUPERADMIN_EMAIL)
 
-// Also look for the old phone-based email in case migrating from previous setup
+// Also look for the old phone-based email, in case this is migrating from the
+// original phone-login superadmin.
+//
+// This MUST match that one address exactly. It used to match any @akoatp.com
+// address, which was safe when the only such account was the old admin - but
+// that is the CUSTOMER email domain, so today it matches every registered
+// customer. If the superadmin account were ever missing, this would have picked
+// an arbitrary real customer and rewritten their email and password into the
+// superadmin's, silently hijacking their account and their points history.
 const OLD_ADMIN_EMAIL = existingUsers?.users?.find(
-  u => u.email?.endsWith('@akoatp.com') && u.email !== SUPERADMIN_EMAIL
+  u => u.email === `${SUPERADMIN_PHONE}@akoatp.com` && u.email !== SUPERADMIN_EMAIL
 )
 
 if (!adminUser && OLD_ADMIN_EMAIL) {
