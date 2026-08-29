@@ -18,7 +18,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 **First-time setup:**
 1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://mya-thida-futsal.vercel.app` in Vercel env vars). Also add `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` for CMS image uploads.
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `supabase-multilingual-rewards.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → `cms-simplify-migration.sql` → `rls-bookings-fix.sql` → `rls-profiles-insert-fix.sql` → `rls-transactions-fix.sql` → `points-adjust-atomic-fix.sql` → **`confirm-override-atomic-migration.sql`** → `override-booking-date-fix.sql` → `closure-booking-conflict-trigger.sql` → `override-conflict-lock-fix.sql` → `booking-updated-at-migration.sql` → `trigger-else-branch-fix.sql` → `drop-shadow-redemption.sql` → `redemption-cost-snapshot-migration.sql` → `approve-use-snapshot-fix.sql` → `drop-booking-transaction-type.sql` → `points-delta-sign-constraint.sql` → `dead-schema-cleanup.sql` → `rls-rewards-write-fix.sql` → `rls-transactions-delete-fix.sql` → `rls-redemption-cancel-fix.sql` → `admin-booking-entry-migration.sql` → `booking-archive-migration.sql` → `profiles-updated-at-migration.sql` → `realtime-publication-migration.sql` → `redemption-cancel-snapshot-fix.sql` → `realtime-closures-migration.sql` → `enforce-cancel-service-role-fix.sql`
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `supabase-multilingual-rewards.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → `cms-simplify-migration.sql` → `rls-bookings-fix.sql` → `rls-profiles-insert-fix.sql` → `rls-transactions-fix.sql` → `points-adjust-atomic-fix.sql` → **`confirm-override-atomic-migration.sql`** → `override-booking-date-fix.sql` → `closure-booking-conflict-trigger.sql` → `override-conflict-lock-fix.sql` → `booking-updated-at-migration.sql` → `trigger-else-branch-fix.sql` → `drop-shadow-redemption.sql` → `redemption-cost-snapshot-migration.sql` → `approve-use-snapshot-fix.sql` → `drop-booking-transaction-type.sql` → `points-delta-sign-constraint.sql` → `dead-schema-cleanup.sql` → `rls-rewards-write-fix.sql` → `rls-transactions-delete-fix.sql` → `rls-redemption-cancel-fix.sql` → `admin-booking-entry-migration.sql` → `booking-archive-migration.sql` → `profiles-updated-at-migration.sql` → `realtime-publication-migration.sql` → `redemption-cancel-snapshot-fix.sql` → `realtime-closures-migration.sql` → `enforce-cancel-service-role-fix.sql` → **`app-access-migration.sql`**
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards. **`SUPERADMIN_PASSWORD` env var is required** — the script exits with an error if it is missing (no hardcoded fallback).
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -112,6 +112,30 @@ Form-only pages (`rewards/new`, `staff/new`) have no `loading.tsx` — they rend
 **Superadmin:** Real email (`winhtutcentury@gmail.com`), supports self-service forgot-password via Supabase email reset. Seeded via `setup-admin.mjs`.
 
 Sessions are managed SSR-side via cookie-based tokens.
+
+### Multi-Business Admin Portal
+
+Three separate businesses (futsal, billiards, game shop) share one login. This
+Supabase project is the single identity source for all three; billiards and game
+arrive later as Next.js zones rewritten onto this origin under `/admin/billiards`
+and `/admin/game`, which is what lets one session cookie cover them without a
+custom domain.
+
+- **`app-access-migration.sql`** creates `app_access` (per-business grants) plus
+  `is_superadmin()`, `has_app_access(app)`, `app_role(app)` and `my_apps()`.
+  `profiles.role = 'superadmin'` remains a **global** owner role that outranks any
+  per-app row; everyone else is granted one business at a time.
+- **`lib/apps.ts`** is the only place app names are defined (`AppName`). Never pass
+  a bare string - `has_app_access('billards')` returns FALSE in Postgres rather
+  than raising, so a typo would fail silently. `getMyApps()` returns `null` when
+  the lookup **failed**, which is not the same as `[]` meaning no access; never
+  revoke on `null` or a DB blip locks out every admin.
+- **`/admin`** is a router, not a page: one grant goes straight into that business,
+  several show the chooser at `/admin/apps`. It is the PWA `start_url`.
+- **`app/(portal)/`** holds those two routes, deliberately outside `(admin)` so the
+  chooser does not render the futsal sidebar or run its pending-count queries.
+- **`app/(admin)/` IS the futsal business** - its layout requires a `futsal` grant,
+  not merely an admin role.
 
 ### Roles
 

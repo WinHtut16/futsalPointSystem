@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { getMyApps } from '@/lib/apps'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AdminShell from '@/components/admin/AdminShell'
 import { PendingRedemptionsProvider } from '@/contexts/PendingRedemptionsContext'
@@ -30,6 +31,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const profile = await getCurrentUser()
   if (!profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) {
     redirect('/admin/login')
+  }
+
+  // This route group IS the futsal business, so entering it needs a futsal
+  // grant, not merely an admin role. Note the null check: getMyApps returns
+  // null when the lookup itself failed, and a momentary DB error must never
+  // read as "access revoked" and lock every admin out of a live system.
+  const apps = await getMyApps()
+  if (apps && !apps.some((a) => a.app === 'futsal')) {
+    redirect('/admin/apps')
   }
 
   const supabase = await createClient()
@@ -78,7 +88,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <PendingRedemptionsProvider initialCount={initialPendingCount ?? 0}>
       <PendingBookingsProvider initialCount={initialPendingBookingsCount ?? 0}>
-        <AdminShell role={profile.role} username={profile.username}>
+        <AdminShell role={profile.role} username={profile.username} apps={apps ?? []}>
           {children}
         </AdminShell>
         <PendingSoundAlert />

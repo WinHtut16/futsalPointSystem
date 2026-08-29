@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '@/types'
+import type { AppGrant } from '@/lib/apps'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { usePendingRedemptions } from '@/contexts/PendingRedemptionsContext'
 import { usePendingBookings } from '@/contexts/PendingBookingsContext'
@@ -45,10 +46,14 @@ function initials(name: string) {
 export default function AdminShell({
   role,
   username,
+  apps,
   children,
 }: {
   role: UserRole
   username: string
+  /** Businesses this account can reach. Drives the switcher; empty or single
+   *  means no switcher is shown at all. */
+  apps: AppGrant[]
   children: React.ReactNode
 }) {
   const [collapsed, setCollapsed] = useState(false)
@@ -63,7 +68,7 @@ export default function AdminShell({
         className="hidden md:block fixed inset-y-0 left-0 z-30 transition-[width] duration-200"
         style={{ width: sidebarW }}
       >
-        <Sidebar role={role} username={username} collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+        <Sidebar role={role} username={username} apps={apps} collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
       </aside>
 
       {/* mobile drawer */}
@@ -71,7 +76,7 @@ export default function AdminShell({
         <div className="fixed inset-0 z-40 md:hidden">
           <button type="button" aria-label="Close menu" onClick={() => setDrawer(false)} className="absolute inset-0" style={{ background: 'rgba(15,30,22,0.5)' }} />
           <div className="absolute inset-y-0 left-0 shadow-2xl">
-            <Sidebar role={role} username={username} collapsed={false} mobile onToggle={() => setDrawer(false)} />
+            <Sidebar role={role} username={username} apps={apps} collapsed={false} mobile onToggle={() => setDrawer(false)} />
           </div>
         </div>
       )}
@@ -106,12 +111,14 @@ export default function AdminShell({
 function Sidebar({
   role,
   username,
+  apps,
   collapsed,
   mobile = false,
   onToggle,
 }: {
   role: UserRole
   username: string
+  apps: AppGrant[]
   collapsed: boolean
   mobile?: boolean
   onToggle: () => void
@@ -158,6 +165,23 @@ function Sidebar({
           </button>
         )}
       </div>
+
+      {/* business switcher — only when this account can reach more than one.
+          A single-business staffer should never see that the others exist. */}
+      {apps.length > 1 && (
+        <Link
+          href="/admin/apps"
+          title={t('portal.switchApp')}
+          className={`flex items-center gap-2.5 border-b border-white/10 text-white/70 transition-colors hover:bg-white/10 hover:text-white ${
+            collapsed ? 'justify-center px-0 py-3' : 'px-4 py-2.5'
+          }`}
+        >
+          <LayoutGrid size={16} className="shrink-0" strokeWidth={2} />
+          {!collapsed && (
+            <span className={`truncate text-[12px] font-semibold ${my}`}>{t('portal.switchApp')}</span>
+          )}
+        </Link>
+      )}
 
       {/* nav */}
       <nav className={`flex-1 overflow-y-auto ${collapsed ? 'px-2.5 py-3' : 'px-3 py-3'}`}>

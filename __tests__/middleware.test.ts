@@ -63,10 +63,10 @@ describe('middleware', () => {
     expect(mockProfileSingle).not.toHaveBeenCalled()
   })
 
-  it('unauthenticated GET /admin/dashboard redirects to /admin/login', async () => {
+  it('unauthenticated GET /admin/dashboard redirects to /admin/login carrying ?next=', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } })
     const res = await middleware(req('/admin/dashboard'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/login')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/login?next=%2Fadmin%2Fdashboard')
     expect(mockProfileSingle).not.toHaveBeenCalled()
   })
 
@@ -92,62 +92,62 @@ describe('middleware', () => {
     expect(res.headers.get('location')).toBe('http://localhost:3000/account')
   })
 
-  it('logged-in admin on /login redirects to /admin/dashboard', async () => {
+  it('logged-in admin on /login redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
     const res = await middleware(req('/login'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
-  it('logged-in admin on /admin/login redirects to /admin/dashboard', async () => {
+  it('logged-in admin on /admin/login redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
     const res = await middleware(req('/admin/login'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
   // ── Admin-on-customer-route redirects (new behaviour) ─────────────────────
 
-  it('admin on /account redirects to /admin/dashboard', async () => {
+  it('admin on /account redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
     const res = await middleware(req('/account'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
-  it('superadmin on /account redirects to /admin/dashboard', async () => {
+  it('superadmin on /account redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1', email: 'winhtutcentury@gmail.com' } } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'superadmin' }, error: null })
     const res = await middleware(req('/account'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
-  it('admin on /book redirects to /admin/dashboard', async () => {
+  it('admin on /book redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
     const res = await middleware(req('/book'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
-  it('admin on /bookings redirects to /admin/dashboard', async () => {
+  it('admin on /bookings redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
     const res = await middleware(req('/bookings'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
-  it('admin on /rewards redirects to /admin/dashboard', async () => {
+  it('admin on /rewards redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
     const res = await middleware(req('/rewards'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
-  it('admin on /dashboard redirects to /admin/dashboard', async () => {
+  it('admin on /dashboard redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
     const res = await middleware(req('/dashboard'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
   // ── Customers on customer routes — NO extra DB query ──────────────────────
@@ -194,5 +194,44 @@ describe('middleware', () => {
     mockProfileSingle.mockResolvedValue({ data: null, error: null })
     const res = await middleware(req('/admin/dashboard'))
     expect(res.headers.get('location')).toBe('http://localhost:3000/account')
+  })
+
+  // ── Portal routing ─────────────────────────────────────────────────────────
+
+  it('unauthenticated deep link into a zone keeps its full path in ?next=', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    const res = await middleware(req('/admin/billiards/session/42'))
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3000/admin/login?next=%2Fadmin%2Fbilliards%2Fsession%2F42'
+    )
+  })
+
+  it('unauthenticated deep link preserves the query string too', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    const res = await middleware(req('/admin/bookings?status=pending'))
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3000/admin/login?next=%2Fadmin%2Fbookings%3Fstatus%3Dpending'
+    )
+  })
+
+  it('admin session on /admin passes through to the router page', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    const res = await middleware(req('/admin'))
+    expect(res.headers.get('location')).toBeNull()
+  })
+
+  it('customer session on /admin is sent to /account, not the chooser', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: customerUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'customer' }, error: null })
+    const res = await middleware(req('/admin'))
+    expect(res.headers.get('location')).toBe('http://localhost:3000/account')
+  })
+
+  it('admin session on /admin/apps passes through (no futsal grant needed)', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    const res = await middleware(req('/admin/apps'))
+    expect(res.headers.get('location')).toBeNull()
   })
 })

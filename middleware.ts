@@ -68,7 +68,14 @@ export async function middleware(request: NextRequest) {
   // ── Unauthenticated guards (no DB query needed) ──────────────────────────────
   if (!user) {
     if (isCustomerAuthRoute) return NextResponse.redirect(new URL('/login', request.url))
-    if (isAdminRoute) return NextResponse.redirect(new URL('/admin/login', request.url))
+    if (isAdminRoute) {
+      // Carry the intended destination so a deep link survives the login round
+      // trip. This matters more once billiards and game arrive as zones under
+      // /admin/*: a bookmark to a specific POS screen should still land there.
+      const loginUrl = new URL('/admin/login', request.url)
+      loginUrl.searchParams.set('next', pathname + request.nextUrl.search)
+      return NextResponse.redirect(loginUrl)
+    }
     return supabaseResponse
   }
 
@@ -95,12 +102,14 @@ export async function middleware(request: NextRequest) {
 
   // ── Logged-in user on auth pages → redirect to their home ────────────────────
   if (pathname === '/login' || pathname === '/register' || isAdminAuthOnlyPath) {
-    return NextResponse.redirect(new URL(isAdmin ? '/admin/dashboard' : '/account', request.url))
+    return NextResponse.redirect(new URL(isAdmin ? '/admin' : '/account', request.url))
   }
 
-  // ── Admin on customer-facing route → admin dashboard ─────────────────────────
+  // ── Admin on customer-facing route → admin panel ─────────────────────────────
+  // Targets /admin rather than /admin/dashboard so that a billiards-only admin
+  // is not bounced into a futsal screen they hold no grant for.
   if (isAdmin && isAdminBlockedRoute) {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    return NextResponse.redirect(new URL('/admin', request.url))
   }
 
   // ── Non-admin on protected admin route → customer home ───────────────────────

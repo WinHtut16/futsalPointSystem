@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { usernameToAdminEmail } from '@/lib/utils'
+import { usernameToAdminEmail, safeRedirect } from '@/lib/utils'
 import { isTimeoutOrNetworkError } from '@/lib/fetchWithTimeout'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Input from '@/components/ui/Input'
@@ -69,7 +69,10 @@ export default function AdminLoginForm() {
       return
     }
 
-    router.push('/admin/dashboard')
+    // /admin decides where to land: straight into the only business this
+    // account can reach, or the chooser when there are several. A ?next= from
+    // middleware (a deep link that hit the auth guard) wins over both.
+    router.push(safeRedirect(searchParams.get('next'), '/admin'))
     router.refresh()
   }
 

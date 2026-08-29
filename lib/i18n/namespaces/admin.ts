@@ -306,6 +306,24 @@ export const adminEN = {
   'admin.installMacSteps': 'In Safari, open the File menu and choose "Add to Dock".',
   'admin.installOtherTitle': 'Install this app',
   'admin.installOtherSteps': 'Open this page in Chrome or Edge to install it as an app.',
+
+  // Portal - the multi-business chooser at /admin/apps
+  'portal.greeting': 'Welcome back, {name}',
+  'portal.tagline': 'Choose a business to manage',
+  'portal.noAccessTagline': 'No businesses assigned yet',
+  'portal.noAccessBody': 'Your account is not assigned to any business yet. Ask a superadmin to give you access, then sign in again.',
+  'portal.loadFailedTagline': 'Could not load your businesses',
+  'portal.loadFailedBody': 'Something went wrong reading your access. This is usually temporary - reload the page, and if it keeps happening tell your developer.',
+  'portal.roleAdmin': 'Admin',
+  'portal.roleSuperadmin': 'Superadmin',
+  'portal.comingSoon': 'Not open yet',
+  'portal.switchApp': 'Switch business',
+  'portal.futsalTitle': 'Futsal',
+  'portal.futsalDesc': 'Bookings, points and customers',
+  'portal.billiardsTitle': 'Billiards',
+  'portal.billiardsDesc': 'Table sessions, orders and stock',
+  'portal.gameTitle': 'Game Shop',
+  'portal.gameDesc': 'Stations, sessions and snacks',
 } as const
 
 export const adminMY: { [K in keyof typeof adminEN]: string } = {
@@ -577,4 +595,22 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.installMacSteps': 'Safari ၏ File မီနူးကို ဖွင့်ပြီး "Add to Dock" ကို ရွေးပါ။',
   'admin.installOtherTitle': 'ဤအက်ပ်ကို ထည့်သွင်းရန်',
   'admin.installOtherSteps': 'အက်ပ်အဖြစ် ထည့်သွင်းရန် ဤစာမျက်နှာကို Chrome သို့မဟုတ် Edge ဖြင့် ဖွင့်ပါ။',
+
+  // Portal - the multi-business chooser at /admin/apps
+  'portal.greeting': 'ပြန်လည်ကြိုဆိုပါသည်၊ {name}',
+  'portal.tagline': 'စီမံခန့်ခွဲလိုသော လုပ်ငန်းကို ရွေးပါ',
+  'portal.noAccessTagline': 'လုပ်ငန်း သတ်မှတ်ပေးထားခြင်း မရှိသေးပါ',
+  'portal.noAccessBody': 'သင့်အကောင့်ကို မည်သည့်လုပ်ငန်းနှင့်မျှ ချိတ်ဆက်ပေးထားခြင်း မရှိသေးပါ။ Superadmin ထံမှ ခွင့်ပြုချက် တောင်းခံပြီးမှ ပြန်လည်ဝင်ရောက်ပါ။',
+  'portal.loadFailedTagline': 'လုပ်ငန်းများကို ရယူ၍ မရပါ',
+  'portal.loadFailedBody': 'သင့်ခွင့်ပြုချက်ကို ဖတ်ရာတွင် အမှားဖြစ်နေပါသည်။ များသောအားဖြင့် ယာယီသာဖြစ်ပါသည် - စာမျက်နှာကို ပြန်လည်ဖွင့်ကြည့်ပါ။ ဆက်လက်ဖြစ်နေပါက ဆော့ဖ်ဝဲရေးသူကို အကြောင်းကြားပါ။',
+  'portal.roleAdmin': 'အက်ဒမင်',
+  'portal.roleSuperadmin': 'စူပါအက်ဒမင်',
+  'portal.comingSoon': 'မဖွင့်ရသေးပါ',
+  'portal.switchApp': 'လုပ်ငန်း ပြောင်းရန်',
+  'portal.futsalTitle': 'ဖူဆယ်',
+  'portal.futsalDesc': 'ကြိုတင်မှာယူမှု၊ အမှတ်နှင့် ဖောက်သည်များ',
+  'portal.billiardsTitle': 'ဘိလိယက်',
+  'portal.billiardsDesc': 'စားပွဲအသုံးပြုမှု၊ အော်ဒါနှင့် ကုန်ပစ္စည်း',
+  'portal.gameTitle': 'ဂိမ်းဆိုင်',
+  'portal.gameDesc': 'စက်များ၊ ကစားချိန်နှင့် အစားအသောက်',
 }
