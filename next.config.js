@@ -168,6 +168,34 @@ const nextConfig = {
         ],
       },
       {
+        /**
+         * Zone responses must never be cached by the CDN.
+         *
+         * Without this, Vercel's edge cached the RSC variant of every
+         * /admin/game/* route as a 404 while GAME_ZONE_URL was still unset,
+         * and went on serving those 404s afterwards - the same second the
+         * plain page returned 200 on a cache MISS. The browser's router got a
+         * 404 for every prefetch and every router.refresh(), which wedged it
+         * badly enough that clicking Save dispatched no request at all. 1018
+         * console errors, and not one line in the zone's own logs, because
+         * nothing ever reached it.
+         *
+         * A cached 404 was only the visible symptom. These are authenticated
+         * admin pages behind a per-business grant, and they should never have
+         * been sitting in a shared edge cache in the first place - one admin's
+         * rendered page could in principle be handed to another. no-store is
+         * the correct answer on both counts.
+         *
+         * Note this fixes recurrence, not the existing poisoned entries:
+         * those clear when this deploys, because a deploy invalidates the
+         * cache.
+         */
+        source: '/admin/:zone(billiards|game)/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store, max-age=0, must-revalidate' },
+        ],
+      },
+      {
         // Admin PWA service worker — must revalidate on every fetch so a
         // redeployed worker (and thus the passthrough no-caching behavior)
         // is picked up immediately, never served stale from an HTTP cache.
