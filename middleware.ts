@@ -14,6 +14,7 @@ const ADMIN_AUTH_ONLY_PATHS = ['/admin/login', '/admin/forgot-password']
 // merely an admin role.
 const ZONE_PREFIXES: { path: string; app: string }[] = [
   { path: '/admin/billiards', app: 'billiards' },
+  { path: '/admin/game', app: 'game' },
 ]
 
 // Routes that require a logged-in session (any role)

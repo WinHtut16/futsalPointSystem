@@ -62,7 +62,7 @@ export const APPS: Record<AppName, AppMeta> = {
     titleKey: 'portal.gameTitle',
     descKey: 'portal.gameDesc',
     accent: '#2f5fd0',
-    live: false,
+    live: true,
   },
 }
 

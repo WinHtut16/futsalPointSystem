@@ -93,6 +93,13 @@ const nextConfig = {
         destination: '/admin/billiards/dashboard',
         permanent: false,
       },
+      {
+        // Same reasoning as billiards above: never let the bare path reach the
+        // zone's root. The game shop's landing screen is the floor board.
+        source: '/admin/game',
+        destination: '/admin/game/floor',
+        permanent: false,
+      },
     ]
   },
 
@@ -124,6 +131,23 @@ const nextConfig = {
       rules.push({
         source: '/admin/billiards/:path*',
         destination: `${billiardsZone}/admin/billiards/:path*`,
+      })
+    }
+
+    /**
+     * Zone three: the game shop (PS4/PS5 walk-in console rental). Separate
+     * repo, separate deployment, same origin - identical arrangement to
+     * billiards above, and the same rollback: unset GAME_ZONE_URL and the rule
+     * is not added, so /admin/game 404s and nothing else changes.
+     *
+     * Set GAME_ZONE_URL on the Vercel project `myathida-futsal` to
+     * https://myathida-game.vercel.app
+     */
+    const gameZone = process.env.GAME_ZONE_URL?.replace(/\/$/, '')
+    if (gameZone) {
+      rules.push({
+        source: '/admin/game/:path*',
+        destination: `${gameZone}/admin/game/:path*`,
       })
     }
 
