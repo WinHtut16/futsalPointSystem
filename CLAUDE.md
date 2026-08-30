@@ -16,7 +16,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 ```
 
 **First-time setup:**
-1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://mya-thida-futsal.vercel.app` in Vercel env vars). Also add `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` for CMS image uploads.
+1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://myathida-futsal.vercel.app` in Vercel env vars). Also add `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` for CMS image uploads.
 2. Run these SQL files **in order** in the Supabase SQL editor:
    `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `supabase-multilingual-rewards.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → `cms-simplify-migration.sql` → `rls-bookings-fix.sql` → `rls-profiles-insert-fix.sql` → `rls-transactions-fix.sql` → `points-adjust-atomic-fix.sql` → **`confirm-override-atomic-migration.sql`** → `override-booking-date-fix.sql` → `closure-booking-conflict-trigger.sql` → `override-conflict-lock-fix.sql` → `booking-updated-at-migration.sql` → `trigger-else-branch-fix.sql` → `drop-shadow-redemption.sql` → `redemption-cost-snapshot-migration.sql` → `approve-use-snapshot-fix.sql` → `drop-booking-transaction-type.sql` → `points-delta-sign-constraint.sql` → `dead-schema-cleanup.sql` → `rls-rewards-write-fix.sql` → `rls-transactions-delete-fix.sql` → `rls-redemption-cancel-fix.sql` → `admin-booking-entry-migration.sql` → `booking-archive-migration.sql` → `profiles-updated-at-migration.sql` → `realtime-publication-migration.sql` → `redemption-cancel-snapshot-fix.sql` → `realtime-closures-migration.sql` → `enforce-cancel-service-role-fix.sql` → **`app-access-migration.sql`**
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards. **`SUPERADMIN_PASSWORD` env var is required** — the script exits with an error if it is missing (no hardcoded fallback).
@@ -29,7 +29,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 
 **Brand name:** MyaThida (public-facing). Internal email domains `@akoatp.com` (customers) and `@akoatp-staff.com` (staff) are auth identifiers only — never shown to users and must not be changed (existing Supabase accounts depend on them).
 
-**Production URL:** `https://mya-thida-futsal.vercel.app` (Vercel project renamed from `futsal-point-system`). After any URL change, update Supabase → Authentication → URL Configuration (Site URL + Redirect URLs).
+**Production URL:** `https://myathida-futsal.vercel.app` — this exact spelling, no hyphens inside "myathida". It has never been anything else. Two places in this file used to say `mya-thida-futsal`, which does not resolve. After any URL change, update Supabase → Authentication → URL Configuration (Site URL + Redirect URLs).
 
 ## Architecture
 
