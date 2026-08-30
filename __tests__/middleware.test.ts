@@ -310,4 +310,12 @@ describe('middleware', () => {
     expect(mockRpc).not.toHaveBeenCalled()
     expect(res.headers.get('location')).toBeNull()
   })
+
+  it('superadmin reaches a zone without paying for a grant lookup', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'superadmin' }, error: null })
+    const res = await middleware(req('/admin/billiards/dashboard'))
+    expect(res.headers.get('location')).toBeNull()
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
 })

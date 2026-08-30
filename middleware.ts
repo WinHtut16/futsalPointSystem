@@ -131,12 +131,20 @@ export async function middleware(request: NextRequest) {
   // that are not zones.
   const zone = ZONE_PREFIXES.find(z => pathname === z.path || pathname.startsWith(z.path + '/'))
   if (zone) {
-    let allowed = false
-    try {
-      const { data } = await supabase.rpc('has_app_access', { p_app: zone.app })
-      allowed = data === true
-    } catch {
-      allowed = false
+    // A global superadmin passes every app by definition, and `role` is already
+    // in hand from the query above - so the owner and manager, who click around
+    // the most, skip the RPC entirely. Everyone else pays one lookup. Same
+    // short-circuit as the superadmin-only paths below; it is worth the four
+    // lines because this middleware sits in front of every zone request and
+    // each Supabase round trip is ~95ms from Singapore to Sydney.
+    let allowed = role === 'superadmin'
+    if (!allowed) {
+      try {
+        const { data } = await supabase.rpc('has_app_access', { p_app: zone.app })
+        allowed = data === true
+      } catch {
+        allowed = false
+      }
     }
     if (!allowed) return NextResponse.redirect(new URL('/admin/apps', request.url))
   }
