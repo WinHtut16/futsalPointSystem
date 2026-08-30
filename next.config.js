@@ -68,6 +68,34 @@ const nextConfig = {
    * NOTE: Vercel does not upgrade WebSocket connections through rewrites, so Realtime
    * (wss://) cannot use this path; that needs a polling fallback instead.
    */
+  /**
+   * The bare zone path must never reach the zone.
+   *
+   * A request for /admin/billiards (no sub-path) rewrites to the zone's own
+   * root, which Next there normalises with a 308 - and that 308 comes back
+   * through the rewrite pointing at a path the hub rewrites to the zone root
+   * again. The browser bounces between the two until it gives up with
+   * ERR_TOO_MANY_REDIRECTS. Vercel's logs show ~97 requests to
+   * /admin/billiards and not one to /admin/billiards/dashboard.
+   *
+   * Jumping straight to the dashboard sidesteps the zone's root entirely, so
+   * there is no normalisation to disagree about.
+   *
+   * permanent:false is deliberate. A 308 is cached by the browser more or less
+   * forever, so a permanent redirect here would be very hard to take back if
+   * the landing page ever changes - and anyone who already hit the loop has a
+   * cached 308 to clear as it is.
+   */
+  async redirects() {
+    return [
+      {
+        source: '/admin/billiards',
+        destination: '/admin/billiards/dashboard',
+        permanent: false,
+      },
+    ]
+  },
+
   async rewrites() {
     const rules = []
 
