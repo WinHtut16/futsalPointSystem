@@ -1,9 +1,18 @@
-import { cache } from 'react'
-import { createClient } from '@/lib/supabase/server'
 import type { TranslationKey } from '@/lib/i18n'
 
 /**
  * The three businesses behind the shared admin portal.
+ *
+ * PURE ON PURPOSE - constants and types only, safe to import from a client
+ * component. The server-side lookups (getMyApps, getAppRole, hasAppAccess)
+ * live in ./apps.server, which reaches next/headers and must never be pulled
+ * into a browser bundle.
+ *
+ * They used to share this file, and that was a trap: AppAccessPanel is a
+ * client component and imported APPS from here, which dragged the whole
+ * module - Supabase server client and all - into the client graph and broke
+ * the production build. tsc does not see the server/client boundary, so the
+ * split is what prevents it, not the type checker.
  *
  * This tuple is the single source of truth for app names, and every function
  * that takes one takes `AppName` rather than `string`. That matters: in
@@ -66,48 +75,12 @@ export const APPS: Record<AppName, AppMeta> = {
   },
 }
 
-function isAppName(value: string): value is AppName {
+export function isAppName(value: string): value is AppName {
   return (APP_NAMES as readonly string[]).includes(value)
 }
 
-function isAppRole(value: unknown): value is AppRole {
+export function isAppRole(value: unknown): value is AppRole {
   return value === 'admin' || value === 'superadmin'
-}
-
-/**
- * Every business the signed-in admin may enter, with their rank in each.
- *
- * One round trip. The precedence rule — a global superadmin outranks any
- * per-app row — lives in Postgres (my_apps/app_role) rather than here, so the
- * RLS policies and the application can never drift apart on who counts as what.
- */
-export const getMyApps = cache(async (): Promise<AppGrant[] | null> => {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('my_apps')
-  // null means "could not determine", which is NOT the same as "no access".
-  // Callers must not revoke on null, or a momentary DB blip locks out every
-  // admin on a live system.
-  if (error) return null
-  if (!data) return []
-  return (data as { app: string; role: string }[])
-    .filter((row) => isAppName(row.app) && isAppRole(row.role))
-    .map((row) => ({ app: row.app as AppName, role: row.role as AppRole }))
-})
-
-/**
- * Rank in one business, or null when the caller cannot enter it at all.
- * Note the failure mode is deliberate: a transient DB error returns null, i.e.
- * denies. Never invert this to "allow on error".
- */
-export const getAppRole = cache(async (app: AppName): Promise<AppRole | null> => {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('app_role', { p_app: app })
-  if (error || !isAppRole(data)) return null
-  return data
-})
-
-export async function hasAppAccess(app: AppName): Promise<boolean> {
-  return (await getAppRole(app)) !== null
 }
 
 /**

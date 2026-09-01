@@ -1,6 +1,6 @@
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { getAppRole } from '@/lib/apps'
+import { getAppRole } from '@/lib/apps.server'
 import type { Profile, UserRole } from '@/types'
 
 export const getCurrentUser = cache(async (): Promise<Profile | null> => {

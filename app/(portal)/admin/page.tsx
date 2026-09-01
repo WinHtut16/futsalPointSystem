@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getMyApps, landingFor } from '@/lib/apps'
+import { getMyApps } from '@/lib/apps.server'
+import { landingFor } from '@/lib/apps'
 
 export const dynamic = 'force-dynamic'
 

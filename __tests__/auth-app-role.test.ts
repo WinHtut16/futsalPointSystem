@@ -33,7 +33,8 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 import { requireSuperAdmin, isFutsalSuperAdmin } from '@/lib/auth'
-import { getMyApps, getAppRole, landingFor, APPS } from '@/lib/apps'
+import { getMyApps, getAppRole } from '@/lib/apps.server'
+import { landingFor, APPS } from '@/lib/apps'
 
 const USER = { id: 'u-1', email: 'someone@akoatp-staff.com' }
 

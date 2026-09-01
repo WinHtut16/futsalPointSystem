@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getMyApps, getAppRole } from '@/lib/apps'
+import { getMyApps, getAppRole } from '@/lib/apps.server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AdminShell from '@/components/admin/AdminShell'
 import { PendingRedemptionsProvider } from '@/contexts/PendingRedemptionsContext'
