@@ -2,11 +2,13 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import StaffResetPasswordForm from '@/components/admin/StaffResetPasswordForm'
+import AppAccessPanel from '@/components/admin/AppAccessPanel'
 import DeleteStaffButton from '@/components/admin/DeleteStaffButton'
 import T from '@/components/ui/T'
 import { formatDate } from '@/lib/utils'
 import { getAvatarColor, getInitials } from '@/lib/avatar'
 import { ChevronLeft, Shield, CalendarDays, KeyRound } from 'lucide-react'
+import { APP_NAMES, type AppName, type AppRole } from '@/lib/apps'
 
 export default async function StaffDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -20,6 +22,33 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ id
     .single()
 
   if (!staff) notFound()
+
+  /**
+   * This person's grants, and which businesses the SIGNED-IN admin may change.
+   *
+   * Both are read here rather than in the panel so the server decides them.
+   * can_manage_app() is the same function grant_app_access() enforces with, so
+   * a control this admin cannot use is never rendered as usable - and, more to
+   * the point, the panel being wrong could only ever mislead, never permit:
+   * the database re-checks on every write.
+   */
+  const { data: accessRows } = await supabase
+    .from('app_access')
+    .select('app, role')
+    .eq('user_id', id)
+
+  const grants: Partial<Record<AppName, AppRole>> = {}
+  for (const row of accessRows ?? []) {
+    grants[row.app as AppName] = row.role as AppRole
+  }
+
+  const manageChecks = await Promise.all(
+    APP_NAMES.map(async (app) => {
+      const { data } = await supabase.rpc('can_manage_app', { p_app: app })
+      return { app, allowed: data === true }
+    })
+  )
+  const manageable = manageChecks.filter((c) => c.allowed).map((c) => c.app)
 
   const color = getAvatarColor(staff.username)
   const initials = getInitials(staff.username)
@@ -81,6 +110,13 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ id
             </div>
             <StaffResetPasswordForm staffId={id} staffUsername={staff.username} />
           </div>
+
+          <AppAccessPanel
+            userId={id}
+            username={staff.username}
+            grants={grants}
+            manageable={manageable}
+          />
         </div>
       </div>
     </div>
