@@ -41,6 +41,28 @@ const ACTION_LABEL: Record<string, TranslationKey> = {
   'redemption.rejected': 'audit.redemptionRejected',
   'session.voided': 'audit.sessionVoided',
   'sessions.bulk_deleted': 'audit.sessionsBulkDeleted',
+  'catalogue.created': 'audit.catalogueCreated',
+  'catalogue.updated': 'audit.catalogueUpdated',
+  'catalogue.removed': 'audit.catalogueRemoved',
+  'settings.updated': 'audit.settingsUpdated',
+}
+
+/**
+ * The noun for a catalogue row.
+ *
+ * Prices, products, tables, stations and rewards share three actions rather
+ * than getting twelve of their own - the thing that changed is already in
+ * target_type, and "added the menu item Coke" reads better than an action code
+ * per table. Unknown types fall back to a plain "item", which is what a row
+ * written by a newer migration than this page will say.
+ */
+const TARGET_NOUN: Record<string, TranslationKey> = {
+  menu_item: 'audit.nounMenuItem',
+  table: 'audit.nounTable',
+  product: 'audit.nounProduct',
+  station: 'audit.nounStation',
+  pricing: 'audit.nounPricing',
+  reward: 'audit.nounReward',
 }
 
 const DOT: Record<string, string> = {
@@ -53,6 +75,10 @@ const DOT: Record<string, string> = {
   'redemption.rejected': '#ef4444',
   'session.voided': '#f59e0b',
   'sessions.bulk_deleted': '#ef4444',
+  'catalogue.created': '#1D9E75',
+  'catalogue.updated': '#3b82f6',
+  'catalogue.removed': '#ef4444',
+  'settings.updated': '#f59e0b',
 }
 
 /**
@@ -77,7 +103,28 @@ function varsFor(row: AuditRow): Record<string, string | number> {
     count: typeof d.count === 'number' ? d.count : '',
     customer: str(d.customer),
     reason: str(d.reason),
+    changes: changeList(d),
   }
+}
+
+/**
+ * "price 5000 -> 6000, name Coke -> Coke 500ml"
+ *
+ * Rendered from the details rather than read out of `summary`, so a row still
+ * reads correctly in Burmese. Entries whose details predate this shape - or
+ * carry anything that is not a from/to pair - contribute nothing rather than
+ * printing "[object Object]".
+ */
+function changeList(details: Record<string, unknown>): string {
+  const show = (v: unknown) =>
+    v === null || v === undefined || v === '' ? '—' : typeof v === 'number' ? v.toLocaleString('en-US') : String(v)
+  return Object.entries(details)
+    .filter(([, v]) => v !== null && typeof v === 'object' && 'from' in (v as object) && 'to' in (v as object))
+    .map(([k, v]) => {
+      const pair = v as { from: unknown; to: unknown }
+      return `${k} ${show(pair.from)} → ${show(pair.to)}`
+    })
+    .join(', ')
 }
 
 export default function AuditLogList({
@@ -125,6 +172,8 @@ export default function AuditLogList({
 
       {rows.map((row) => {
         const labelKey = ACTION_LABEL[row.action]
+        const nounKey = row.target_type ? TARGET_NOUN[row.target_type] : undefined
+        const vars = { ...varsFor(row), kind: nounKey ? t(nounKey) : t('audit.nounItem') }
         return (
           <div
             key={row.id}
@@ -146,7 +195,7 @@ export default function AuditLogList({
                 >
                   {row.actor_name}
                 </Link>{' '}
-                {labelKey ? t(labelKey, varsFor(row)) : row.summary}
+                {labelKey ? t(labelKey, vars) : row.summary}
               </p>
               <p className="text-[11.5px] text-gray-400 mt-0.5">
                 {formatDateTime(row.created_at, lang)}

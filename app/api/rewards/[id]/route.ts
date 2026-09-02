@@ -34,7 +34,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Fail-fast: reject unauthenticated / non-admin callers before touching the body
-    await requireAnyAdmin()
+    const admin = await requireAnyAdmin()
 
     const idParsed = IdParamSchema.safeParse(await params)
     if (!idParsed.success) return badRequest(idParsed.error)
@@ -47,13 +47,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (toggleParsed.success) {
       // Toggle-only: any admin — already authorized above
-      updates = { is_active: toggleParsed.data.is_active, updated_at: new Date().toISOString() }
+      updates = {
+        is_active: toggleParsed.data.is_active,
+        updated_at: new Date().toISOString(),
+        updated_by: admin.id,
+      }
     } else {
       // Full update: superadmin only — secondary role check
       await requireSuperAdmin()
       const parsed = RewardUpdateSchema.safeParse(body)
       if (!parsed.success) return badRequest(parsed.error)
-      updates = { ...parsed.data, updated_at: new Date().toISOString() }
+      // updated_by is stamped on every write, not just this one: it is what the
+      // audit trigger reads as the actor, because this route goes through the
+      // service role where auth.uid() is NULL.
+      updates = { ...parsed.data, updated_at: new Date().toISOString(), updated_by: admin.id }
     }
 
     const supabase = await createServiceClient()
@@ -80,7 +87,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireSuperAdmin()
+    const admin = await requireSuperAdmin()
 
     const idParsed = IdParamSchema.safeParse(await params)
     if (!idParsed.success) return badRequest(idParsed.error)
@@ -89,7 +96,12 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     const supabase = await createServiceClient()
     const { error } = await supabase
       .from('rewards')
-      .update({ is_deleted: true, is_active: false, updated_at: new Date().toISOString() })
+      .update({
+        is_deleted: true,
+        is_active: false,
+        updated_at: new Date().toISOString(),
+        updated_by: admin.id,
+      })
       .eq('id', id)
     if (error) return serverError(error.message)
     revalidateTag('rewards', 'default')

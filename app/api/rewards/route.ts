@@ -29,7 +29,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireSuperAdmin()
+    const admin = await requireSuperAdmin()
 
     const parsed = RewardCreateSchema.safeParse(await parseJson(request))
     if (!parsed.success) return badRequest(parsed.error)
@@ -45,6 +45,10 @@ export async function POST(request: NextRequest) {
         description_my: description_my ?? null,
         points_cost,
         stock: stock ?? null,
+        // Stamped on the write itself so the audit trigger has a real actor.
+        // This route uses the service role, where auth.uid() is NULL - without
+        // this column every price change would be recorded as done by "system".
+        updated_by: admin.id,
       })
       .select()
       .single()
