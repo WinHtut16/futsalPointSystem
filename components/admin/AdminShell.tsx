@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, CalendarCheck, LayoutGrid, Star, Gift, Users, FileText, ShieldCheck,
-  Menu, X, ChevronsLeft, ChevronsRight, DatabaseBackup,
+  Menu, X, ChevronsLeft, ChevronsRight, DatabaseBackup, ScrollText,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { AppGrant, AppRole } from '@/lib/apps'
@@ -34,6 +34,7 @@ const NAV: NavGroup[] = [
     { href: '/admin/staff', labelKey: 'admin.navStaff', Icon: ShieldCheck, superadmin: true },
   ] },
   { labelKey: 'admin.groupData', items: [
+    { href: '/admin/audit', labelKey: 'audit.navAudit', Icon: ScrollText, superadmin: true },
     { href: '/admin/export', labelKey: 'admin.navBackup', Icon: DatabaseBackup, superadmin: true },
   ] },
 ]
