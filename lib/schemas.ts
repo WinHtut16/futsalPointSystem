@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
 import { MAX_SLOTS } from '@/lib/booking'
+import { APP_NAMES } from '@/lib/apps'
 
 const uuid = z.string().uuid('Invalid id format.')
 const myanmarPhone = z.string().regex(/^09\d{7,9}$/, 'Enter a valid Myanmar phone number (e.g. 09XXXXXXXXX).')
@@ -205,9 +206,31 @@ export const RewardUpdateSchema = z
     message: 'No valid fields.',
   })
 
+/**
+ * Creating an admin now means creating their access too.
+ *
+ * `.min(1)` is the point of this schema. An account with no business granted
+ * can sign in and reach nothing - middleware bounces it off every admin screen
+ * and the portal shows an empty chooser - which is exactly the dead account
+ * this whole change exists to make impossible. Postgres refuses it as well
+ * (provision_admin raises on an empty list); this is the friendly half.
+ *
+ * Usernames are lowercased here because usernameToAdminEmail() lowercases when
+ * it builds the auth identity. Without this, 'Kyaw' and 'kyaw' pass the
+ * case-sensitive "already taken?" lookup as two different people and then
+ * collide on auth.users.email, which reads as a baffling server error.
+ */
 export const StaffCreateSchema = z.object({
-  username: staffUsername,
+  username: staffUsername.transform((u) => u.toLowerCase()),
   password,
+  grants: z
+    .array(z.object({ app: z.enum(APP_NAMES), role: z.enum(['admin', 'superadmin']) }))
+    .min(1, 'Pick at least one business for this person to work in.')
+    .max(APP_NAMES.length)
+    .refine(
+      (g) => new Set(g.map((x) => x.app)).size === g.length,
+      'Each business can only be listed once.'
+    ),
 })
 
 export const StaffPasswordUpdateSchema = z.object({ password }).strict()

@@ -89,10 +89,36 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Admin not found.' }, { status: 404 })
     }
 
-    // Explicitly delete profiles row before auth deletion — defensive against missing FK cascade.
-    await supabase.from('profiles').delete().eq('id', id)
+    // Delete the auth user and let Postgres cascade. profiles, app_access,
+    // billiards.admins and game.staff all reference auth.users(id) ON DELETE
+    // CASCADE, so this one call clears every row the account owns.
+    //
+    // Do NOT delete the profiles row first, as this used to. That made the
+    // removal non-atomic in the worst direction: transactions.created_by and
+    // bookings.created_by reference profiles(id) with no cascade, so for any
+    // admin who had actually done work the profiles delete failed, or the auth
+    // delete after it did - leaving exactly the half-deleted account this whole
+    // change exists to make impossible. Deleting the auth user is one statement:
+    // if any history blocks a cascade, the database aborts all of it and nothing
+    // is touched.
+    //
+    // That refusal is the normal case for anyone who has worked a shift, and it
+    // is not a failure to paper over - the history is worth more than the tidy
+    // list. Removing their access is the right move there, and the message says so.
     const { error } = await supabase.auth.admin.deleteUser(id)
-    if (error) return serverError(error.message)
+    if (error) {
+      console.error('[staff] delete failed', { id, message: error.message })
+      if (/foreign key|violates|constraint/i.test(error.message)) {
+        return NextResponse.json(
+          {
+            error:
+              'This admin has recorded work, so the account cannot be deleted without losing it. Set every business to "No access" instead — they keep their history and can no longer sign in.',
+          },
+          { status: 409 }
+        )
+      }
+      return serverError(error.message)
+    }
     return NextResponse.json({ success: true })
   } catch (error) {
     if (error instanceof Error && error.message === 'FORBIDDEN') {

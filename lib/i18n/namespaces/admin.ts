@@ -92,6 +92,27 @@ export const adminEN = {
   'admin.createAdminFailed': 'Failed to create admin.',
   'admin.createAdminButton': 'Create Admin Account',
 
+  // CreateAdminForm - business access
+  'admin.accessTitle': 'Gives access to',
+  'admin.accessHint':
+    'Pick at least one. An account with no business can sign in but reach nothing.',
+  'admin.accessNone': 'No access',
+  'admin.accessAdmin': 'Admin',
+  'admin.accessSuperadmin': 'Superadmin',
+  'admin.accessRequired': 'Pick at least one business for this person to work in.',
+
+  // CreateAdminForm - what to hand the new admin
+  'admin.createdTitle': 'Account ready',
+  'admin.createdHint': 'Copy this now — the password is not shown again.',
+  'admin.createdSignInAt': 'Sign-in page',
+  'admin.createdUsername': 'Username',
+  'admin.createdPassword': 'Temporary password',
+  'admin.createdAccess': 'Access',
+  'admin.copyDetails': 'Copy details',
+  'admin.copied': 'Copied',
+  'admin.createdDone': 'Back to staff list',
+  'admin.createAnother': 'Create another',
+
   // StaffResetPasswordForm
   'admin.staffPasswordNote': 'Set a new password for {name}.',
   'admin.staffPasswordResetSuccess': 'Password reset successfully.',
@@ -398,6 +419,23 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.passwordLabel': 'စကားဝှက်',
   'admin.createAdminFailed': 'အက်မင် ဖန်တီးခြင်း မအောင်မြင်ပါ။',
   'admin.createAdminButton': 'အက်မင် အကောင့် ဖန်တီးရန်',
+  'admin.accessTitle': 'ဝင်ရောက်ခွင့် ပေးမည့် လုပ်ငန်း',
+  'admin.accessHint':
+    'အနည်းဆုံး တစ်ခု ရွေးပါ။ လုပ်ငန်း မရွေးထားသော အကောင့်သည် ဝင်နိုင်သော်လည်း ဘာမှ မမြင်ရပါ။',
+  'admin.accessNone': 'ဝင်ခွင့် မရှိ',
+  'admin.accessAdmin': 'အက်မင်',
+  'admin.accessSuperadmin': 'စူပါအက်မင်',
+  'admin.accessRequired': 'ဤသူ လုပ်ကိုင်မည့် လုပ်ငန်း အနည်းဆုံး တစ်ခု ရွေးပါ။',
+  'admin.createdTitle': 'အကောင့် ပြင်ဆင်ပြီးပါပြီ',
+  'admin.createdHint': 'ယခု ကူးယူထားပါ — စကားဝှက်ကို နောက်တစ်ကြိမ် ပြမည် မဟုတ်ပါ။',
+  'admin.createdSignInAt': 'ဝင်ရောက်ရန် စာမျက်နှာ',
+  'admin.createdUsername': 'အသုံးပြုသူနာမည်',
+  'admin.createdPassword': 'ယာယီ စကားဝှက်',
+  'admin.createdAccess': 'ဝင်ရောက်ခွင့်',
+  'admin.copyDetails': 'အချက်အလက် ကူးယူရန်',
+  'admin.copied': 'ကူးယူပြီး',
+  'admin.createdDone': 'ဝန်ထမ်းစာရင်းသို့ ပြန်သွားရန်',
+  'admin.createAnother': 'နောက်တစ်ယောက် ထပ်ဖန်တီးရန်',
   'admin.staffPasswordNote': '{name} အတွက် စကားဝှက်အသစ် သတ်မှတ်ပါ။',
   'admin.staffPasswordResetSuccess': 'စကားဝှက် ပြောင်းလဲပြီးပါပြီ။',
   'admin.deleteAdminNote': 'ဤ အက်မင် အကောင့်ကို အမြဲတမ်း ဖယ်ရှားမည်။ ချက်ချင်း ဝင်ရောက်ခွင့် ဆုံးမည်။',
