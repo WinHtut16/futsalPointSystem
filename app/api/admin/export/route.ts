@@ -201,8 +201,9 @@ async function fetchAll(
 }
 
 export async function GET(req: Request) {
+  let actorId: string
   try {
-    await requireSuperAdmin()
+    actorId = (await requireSuperAdmin()).id
   } catch (error) {
     const msg = error instanceof Error ? error.message : ''
     return NextResponse.json({ error: msg === 'FORBIDDEN' ? 'Forbidden' : 'Unauthorized' }, { status: msg === 'FORBIDDEN' ? 403 : 401 })
@@ -290,6 +291,34 @@ export async function GET(req: Request) {
 
     const buffer = await workbook.xlsx.writeBuffer()
     const filename = `myathida-backup-${scope}-${stamp}.xlsx`
+
+    // A full backup is every customer's name, phone and balance leaving the
+    // building in one file. That is worth a line in the log for the same
+    // reason a refund is - not because it is wrong, but because someone may
+    // later need to know it happened and who did it.
+    //
+    // Recorded after the workbook is built, so a failed export never leaves a
+    // row claiming the data left. Written with the service client this route
+    // already holds; audit() is not granted to `authenticated`, and the actor
+    // is passed explicitly because the service role has no auth.uid().
+    try {
+      await svc.rpc('audit', {
+        p_app: 'futsal',
+        p_action: 'export.generated',
+        p_summary: `Exported a full futsal backup (${scopeLabel}, ${counts.reduce(
+          (n, c) => n + c.count,
+          0
+        )} rows).`,
+        p_target_type: 'export',
+        p_target_id: null,
+        p_target_label: filename,
+        p_details: { scope: scopeLabel, sheets: counts },
+        p_actor: actorId,
+      })
+    } catch (e) {
+      console.error('[export] could not record the export', e)
+    }
+
     return new NextResponse(buffer as ArrayBuffer, {
       status: 200,
       headers: {

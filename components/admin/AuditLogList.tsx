@@ -45,6 +45,7 @@ const ACTION_LABEL: Record<string, TranslationKey> = {
   'catalogue.updated': 'audit.catalogueUpdated',
   'catalogue.removed': 'audit.catalogueRemoved',
   'settings.updated': 'audit.settingsUpdated',
+  'export.generated': 'audit.exportGenerated',
 }
 
 /**
@@ -79,6 +80,7 @@ const DOT: Record<string, string> = {
   'catalogue.updated': '#3b82f6',
   'catalogue.removed': '#ef4444',
   'settings.updated': '#f59e0b',
+  'export.generated': '#6b7280',
 }
 
 /**

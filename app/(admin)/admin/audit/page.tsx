@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { Download } from 'lucide-react'
 import { requireAnyAdmin } from '@/lib/auth'
 import { getMyApps } from '@/lib/apps.server'
 import { createClient } from '@/lib/supabase/server'
@@ -98,13 +99,28 @@ export default async function AuditPage({
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900">
-          <T k="audit.title" />
-        </h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          <T k="audit.subtitle" />
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">
+            <T k="audit.title" />
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            <T k="audit.subtitle" />
+          </p>
+        </div>
+        {/* A plain <a>, not a Link: this is a file download, and the router
+            would try to navigate to it. It carries the current filters, so the
+            file matches what is on screen - which is the whole point of being
+            able to export a log. */}
+        <a
+          href={`/api/admin/audit/export${
+            new URLSearchParams(query).toString() ? `?${new URLSearchParams(query).toString()}` : ''
+          }`}
+          className="flex-none inline-flex items-center gap-1.5 text-[12.5px] font-medium px-3 py-1.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <T k="audit.export" />
+        </a>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

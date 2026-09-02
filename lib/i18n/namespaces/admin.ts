@@ -144,6 +144,8 @@ export const adminEN = {
   'audit.nounPricing': 'pricing for',
   'audit.nounReward': 'reward',
   'audit.nounItem': 'item',
+  'audit.export': 'Export',
+  'audit.exportGenerated': 'exported {target}.',
 
   // StaffResetPasswordForm
   'admin.staffPasswordNote': 'Set a new password for {name}.',
@@ -498,6 +500,8 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'audit.nounPricing': 'ဈေးနှုန်း',
   'audit.nounReward': 'ဆုလာဘ်',
   'audit.nounItem': 'အရာ',
+  'audit.export': 'ထုတ်ယူရန်',
+  'audit.exportGenerated': 'သည် {target} ကို ထုတ်ယူခဲ့သည်။',
   'admin.staffPasswordNote': '{name} အတွက် စကားဝှက်အသစ် သတ်မှတ်ပါ။',
   'admin.staffPasswordResetSuccess': 'စကားဝှက် ပြောင်းလဲပြီးပါပြီ။',
   'admin.deleteAdminNote': 'ဤ အက်မင် အကောင့်ကို အမြဲတမ်း ဖယ်ရှားမည်။ ချက်ချင်း ဝင်ရောက်ခွင့် ဆုံးမည်။',
