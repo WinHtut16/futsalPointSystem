@@ -36,6 +36,11 @@ const ACTION_LABEL: Record<string, TranslationKey> = {
   'access.changed': 'audit.accessChanged',
   'access.revoked': 'audit.accessRevoked',
   'admin.created': 'audit.adminCreated',
+  'points.adjusted': 'audit.pointsAdjusted',
+  'redemption.approved': 'audit.redemptionApproved',
+  'redemption.rejected': 'audit.redemptionRejected',
+  'session.voided': 'audit.sessionVoided',
+  'sessions.bulk_deleted': 'audit.sessionsBulkDeleted',
 }
 
 const DOT: Record<string, string> = {
@@ -43,6 +48,36 @@ const DOT: Record<string, string> = {
   'access.changed': '#3b82f6',
   'access.revoked': '#ef4444',
   'admin.created': '#8b5cf6',
+  'points.adjusted': '#3b82f6',
+  'redemption.approved': '#1D9E75',
+  'redemption.rejected': '#ef4444',
+  'session.voided': '#f59e0b',
+  'sessions.bulk_deleted': '#ef4444',
+}
+
+/**
+ * Values a label may interpolate.
+ *
+ * Everything comes from the row's own `details`, never from a live lookup, for
+ * the same reason the names are snapshots: an entry has to still say "-50
+ * points" a year later, after the customer, the reward and the admin are all
+ * gone. Anything missing renders as an empty string rather than "undefined",
+ * because a slightly thin sentence beats a broken one.
+ */
+function varsFor(row: AuditRow): Record<string, string | number> {
+  const d = (row.details ?? {}) as Record<string, unknown>
+  const num = (v: unknown) => (typeof v === 'number' ? v.toLocaleString('en-US') : '')
+  const str = (v: unknown) => (typeof v === 'string' ? v : '')
+  return {
+    target: row.target_label ?? row.target_id ?? '',
+    delta:
+      typeof d.delta === 'number' ? `${d.delta > 0 ? '+' : ''}${d.delta.toLocaleString('en-US')}` : '',
+    from: num(d.from_total),
+    to: num(d.to_total),
+    count: typeof d.count === 'number' ? d.count : '',
+    customer: str(d.customer),
+    reason: str(d.reason),
+  }
 }
 
 export default function AuditLogList({
@@ -90,7 +125,6 @@ export default function AuditLogList({
 
       {rows.map((row) => {
         const labelKey = ACTION_LABEL[row.action]
-        const target = row.target_label ?? row.target_id ?? ''
         return (
           <div
             key={row.id}
@@ -112,7 +146,7 @@ export default function AuditLogList({
                 >
                   {row.actor_name}
                 </Link>{' '}
-                {labelKey ? t(labelKey, { target }) : row.summary}
+                {labelKey ? t(labelKey, varsFor(row)) : row.summary}
               </p>
               <p className="text-[11.5px] text-gray-400 mt-0.5">
                 {formatDateTime(row.created_at, lang)}

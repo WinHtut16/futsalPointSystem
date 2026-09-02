@@ -128,6 +128,11 @@ export const adminEN = {
   'audit.accessChanged': "changed {target}'s rank.",
   'audit.accessRevoked': 'removed {target}\u2019s access.',
   'audit.adminCreated': 'created the admin account {target}.',
+  'audit.pointsAdjusted': "adjusted {target}'s points by {delta}.",
+  'audit.redemptionApproved': 'approved {target} for {customer}.',
+  'audit.redemptionRejected': 'rejected {target} for {customer}.',
+  'audit.sessionVoided': 'corrected a session on {target}. Charge {from} \u2192 {to}. Reason: {reason}',
+  'audit.sessionsBulkDeleted': 'permanently deleted {count} closed sessions.',
 
   // StaffResetPasswordForm
   'admin.staffPasswordNote': 'Set a new password for {name}.',
@@ -466,6 +471,11 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'audit.accessChanged': 'သည် {target} ၏ အဆင့်ကို ပြောင်းလဲခဲ့သည်။',
   'audit.accessRevoked': 'သည် {target} ၏ ဝင်ရောက်ခွင့်ကို ဖယ်ရှားခဲ့သည်။',
   'audit.adminCreated': 'သည် အက်မင်အကောင့် {target} ကို ဖန်တီးခဲ့သည်။',
+  'audit.pointsAdjusted': 'သည် {target} ၏ အမှတ်ကို {delta} ပြင်ဆင်ခဲ့သည်။',
+  'audit.redemptionApproved': 'သည် {customer} အတွက် {target} ကို ခွင့်ပြုခဲ့သည်။',
+  'audit.redemptionRejected': 'သည် {customer} အတွက် {target} ကို ငြင်းပယ်ခဲ့သည်။',
+  'audit.sessionVoided': 'သည် {target} ရှိ session တစ်ခုကို ပြင်ဆင်ခဲ့သည်။ ကျသင့်ငွေ {from} \u2192 {to}။ အကြောင်းရင်း − {reason}',
+  'audit.sessionsBulkDeleted': 'သည် ပိတ်ပြီးသော session {count} ခုကို အပြီးအပိုင် ဖျက်ခဲ့သည်။',
   'admin.staffPasswordNote': '{name} အတွက် စကားဝှက်အသစ် သတ်မှတ်ပါ။',
   'admin.staffPasswordResetSuccess': 'စကားဝှက် ပြောင်းလဲပြီးပါပြီ။',
   'admin.deleteAdminNote': 'ဤ အက်မင် အကောင့်ကို အမြဲတမ်း ဖယ်ရှားမည်။ ချက်ချင်း ဝင်ရောက်ခွင့် ဆုံးမည်။',
