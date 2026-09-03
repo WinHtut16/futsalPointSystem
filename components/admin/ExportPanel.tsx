@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Download, Database, CalendarRange, CalendarDays, CalendarClock, CheckCircle2, AlertCircle } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { Download, Database, CalendarRange, CalendarDays, CalendarClock } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import PeriodSelector from '@/components/admin/analytics/PeriodSelector'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -29,13 +30,6 @@ export default function ExportPanel() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [loading, setLoading] = useState(false)
-  const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
-
-  useEffect(() => {
-    if (!toast) return
-    const id = setTimeout(() => setToast(null), 4000)
-    return () => clearTimeout(id)
-  }, [toast])
 
   function buildQuery(m: Mode): string | null {
     if (m === 'full') return 'scope=all'
@@ -49,11 +43,10 @@ export default function ExportPanel() {
   async function download(m: Mode) {
     const qs = buildQuery(m)
     if (!qs) {
-      setToast({ type: 'err', msg: t('admin.exportRangeError') })
+      toast.error(t('admin.exportRangeError'))
       return
     }
     setLoading(true)
-    setToast(null)
     try {
       const res = await fetch(`/api/admin/export?${qs}`)
       if (!res.ok) throw new Error(String(res.status))
@@ -72,9 +65,9 @@ export default function ExportPanel() {
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-      setToast({ type: 'ok', msg: t('admin.exportSuccess') })
+      toast.success(t('admin.exportSuccess'))
     } catch {
-      setToast({ type: 'err', msg: t('admin.exportError') })
+      toast.error(t('admin.exportError'))
     } finally {
       setLoading(false)
     }
@@ -176,19 +169,6 @@ export default function ExportPanel() {
 
         <p className="text-xs text-gray-400">{t('admin.exportNote')}</p>
       </div>
-
-      {toast && (
-        <div
-          className={`flex items-center gap-2 rounded-xl border p-3 text-sm ${
-            toast.type === 'ok'
-              ? 'border-green-200 bg-green-50 text-green-700'
-              : 'border-red-200 bg-red-50 text-red-700'
-          }`}
-        >
-          {toast.type === 'ok' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-          {toast.msg}
-        </div>
-      )}
     </div>
   )
 }

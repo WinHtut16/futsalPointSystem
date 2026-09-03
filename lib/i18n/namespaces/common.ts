@@ -10,6 +10,7 @@ export const commonEN = {
   'common.pts': 'pts',
   'common.optional': 'optional',
   'common.close': 'Close',
+  'common.more': 'More',
 } as const
 
 export const commonMY: { [K in keyof typeof commonEN]: string } = {
@@ -24,4 +25,5 @@ export const commonMY: { [K in keyof typeof commonEN]: string } = {
   'common.pts': 'မှတ်',
   'common.optional': 'ရွေးချယ်နိုင်သည်',
   'common.close': 'ပိတ်ရန်',
+  'common.more': 'နောက်ထပ်',
 }

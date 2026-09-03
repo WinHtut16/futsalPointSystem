@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Design/UI work:** see [DESIGN.md](DESIGN.md) first — the pattern contract shared verbatim with `Billiards_MyaThida` and `MyaThida_Game` (button order, nav model, screen shapes, container widths, i18n rules). Shared tokens live in `design/tokens.css`. Both files must stay byte-identical across all three repos — after editing either, copy it to the other two and run `node scripts/check-design-sync.mjs`.
+
 ## Commands
 
 ```bash

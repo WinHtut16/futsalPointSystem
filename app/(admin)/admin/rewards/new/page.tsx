@@ -9,7 +9,7 @@ export default async function NewRewardPage() {
   if (!(await isFutsalSuperAdmin())) redirect('/admin/rewards')
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-form space-y-5">
       <div>
         <Link href="/admin/rewards" className="text-sm text-brand-600 hover:underline">
           <T k="admin.backToRewards" />

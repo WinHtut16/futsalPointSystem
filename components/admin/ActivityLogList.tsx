@@ -22,15 +22,15 @@ export type ActivityLogItem = {
 }
 
 const DOT_COLORS: Record<ActivityLogItem['type'], string> = {
-  booking_pending: '#f59e0b',
-  booking_confirmed: '#1D9E75',
-  booking_cancelled: '#ef4444',
+  booking_pending: 'var(--color-warning)',
+  booking_confirmed: 'var(--color-success)',
+  booking_cancelled: 'var(--color-danger)',
   booking_closed: '#9ca3af',
-  point_earn: '#1D9E75',
-  point_adjustment: '#3b82f6',
-  redemption_pending: '#f59e0b',
-  redemption_approved: '#1D9E75',
-  redemption_rejected: '#ef4444',
+  point_earn: 'var(--color-success)',
+  point_adjustment: 'var(--color-info)',
+  redemption_pending: 'var(--color-warning)',
+  redemption_approved: 'var(--color-success)',
+  redemption_rejected: 'var(--color-danger)',
   redemption_cancelled: '#9ca3af',
 }
 

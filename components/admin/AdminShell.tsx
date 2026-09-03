@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, CalendarCheck, LayoutGrid, Star, Gift, Users, FileText, ShieldCheck,
-  Menu, X, ChevronsLeft, ChevronsRight, DatabaseBackup, ScrollText,
+  MoreHorizontal, ChevronsLeft, ChevronsRight, DatabaseBackup, ScrollText,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { AppGrant, AppRole } from '@/lib/apps'
@@ -14,6 +14,7 @@ import { usePendingRedemptions } from '@/contexts/PendingRedemptionsContext'
 import { usePendingBookings } from '@/contexts/PendingBookingsContext'
 import LanguageToggle from '@/components/ui/LanguageToggle'
 import LogoutButton from '@/components/admin/LogoutButton'
+import Sheet from '@/components/ui/Sheet'
 
 type NavItem = { href: string; labelKey: string; Icon: LucideIcon; badge?: boolean; bookingBadge?: boolean; superadmin?: boolean }
 type NavGroup = { labelKey?: string; items: NavItem[] }
@@ -39,6 +40,17 @@ const NAV: NavGroup[] = [
   ] },
 ]
 
+// The 4 tabs pinned to the mobile bottom bar — the destinations a futsal
+// admin reaches daily. Everything else (Court, News, and the superadmin-only
+// group) lives one tap away in the More sheet. See DESIGN.md's Nav section:
+// max 5 tabs, 4 primary + More.
+const NAV_PRIMARY: NavItem[] = [
+  { href: '/admin/dashboard', labelKey: 'admin.navDashboard', Icon: LayoutDashboard },
+  { href: '/admin/bookings', labelKey: 'admin.navBookings', Icon: CalendarCheck, bookingBadge: true },
+  { href: '/admin/redemptions', labelKey: 'admin.navRequests', Icon: Gift, badge: true },
+  { href: '/admin/customers', labelKey: 'admin.navCustomers', Icon: Users },
+]
+
 function initials(name: string) {
   return name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'AD'
 }
@@ -59,44 +71,36 @@ export default function AdminShell({
   children: React.ReactNode
 }) {
   const [collapsed, setCollapsed] = useState(false)
-  const [drawer, setDrawer] = useState(false)
+  const [more, setMore] = useState(false)
+  const { t, lang } = useLanguage()
+  const my = lang === 'my' ? 'my' : ''
+  const pathname = usePathname()
+  const { count } = usePendingRedemptions()
+  const { count: bookingCount } = usePendingBookings()
 
   const sidebarW = collapsed ? 68 : 248
 
+  useEffect(() => {
+    const total = count + bookingCount
+    document.title = (total > 0 ? '(!) ' : '') + 'Mya Thida Admin'
+  }, [count, bookingCount])
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div data-font-scope="admin" className="flex min-h-screen bg-gray-50">
       {/* desktop sidebar — fixed full height */}
       <aside
-        className="hidden md:block fixed inset-y-0 left-0 z-30 transition-[width] duration-200"
+        className="hidden md:block fixed inset-y-0 left-0 z-nav transition-[width] duration-200"
         style={{ width: sidebarW }}
       >
         <Sidebar role={role} username={username} apps={apps} collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
       </aside>
-
-      {/* mobile drawer */}
-      {drawer && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <button type="button" aria-label="Close menu" onClick={() => setDrawer(false)} className="absolute inset-0" style={{ background: 'rgba(15,30,22,0.5)' }} />
-          <div className="absolute inset-y-0 left-0 shadow-2xl">
-            <Sidebar role={role} username={username} apps={apps} collapsed={false} mobile onToggle={() => setDrawer(false)} />
-          </div>
-        </div>
-      )}
 
       <div
         className="flex min-w-0 flex-1 flex-col transition-[margin] duration-200 md:[margin-left:var(--sidebar-w)]"
         style={{ '--sidebar-w': `${sidebarW}px` } as React.CSSProperties}
       >
         {/* topbar */}
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setDrawer(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-ink-primary hover:bg-black/5 transition-colors md:hidden"
-            aria-label="Open menu"
-          >
-            <Menu size={18} />
-          </button>
+        <header className="sticky top-0 z-sticky flex h-[var(--topbar-h)] items-center gap-3 border-b border-line bg-surface px-4 shadow-sm">
           <div className="md:hidden font-display text-[15px] font-extrabold text-ink-primary">Mya Thida</div>
           <div className="ml-auto flex items-center gap-3">
             <LanguageToggle variant="admin" />
@@ -104,7 +108,138 @@ export default function AdminShell({
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">{children}</main>
+        <main className="mx-auto w-full max-w-dashboard flex-1 px-4 py-6 pb-[calc(var(--bottomnav-h)+env(safe-area-inset-bottom)+1.5rem)] md:pb-6">
+          {children}
+        </main>
+      </div>
+
+      {/* mobile bottom nav — replaces the old drawer. See DESIGN.md. */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-nav grid grid-cols-5 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        style={{ height: 'var(--bottomnav-h)' }}
+      >
+        {NAV_PRIMARY.map((it) => {
+          const active = pathname.startsWith(it.href)
+          const badgeText = it.badge ? (count > 99 ? '99+' : String(count)) : it.bookingBadge ? (bookingCount > 99 ? '99+' : String(bookingCount)) : null
+          const showBadge = (it.badge && count > 0) || (it.bookingBadge && bookingCount > 0)
+          return (
+            <Link
+              key={it.href}
+              href={it.href}
+              className={`flex flex-col items-center justify-center gap-0.5 ${active ? 'text-primary' : 'text-ink-muted'}`}
+            >
+              <span className="relative flex">
+                <it.Icon size={20} strokeWidth={active ? 2.3 : 1.9} />
+                {showBadge && (
+                  <span
+                    className="absolute -right-2 -top-1.5 flex min-w-[15px] items-center justify-center rounded-full px-1 font-display text-[9px] font-extrabold"
+                    style={{ height: 15, background: 'var(--color-accent)', color: '#1a1408' }}
+                  >
+                    {badgeText}
+                  </span>
+                )}
+              </span>
+              <span className={`text-[10px] font-semibold ${my}`}>{t(it.labelKey as never).split(' ')[0]}</span>
+            </Link>
+          )
+        })}
+        <button
+          type="button"
+          onClick={() => setMore(true)}
+          className="flex flex-col items-center justify-center gap-0.5 text-ink-muted"
+        >
+          <MoreHorizontal size={20} strokeWidth={1.9} />
+          <span className={`text-[10px] font-semibold ${my}`}>{t('common.more')}</span>
+        </button>
+      </nav>
+
+      {/* "More" sheet — the rest of the sidebar's contents, for phones */}
+      <Sheet open={more} onClose={() => setMore(false)} title={t('common.more')} className="max-h-[80vh] overflow-y-auto">
+        <MoreMenu role={role} username={username} apps={apps} onNavigate={() => setMore(false)} />
+      </Sheet>
+    </div>
+  )
+}
+
+function MoreMenu({
+  role,
+  username,
+  apps,
+  onNavigate,
+}: {
+  role: AppRole
+  username: string
+  apps: AppGrant[]
+  onNavigate: () => void
+}) {
+  const { t, lang } = useLanguage()
+  const my = lang === 'my' ? 'my' : ''
+  const pathname = usePathname()
+  const { count } = usePendingRedemptions()
+  const { count: bookingCount } = usePendingBookings()
+  const primaryHrefs = new Set(NAV_PRIMARY.map((it) => it.href))
+
+  return (
+    <div className="pb-2">
+      {NAV.map((group, gi) => {
+        const items = group.items.filter((it) => (!it.superadmin || role === 'superadmin') && !primaryHrefs.has(it.href))
+        if (items.length === 0) return null
+        return (
+          <div key={gi} className="mb-3">
+            {group.labelKey && (
+              <div className={`px-1 pb-1.5 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-ink-faint ${my}`}>
+                {t(group.labelKey as never)}
+              </div>
+            )}
+            {items.map((it) => {
+              const active = pathname.startsWith(it.href)
+              const badgeText = it.badge ? (count > 99 ? '99+' : String(count)) : it.bookingBadge ? (bookingCount > 99 ? '99+' : String(bookingCount)) : null
+              const showBadge = (it.badge && count > 0) || (it.bookingBadge && bookingCount > 0)
+              return (
+                <Link
+                  key={it.href}
+                  href={it.href}
+                  onClick={onNavigate}
+                  className={`flex items-center gap-3 rounded-[9px] px-3 py-2.5 ${active ? 'bg-primary-soft text-primary' : 'text-ink hover:bg-surface-alt'}`}
+                >
+                  <span className="relative flex shrink-0">
+                    <it.Icon size={18} strokeWidth={active ? 2.2 : 1.9} />
+                    {showBadge && (
+                      <span
+                        className="absolute -right-[7px] -top-1.5 flex min-w-[15px] items-center justify-center rounded-full px-1 font-display text-[9px] font-extrabold"
+                        style={{ height: 15, background: 'var(--color-accent)', color: '#1a1408' }}
+                      >
+                        {badgeText}
+                      </span>
+                    )}
+                  </span>
+                  <span className={`text-[13px] font-medium ${my}`}>{t(it.labelKey as never)}</span>
+                </Link>
+              )
+            })}
+          </div>
+        )
+      })}
+
+      {apps.length > 1 && (
+        <Link
+          href="/admin/apps"
+          onClick={onNavigate}
+          className="flex items-center gap-3 rounded-[9px] px-3 py-2.5 text-ink hover:bg-surface-alt"
+        >
+          <LayoutGrid size={18} strokeWidth={1.9} className="shrink-0" />
+          <span className={`text-[13px] font-medium ${my}`}>{t('portal.switchApp')}</span>
+        </Link>
+      )}
+
+      <div className="mt-2 flex items-center gap-2.5 border-t border-line px-1 pt-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-alt font-display text-xs font-bold text-ink">
+          {initials(username)}
+        </div>
+        <Link href="/admin/profile" onClick={onNavigate} className="min-w-0 flex-1">
+          <div className="truncate font-display text-[13px] font-bold text-ink">{username}</div>
+          <div className="text-[11px] capitalize text-ink-muted">{role}</div>
+        </Link>
       </div>
     </div>
   )
@@ -115,14 +250,12 @@ function Sidebar({
   username,
   apps,
   collapsed,
-  mobile = false,
   onToggle,
 }: {
   role: AppRole
   username: string
   apps: AppGrant[]
   collapsed: boolean
-  mobile?: boolean
   onToggle: () => void
 }) {
   const { t, lang } = useLanguage()
@@ -132,12 +265,6 @@ function Sidebar({
   const badgeText = count > 99 ? '99+' : String(count)
   const { count: bookingCount } = usePendingBookings()
   const bookingBadgeText = bookingCount > 99 ? '99+' : String(bookingCount)
-
-  const BASE_ADMIN_TITLE = 'Mya Thida Admin'
-  useEffect(() => {
-    const total = count + bookingCount
-    document.title = (total > 0 ? '(!) ' : '') + BASE_ADMIN_TITLE
-  }, [count, bookingCount])
 
   return (
     <div
@@ -161,9 +288,9 @@ function Sidebar({
             type="button"
             onClick={onToggle}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/20 text-white/70"
-            aria-label={mobile ? 'Close menu' : 'Collapse sidebar'}
+            aria-label="Collapse sidebar"
           >
-            {mobile ? <X size={16} /> : <ChevronsLeft size={15} />}
+            <ChevronsLeft size={15} />
           </button>
         )}
       </div>
@@ -187,7 +314,7 @@ function Sidebar({
 
       {/* nav */}
       <nav className={`flex-1 overflow-y-auto ${collapsed ? 'px-2.5 py-3' : 'px-3 py-3'}`}>
-        {collapsed && !mobile && (
+        {collapsed && (
           <button
             type="button"
             onClick={onToggle}

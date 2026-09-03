@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { toast } from 'sonner'
 import { CheckCircle2, XCircle, Ban, ShoppingBag, Trash2, Square, CheckSquare } from 'lucide-react'
 import type { RedemptionRequest, RedemptionStatus } from '@/types'
 import RedemptionRequestCard from './RedemptionRequestCard'
@@ -69,14 +70,7 @@ export default function RedemptionsList({
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [confirmState, setConfirmState] = useState<{ ids: string[]; label: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
-  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const { t } = useLanguage()
-
-  useEffect(() => {
-    if (!toast) return
-    const id = setTimeout(() => setToast(null), 3000)
-    return () => clearTimeout(id)
-  }, [toast])
 
   const fetchAll = useCallback(async () => {
     const supabase = createClient()
@@ -202,9 +196,9 @@ export default function RedemptionsList({
         deletedIds.forEach((id) => next.delete(id))
         return next
       })
-      setToast({ msg: `Deleted ${confirmState.ids.length} record${confirmState.ids.length !== 1 ? 's' : ''}`, ok: true })
+      toast.success(`Deleted ${confirmState.ids.length} record${confirmState.ids.length !== 1 ? 's' : ''}`)
     } catch {
-      setToast({ msg: 'Delete failed. Please try again.', ok: false })
+      toast.error('Delete failed. Please try again.')
     } finally {
       setDeleting(false)
       setConfirmState(null)
@@ -376,16 +370,6 @@ export default function RedemptionsList({
         variant="danger"
         isLoading={deleting}
       />
-
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-sm font-medium text-white shadow-lg"
-          style={{ background: toast.ok ? 'var(--color-primary)' : '#ef4444' }}
-        >
-          {toast.msg}
-        </div>
-      )}
     </div>
   )
 }

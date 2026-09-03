@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Input from '@/components/ui/Input'
@@ -15,8 +16,6 @@ export default function AdminProfileForm({ initialName }: Props) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
 
-  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
-
   // Profile section
   const [name, setName] = useState(initialName)
   const [profileError, setProfileError] = useState('')
@@ -28,12 +27,6 @@ export default function AdminProfileForm({ initialName }: Props) {
   const [confirmPwd, setConfirmPwd] = useState('')
   const [pwdError, setPwdError] = useState('')
   const [pwdSaving, setPwdSaving] = useState(false)
-
-  useEffect(() => {
-    if (!toast) return
-    const id = setTimeout(() => setToast(null), 3000)
-    return () => clearTimeout(id)
-  }, [toast])
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
@@ -49,7 +42,7 @@ export default function AdminProfileForm({ initialName }: Props) {
         const d = await res.json().catch(() => ({}))
         setProfileError((d as { error?: string }).error ?? 'Failed to save')
       } else {
-        setToast({ msg: t('settings.profileSaved'), ok: true })
+        toast.success(t('settings.profileSaved'))
       }
     } catch {
       setProfileError('Network error')
@@ -85,7 +78,7 @@ export default function AdminProfileForm({ initialName }: Props) {
         setCurrentPwd('')
         setNewPwd('')
         setConfirmPwd('')
-        setToast({ msg: t('settings.passwordSaved'), ok: true })
+        toast.success(t('settings.passwordSaved'))
       }
     } catch {
       setPwdError('Network error')
@@ -164,16 +157,6 @@ export default function AdminProfileForm({ initialName }: Props) {
 
       {/* Section 3 — Install App */}
       <InstallAppCard />
-
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-lg"
-          style={{ background: toast.ok ? 'var(--color-primary)' : '#ef4444' }}
-        >
-          {toast.msg}
-        </div>
-      )}
     </div>
   )
 }

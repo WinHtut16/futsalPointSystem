@@ -66,20 +66,25 @@ const TARGET_NOUN: Record<string, TranslationKey> = {
   reward: 'audit.nounReward',
 }
 
+// Riding the shared success/info/danger/warning tokens (see DESIGN.md) since
+// each of these already carries one of those four meanings. The two literals
+// that stay are genuinely outside that vocabulary: purple has no semantic
+// slot ("a person was created" isn't good/bad/risky), and #6b7280 is a
+// neutral informational dot, not a status.
 const DOT: Record<string, string> = {
-  'access.granted': '#1D9E75',
-  'access.changed': '#3b82f6',
-  'access.revoked': '#ef4444',
+  'access.granted': 'var(--color-success)',
+  'access.changed': 'var(--color-info)',
+  'access.revoked': 'var(--color-danger)',
   'admin.created': '#8b5cf6',
-  'points.adjusted': '#3b82f6',
-  'redemption.approved': '#1D9E75',
-  'redemption.rejected': '#ef4444',
-  'session.voided': '#f59e0b',
-  'sessions.bulk_deleted': '#ef4444',
-  'catalogue.created': '#1D9E75',
-  'catalogue.updated': '#3b82f6',
-  'catalogue.removed': '#ef4444',
-  'settings.updated': '#f59e0b',
+  'points.adjusted': 'var(--color-info)',
+  'redemption.approved': 'var(--color-success)',
+  'redemption.rejected': 'var(--color-danger)',
+  'session.voided': 'var(--color-warning)',
+  'sessions.bulk_deleted': 'var(--color-danger)',
+  'catalogue.created': 'var(--color-success)',
+  'catalogue.updated': 'var(--color-info)',
+  'catalogue.removed': 'var(--color-danger)',
+  'settings.updated': 'var(--color-warning)',
   'export.generated': '#6b7280',
 }
 

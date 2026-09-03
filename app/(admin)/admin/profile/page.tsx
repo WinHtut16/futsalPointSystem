@@ -9,5 +9,9 @@ export default async function AdminProfilePage() {
   if (!profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) {
     redirect('/admin/login')
   }
-  return <AdminProfileForm initialName={profile.username} />
+  return (
+    <div className="max-w-form">
+      <AdminProfileForm initialName={profile.username} />
+    </div>
+  )
 }

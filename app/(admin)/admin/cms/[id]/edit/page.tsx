@@ -25,7 +25,7 @@ export default async function EditCmsPostPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-form space-y-5">
       <h1 className="text-xl font-bold text-gray-900">Edit post</h1>
       <CmsPostForm id={id} initial={initial} />
     </div>

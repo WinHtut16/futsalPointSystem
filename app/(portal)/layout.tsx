@@ -24,5 +24,8 @@ export const viewport: Viewport = {
 }
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  // data-font-scope="admin" repoints --font-display/--font-body to the shared
+  // Plex admin stack (see globals.css) — this route is staff-facing (the
+  // business chooser), not the customer brand.
+  return <div data-font-scope="admin">{children}</div>
 }

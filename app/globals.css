@@ -1,3 +1,10 @@
+/* Shared MyaThida admin-suite contract — byte-identical in Billiards_MyaThida
+   and MyaThida_Game. See DESIGN.md. Defines the structural scales (spacing,
+   radius, shadow, type, z-index, motion, container widths), the neutral +
+   semantic color set, the per-app `data-app` accent block, and the
+   html[lang="my"] Burmese rule. Do not duplicate its variables below. */
+@import '../design/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,29 +16,12 @@
    `brand-*` classes and is unaffected — these are additive CSS
    custom properties + `fb-*` / `pill-*` helper classes only.
    Swap these vars (e.g. .theme-wc below) to retheme.
+
+   --color-*, --r-*, --shadow-* used here come from design/tokens.css
+   (imported above) — this block only adds what's specific to this app:
+   booking slot/holiday/price colors, and the (site) brand fonts.
    ============================================================ */
 :root {
-  /* Brand */
-  --color-primary:        oklch(0.34 0.075 156);
-  --color-primary-dark:   oklch(0.24 0.060 156);
-  --color-primary-soft:   oklch(0.94 0.030 156);
-  --color-on-primary:     #ffffff;
-  --color-accent:         oklch(0.78 0.135 78);
-  --color-accent-soft:    oklch(0.95 0.045 80);
-
-  /* Surfaces */
-  --color-background:     oklch(0.985 0.005 95);
-  --color-surface:        #ffffff;
-  --color-surface-alt:    oklch(0.965 0.008 95);
-  --color-line:           oklch(0.90 0.008 95);
-  --color-line-strong:    oklch(0.80 0.010 95);
-
-  /* Text */
-  --color-text-primary:   oklch(0.22 0.015 156);
-  --color-text:           oklch(0.32 0.015 156);
-  --color-text-muted:     oklch(0.55 0.012 156);
-  --color-text-faint:     oklch(0.70 0.010 156);
-
   /* Slot states */
   --color-slot-available: oklch(0.62 0.135 152);
   --color-slot-available-bg: oklch(0.96 0.040 152);
@@ -51,21 +41,22 @@
   --color-price-evening:  oklch(0.70 0.110 50);
   --color-price-weekend:  oklch(0.78 0.135 78);
 
-  /* Radii + elevation */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-xl: 20px;
-  --r-2xl: 28px;
-  --shadow-sm: 0 1px 2px rgba(15, 40, 28, 0.05), 0 0 0 1px rgba(15, 40, 28, 0.04);
-  --shadow-md: 0 2px 8px rgba(15, 40, 28, 0.06), 0 0 0 1px rgba(15, 40, 28, 0.04);
-  --shadow-lg: 0 12px 32px -8px rgba(15, 40, 28, 0.18), 0 2px 6px rgba(15, 40, 28, 0.06);
-
-  /* Type — the var(--font-*) come from next/font in app/layout.tsx */
+  /* (site) customer-booking brand fonts only — untouched by the admin-suite
+     Plex switch below. The var(--font-*) inner names come from next/font in
+     app/layout.tsx. */
   --font-display: var(--font-sora), 'Noto Sans Myanmar', system-ui, sans-serif;
   --font-body:    var(--font-manrope), 'Noto Sans Myanmar', system-ui, sans-serif;
-  --font-mono:    var(--font-jetbrains), ui-monospace, monospace;
-  --font-my:      var(--font-noto-my), 'Myanmar Text', 'Pyidaungsu', 'Padauk', system-ui, sans-serif;
+}
+
+/* Admin surfaces — (admin), (auth)/admin, (portal) — repoint the same
+   --font-display/--font-body custom properties to the shared Plex stack, so
+   every existing `font-display`/`font-body` Tailwind class picks it up with
+   no per-component changes. Scope is applied via data-font-scope="admin" on
+   AdminShell and the two admin-facing layouts; see DESIGN.md. */
+[data-font-scope="admin"] {
+  font-family: var(--font-sans);
+  --font-display: var(--font-sans);
+  --font-body:    var(--font-sans);
 }
 
 /* World Cup seasonal theme — apply .theme-wc on a wrapper to retheme
@@ -80,8 +71,8 @@
   --color-background:     oklch(0.98 0.008 80);
 }
 
-/* Myanmar script helper */
-.my { font-family: var(--font-my); letter-spacing: 0; line-height: 1.7; }
+/* Myanmar script helper (.my / .mm) and html[lang="my"] now live in
+   design/tokens.css. */
 
 /* ---- Primitives ---- */
 .fb-card {
@@ -152,7 +143,7 @@
       oklch(0.30 0.06 156) 0 12px,
       oklch(0.28 0.06 156) 12px 24px);
   color: oklch(0.85 0.03 156);
-  font-family: var(--font-mono);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 10px;
   letter-spacing: 0.05em;
 }

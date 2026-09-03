@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
+import { toast } from 'sonner'
 import { Trash2, Plus, CalendarOff } from 'lucide-react'
 import { formatDate, cn } from '@/lib/utils'
 import { dayHours } from '@/lib/booking'
@@ -28,13 +29,6 @@ export default function ClosureManager({ initial, today }: { initial: Closure[];
   const [showPast, setShowPast] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Closure | null>(null)
   const [deleting, setDeleting] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!toast) return
-    const id = setTimeout(() => setToast(null), 3000)
-    return () => clearTimeout(id)
-  }, [toast])
 
   const hasPast = useMemo(() => rows.some((r) => r.closure_date < today), [rows, today])
 
@@ -85,7 +79,7 @@ export default function ClosureManager({ initial, today }: { initial: Closure[];
       if (res.ok) {
         setRows((prev) => prev.filter((r) => r.id !== pendingDelete.id))
         setPendingDelete(null)
-        setToast(t('booking.admin.slotReopened'))
+        toast.success(t('booking.admin.slotReopened'))
       }
     } finally {
       setDeleting(false)
@@ -231,15 +225,6 @@ export default function ClosureManager({ initial, today }: { initial: Closure[];
         variant="warning"
         isLoading={deleting}
       />
-
-      {toast && (
-        <div
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-lg"
-          style={{ background: 'var(--color-primary)' }}
-        >
-          {toast}
-        </div>
-      )}
     </div>
   )
 }

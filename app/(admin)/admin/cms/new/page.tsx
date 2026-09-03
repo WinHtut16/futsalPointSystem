@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export default async function NewCmsPostPage() {
   await requireAnyAdmin()
   return (
-    <div className="space-y-5">
+    <div className="max-w-form space-y-5">
       <h1 className="text-xl font-bold text-gray-900">New post</h1>
       <CmsPostForm />
     </div>

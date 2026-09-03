@@ -1429,7 +1429,7 @@ export default function AdminBookingsList({
 
       {/* Purge modal (superadmin) */}
       {isSuperAdmin && purgeOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             <h2 className="text-base font-bold text-gray-900">
               {t('booking.admin.purgeModalTitle' as never)}

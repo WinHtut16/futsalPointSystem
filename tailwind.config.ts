@@ -81,6 +81,37 @@ const config: Config = {
         'fb-md': 'var(--shadow-md)',
         'fb-lg': 'var(--shadow-lg)',
       },
+      // Shared admin-suite structural scale — from design/tokens.css. See
+      // DESIGN.md. Byte-identical token source in Billiards_MyaThida and
+      // MyaThida_Game; each app maps it into Tailwind its own way (this is
+      // the v3 mapping — the v4 app maps the same vars via @theme inline).
+      //
+      // Deliberately additive only, new key names, nothing here overrides a
+      // Tailwind default (text-sm, duration-150, etc.) — this file is wiring,
+      // not a restyle, and an overridden default would silently change every
+      // existing usage of that class across the whole app.
+      maxWidth: {
+        form: 'var(--w-form)',
+        list: 'var(--w-list)',
+        dashboard: 'var(--w-dashboard)',
+      },
+      zIndex: {
+        dropdown: 'var(--z-dropdown)',
+        sticky: 'var(--z-sticky)',
+        nav: 'var(--z-nav)',
+        backdrop: 'var(--z-backdrop)',
+        modal: 'var(--z-modal)',
+        toast: 'var(--z-toast)',
+        tooltip: 'var(--z-tooltip)',
+      },
+      transitionDuration: {
+        fast: 'var(--dur-fast)',
+        base: 'var(--dur-base)',
+        slow: 'var(--dur-slow)',
+      },
+      transitionTimingFunction: {
+        out: 'var(--ease-out)',
+      },
     },
   },
   plugins: [],
