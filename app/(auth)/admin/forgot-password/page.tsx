@@ -19,9 +19,28 @@ export default function AdminForgotPasswordPage() {
     setError('')
     setLoading(true)
     const supabase = createClient()
-    // Ensure NEXT_PUBLIC_SITE_URL is set correctly in Vercel environment variables for each deployment
+    /**
+     * The origin the person is actually on, not a build-time environment
+     * variable.
+     *
+     * This used to read NEXT_PUBLIC_SITE_URL, which was retired as dead - so
+     * the link in the email was being built as "undefined/auth/callback" and
+     * every admin password reset was quietly broken. Setting the variable
+     * again would only have moved the problem: it is baked in at build time,
+     * so it pins the reset link to whichever hostname was current when the
+     * build ran. That is exactly the assumption that just cost the client a
+     * day, when *.vercel.app was blocked across Myanmar and the portal had to
+     * move to its own domain.
+     *
+     * window.location.origin is correct on every host, forever, with nothing
+     * to configure - the same reasoning as the Supabase proxy URL in
+     * lib/supabase/config.ts. This is a client component, so it is available.
+     *
+     * The origin must also be listed under Supabase > Authentication > URL
+     * Configuration > Redirect URLs, or Supabase refuses the redirect.
+     */
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/admin/reset-password`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/admin/reset-password`,
     })
     if (resetError) {
       setError('Unable to send reset email. Please try again.')
