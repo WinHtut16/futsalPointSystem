@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { requireSuperAdmin } from '@/lib/auth'
 import { IdParamSchema, StaffPasswordUpdateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
@@ -105,19 +105,48 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     // That refusal is the normal case for anyone who has worked a shift, and it
     // is not a failure to paper over - the history is worth more than the tidy
     // list. Removing their access is the right move there, and the message says so.
+    // Ask the database what is in the way BEFORE trying, rather than trying and
+    // then guessing from the error text. The previous version pattern-matched
+    // the failure for 'foreign key|violates|constraint'; GoTrue returns none of
+    // those words, only the opaque "Database error deleting user", so every
+    // blocked delete fell through to the generic handler and reached the
+    // superadmin as "An unexpected error occurred" - a dead end on the only
+    // supported way to remove someone.
+    const asCaller = await createClient()
+    const { data: blocking, error: checkError } = await asCaller.rpc('admin_blocking_history', {
+      p_user_id: id,
+    })
+    if (checkError) {
+      console.error('[staff] blocking-history check failed', { id, message: checkError.message })
+      return serverError(checkError.message)
+    }
+
+    const counts = (blocking ?? {}) as Record<string, number>
+    if (Object.keys(counts).length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            'This person has recorded work, so deleting the account would take it with them. Remove their access instead — they keep their history and can no longer reach any business.',
+          blocking: counts,
+          canRemoveAccessInstead: true,
+        },
+        { status: 409 }
+      )
+    }
+
     const { error } = await supabase.auth.admin.deleteUser(id)
     if (error) {
+      // Nothing was blocking a moment ago, so this is genuinely unexpected -
+      // but still say what the database said rather than swallowing it, because
+      // the last time this path was opaque it cost an afternoon.
       console.error('[staff] delete failed', { id, message: error.message })
-      if (/foreign key|violates|constraint/i.test(error.message)) {
-        return NextResponse.json(
-          {
-            error:
-              'This admin has recorded work, so the account cannot be deleted without losing it. Set every business to "No access" instead — they keep their history and can no longer sign in.',
-          },
-          { status: 409 }
-        )
-      }
-      return serverError(error.message)
+      return NextResponse.json(
+        {
+          error: `The account could not be deleted (${error.message}). Remove their access instead.`,
+          canRemoveAccessInstead: true,
+        },
+        { status: 409 }
+      )
     }
     return NextResponse.json({ success: true })
   } catch (error) {
