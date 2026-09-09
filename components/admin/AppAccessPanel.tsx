@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Loader2, TriangleAlert } from 'lucide-react'
 import { APPS, APP_NAMES, type AppName, type AppRole } from '@/lib/apps'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 /**
  * Which businesses this person may enter, and at what rank.
@@ -32,6 +33,7 @@ export default function AppAccessPanel({
   manageable: AppName[]
 }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [pending, startTransition] = useTransition()
   const [busy, setBusy] = useState<AppName | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,12 +49,12 @@ export default function AppAccessPanel({
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(json?.error ?? 'Could not update access.')
+        setError(json?.error ?? t('admin.bizAccessUpdateFailed'))
         return
       }
       startTransition(() => router.refresh())
     } catch {
-      setError('Could not reach the server. Check your connection and try again.')
+      setError(t('admin.bizAccessNetworkFailed'))
     } finally {
       setBusy(null)
     }
@@ -61,9 +63,9 @@ export default function AppAccessPanel({
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
       <div className="mb-1">
-        <h2 className="font-semibold text-gray-900 text-sm">Business access</h2>
+        <h2 className="font-semibold text-gray-900 text-sm">{t('admin.bizAccessTitle')}</h2>
         <p className="text-xs text-gray-500 mt-0.5">
-          Which systems {username} can sign in to, and their rank in each.
+          {t('admin.bizAccessSubtitle', { name: username })}
         </p>
       </div>
 
@@ -93,7 +95,11 @@ export default function AppAccessPanel({
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-900 capitalize">{app}</div>
                 <div className="text-[11.5px] text-gray-500">
-                  {current ? `Has access · ${current}` : 'No access'}
+                  {current
+                    ? `${t('admin.bizAccessHasAccess')} · ${t(
+                        current === 'superadmin' ? 'admin.accessSuperadmin' : 'admin.accessAdmin',
+                      )}`
+                    : t('admin.bizAccessNoAccess')}
                 </div>
               </div>
 
@@ -111,14 +117,14 @@ export default function AppAccessPanel({
                     className="text-[12.5px] border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
                     aria-label={`Access to ${app}`}
                   >
-                    <option value="">No access</option>
-                    <option value="admin">Admin</option>
-                    <option value="superadmin">Superadmin</option>
+                    <option value="">{t('admin.accessNone')}</option>
+                    <option value="admin">{t('admin.accessAdmin')}</option>
+                    <option value="superadmin">{t('admin.accessSuperadmin')}</option>
                   </select>
                   {current && <Check className="w-4 h-4 text-green-600" />}
                 </div>
               ) : (
-                <span className="text-[11.5px] text-gray-400">Not yours to change</span>
+                <span className="text-[11.5px] text-gray-400">{t('admin.bizAccessNotYours')}</span>
               )}
             </div>
           )
@@ -126,8 +132,7 @@ export default function AppAccessPanel({
       </div>
 
       <p className="text-[11.5px] text-gray-400 mt-3 leading-relaxed">
-        Removing access keeps the person&apos;s recorded history intact — their past sessions
-        stay attached to their name, they simply can no longer sign in to that system.
+        {t('admin.bizAccessFootnote')}
       </p>
     </div>
   )

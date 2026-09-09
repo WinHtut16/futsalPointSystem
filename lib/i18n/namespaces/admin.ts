@@ -157,6 +157,42 @@ export const adminEN = {
   'admin.deleteAdminFailed': 'Failed to delete admin.',
   'admin.deleteAdminButton': 'Delete Admin Account',
 
+  // DeleteStaffButton - confirm modal
+  'admin.deleteStaffConfirmTitle': 'Remove staff member',
+  'admin.deleteStaffConfirmMsg':
+    '{name} will lose access to every business immediately. If they have recorded any work, the account is kept and only their access is removed — you will be asked to confirm that.',
+  'admin.deleteStaffConfirmCta': 'Remove',
+  'admin.deleteStaffCancel': 'Cancel',
+
+  // DeleteStaffButton - blocked because the person has recorded work
+  'admin.deleteStaffBlockedTitle': '{name} has recorded work',
+  'admin.deleteStaffBlockedBody':
+    'The account cannot be deleted without taking {reasons} with it. Removing their access does what you want: they can no longer reach any business, and their work stays attached to their name in reports and the audit log.',
+  'admin.deleteStaffBlockedNote':
+    'They will stay on this staff list, showing no access. That is deliberate — deleting the row would delete the history.',
+  'admin.deleteStaffRemoveAccess': 'Remove all access',
+  // Reason phrases, per database table, for the sentence above.
+  'admin.deleteStaffReason.point_transactions': 'point entries',
+  'admin.deleteStaffReason.redemption_requests': 'redemption decisions',
+  'admin.deleteStaffReason.court_closures': 'court closures',
+  'admin.deleteStaffReason.cms_posts': 'news posts',
+  'admin.deleteStaffReason.billiards.sessions': 'billiards sessions',
+  'admin.deleteStaffReason.billiards.stock_movements': 'billiards stock entries',
+  'admin.deleteStaffReason.billiards.admins': 'billiards accounts they created',
+  'admin.deleteStaffReason.game.sessions': 'game shop sessions',
+  'admin.deleteStaffReason.game.staff': 'game shop accounts they created',
+
+  // AppAccessPanel - the "Business access" card
+  'admin.bizAccessTitle': 'Business access',
+  'admin.bizAccessSubtitle': 'Which systems {name} can sign in to, and their rank in each.',
+  'admin.bizAccessHasAccess': 'Has access',
+  'admin.bizAccessNoAccess': 'No access',
+  'admin.bizAccessNotYours': 'Not yours to change',
+  'admin.bizAccessFootnote':
+    'Removing access keeps the person’s recorded history intact — their past sessions stay attached to their name, they simply can no longer sign in to that system.',
+  'admin.bizAccessUpdateFailed': 'Could not update access.',
+  'admin.bizAccessNetworkFailed': 'Could not reach the server. Check your connection and try again.',
+
   // RedemptionsList
   'admin.pendingCount': '{count} pending',
   'admin.searchRedemptions': 'Search by name, phone, or reward...',
@@ -508,6 +544,42 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'admin.deleteAdminConfirm': 'အက်မင် အကောင့် "{name}" ဖျက်မည်လား? ပြန်မရနိုင်ပါ။',
   'admin.deleteAdminFailed': 'အက်မင် ဖျက်ခြင်း မအောင်မြင်ပါ။',
   'admin.deleteAdminButton': 'အက်မင် အကောင့် ဖျက်ရန်',
+
+  // DeleteStaffButton - confirm modal
+  'admin.deleteStaffConfirmTitle': 'ဝန်ထမ်း ဖယ်ရှားရန်',
+  'admin.deleteStaffConfirmMsg':
+    '{name} သည် လုပ်ငန်းအားလုံးသို့ ဝင်ရောက်ခွင့် ချက်ချင်း ဆုံးရှုံးမည်။ လုပ်ဆောင်မှု မှတ်တမ်း ရှိပါက အကောင့်ကို ထားရှိပြီး ဝင်ရောက်ခွင့်ကိုသာ ဖယ်ရှားမည် — ၎င်းကို အတည်ပြုခိုင်းပါမည်။',
+  'admin.deleteStaffConfirmCta': 'ဖယ်ရှားရန်',
+  'admin.deleteStaffCancel': 'မလုပ်တော့ပါ',
+
+  // DeleteStaffButton - blocked because the person has recorded work
+  'admin.deleteStaffBlockedTitle': '{name} တွင် လုပ်ဆောင်မှု မှတ်တမ်း ရှိသည်',
+  'admin.deleteStaffBlockedBody':
+    'ဤအကောင့်ကို ဖျက်ပါက {reasons} ပါ လိုက်ပါသွားမည် ဖြစ်၍ ဖျက်၍ မရပါ။ ဝင်ရောက်ခွင့် ဖယ်ရှားခြင်းက လိုချင်သည့်အတိုင်း ဖြစ်စေသည် — ၎င်းသည် မည်သည့်လုပ်ငန်းကိုမျှ ဝင်ရောက်နိုင်တော့မည် မဟုတ်ပါ၊ လုပ်ဆောင်ခဲ့သည်များကမူ အစီရင်ခံစာနှင့် လုပ်ဆောင်မှုမှတ်တမ်းတွင် ၎င်း၏နာမည်ဖြင့် ဆက်လက် ရှိနေမည်။',
+  'admin.deleteStaffBlockedNote':
+    '၎င်းသည် ဤဝန်ထမ်းစာရင်းတွင် ဝင်ရောက်ခွင့် မရှိဟု ပြလျက် ဆက်ရှိနေမည်။ ၎င်းမှာ ရည်ရွယ်ချက်ရှိသည် — စာရင်းမှ ဖျက်ပါက မှတ်တမ်းပါ ပျက်သွားမည်။',
+  'admin.deleteStaffRemoveAccess': 'ဝင်ရောက်ခွင့် အားလုံး ဖယ်ရှားရန်',
+  // Reason phrases, per database table, for the sentence above.
+  'admin.deleteStaffReason.point_transactions': 'အမှတ် မှတ်တမ်း',
+  'admin.deleteStaffReason.redemption_requests': 'ဆုလာဘ် ဆုံးဖြတ်ချက်',
+  'admin.deleteStaffReason.court_closures': 'ကွင်း ပိတ်မှတ်တမ်း',
+  'admin.deleteStaffReason.cms_posts': 'သတင်း ပို့စ်',
+  'admin.deleteStaffReason.billiards.sessions': 'ဘီလိယက် အသုံးပြုမှု',
+  'admin.deleteStaffReason.billiards.stock_movements': 'ဘီလိယက် ကုန်ပစ္စည်း မှတ်တမ်း',
+  'admin.deleteStaffReason.billiards.admins': '၎င်း ဖန်တီးခဲ့သော ဘီလိယက် အကောင့်',
+  'admin.deleteStaffReason.game.sessions': 'ဂိမ်းဆိုင် အသုံးပြုမှု',
+  'admin.deleteStaffReason.game.staff': '၎င်း ဖန်တီးခဲ့သော ဂိမ်းဆိုင် အကောင့်',
+
+  // AppAccessPanel - the "Business access" card
+  'admin.bizAccessTitle': 'လုပ်ငန်း ဝင်ရောက်ခွင့်',
+  'admin.bizAccessSubtitle': '{name} ဝင်ရောက်နိုင်သော စနစ်များနှင့် တစ်ခုစီတွင် ၎င်း၏ အဆင့်။',
+  'admin.bizAccessHasAccess': 'ဝင်ရောက်ခွင့် ရှိသည်',
+  'admin.bizAccessNoAccess': 'ဝင်ရောက်ခွင့် မရှိ',
+  'admin.bizAccessNotYours': 'သင် ပြောင်းလဲပိုင်ခွင့် မရှိ',
+  'admin.bizAccessFootnote':
+    'ဝင်ရောက်ခွင့် ဖယ်ရှားလည်း ၎င်း၏ မှတ်တမ်းများ အတိုင်း ကျန်ရှိသည် — ယခင် အသုံးပြုမှုများ ၎င်း၏နာမည်ဖြင့် ဆက်ရှိပြီး ထိုစနစ်သို့ ဝင်ရောက်၍သာ မရတော့ပါ။',
+  'admin.bizAccessUpdateFailed': 'ဝင်ရောက်ခွင့် ပြင်ဆင်၍ မရပါ။',
+  'admin.bizAccessNetworkFailed': 'ဆာဗာသို့ မဆက်သွယ်နိုင်ပါ။ အင်တာနက် စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။',
   'admin.pendingCount': '{count} ဆောင်ရွက်ဆဲ',
   'admin.searchRedemptions': 'နာမည်၊ ဖုန်း သို့မဟုတ် ဆုလာဘ်ဖြင့် ရှာဖွေပါ...',
   'admin.noRedemptionsSearch': 'ရှာဖွေမှုနှင့် ကိုက်ညီသည့် တောင်းဆိုမှု မရှိပါ။',
