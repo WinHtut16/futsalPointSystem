@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, Lock } from 'lucide-react'
+import { ArrowRight, Lock, Volleyball, CircleDot, Gamepad2, type LucideIcon } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { getMyApps } from '@/lib/apps.server'
-import { APPS, type AppGrant } from '@/lib/apps'
+import { APPS, type AppGrant, type AppName } from '@/lib/apps'
 import LanguageToggle from '@/components/ui/LanguageToggle'
 import LogoutButton from '@/components/admin/LogoutButton'
 import T from '@/components/ui/T'
@@ -86,11 +86,20 @@ export default async function AppsPage() {
   )
 }
 
+/** Which glyph fronts each business on the chooser. Kept next to the grid that
+ *  uses it rather than in the pure apps.ts constants module. */
+const APP_ICONS: Record<AppName, LucideIcon> = {
+  futsal: Volleyball,
+  billiards: CircleDot,
+  game: Gamepad2,
+}
+
 function AppGrid({ apps }: { apps: AppGrant[] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {apps.map(({ app, role }) => {
         const meta = APPS[app]
+        const Icon = APP_ICONS[app]
 
         const inner = (
           <>
@@ -101,7 +110,14 @@ function AppGrid({ apps }: { apps: AppGrant[] }) {
             />
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="font-display text-base font-bold text-ink-primary">
+                <h2 className="flex items-center gap-1.5 font-display text-base font-bold text-ink-primary">
+                  <Icon
+                    size={16}
+                    className="shrink-0"
+                    style={{ color: meta.accent }}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                   <T k={meta.titleKey} />
                 </h2>
                 <p className="mt-0.5 text-sm text-gray-500">
