@@ -117,8 +117,26 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
       p_user_id: id,
     })
     if (checkError) {
-      console.error('[staff] blocking-history check failed', { id, message: checkError.message })
-      return serverError(checkError.message)
+      // Say WHICH step failed and what the database said, instead of
+      // serverError()'s one-size-fits-all sentence.
+      //
+      // "An unexpected error occurred" has now hidden three different causes on
+      // this one button: a foreign-key refusal, a column that never existed,
+      // and (nearly) a missing migration. Each time it cost a round trip to the
+      // production logs to learn something the screen could have said. A
+      // message naming the step is worth more than a tidy one.
+      console.error('[staff] blocking-history check failed', {
+        id, code: checkError.code, message: checkError.message, hint: checkError.hint,
+      })
+      const missing = checkError.code === 'PGRST202' || /schema cache|does not exist/i.test(checkError.message)
+      return NextResponse.json(
+        {
+          error: missing
+            ? `Could not check this account's history: the database is missing admin-removal-migration.sql, or its API cache is stale (${checkError.message}).`
+            : `Could not check this account's history (${checkError.message}).`,
+        },
+        { status: 500 }
+      )
     }
 
     const counts = (blocking ?? {}) as Record<string, number>

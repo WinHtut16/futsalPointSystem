@@ -37,50 +37,65 @@ create or replace function public.admin_blocking_history(p_user_id uuid)
 returns jsonb language plpgsql stable security definer
 set search_path = public as $$
 declare
-  v jsonb := '{}'::jsonb;
-  n bigint;
+  r   record;
+  n   bigint;
+  v   jsonb := '{}'::jsonb;
+  tbl text;
 begin
   if not coalesce(public.is_superadmin(), false) then
     raise exception 'Not authorised.' using errcode = '42501';
   end if;
 
-  select count(*) into n from public.point_transactions where created_by = p_user_id;
-  if n > 0 then v := v || jsonb_build_object('futsal_point_entries', n); end if;
+  -- Derived from the catalog, not typed out by hand.
+  --
+  -- The hand-written version of this named public.bookings.created_by, a column
+  -- that has never existed - so every delete crashed with 42703 and reached the
+  -- superadmin as "An unexpected error occurred", the exact message this
+  -- function was added to get rid of. It also silently MISSED
+  -- cms_posts.created_by, so a news author would have been reported safe to
+  -- delete and then failed opaquely at the database instead. Wrong in both
+  -- directions at once.
+  --
+  -- Both mistakes came from reading migration files and inferring which table a
+  -- column belonged to. Postgres already knows exactly, so ask it: every
+  -- single-column foreign key pointing at the four identity tables whose
+  -- ON DELETE blocks (NO ACTION / RESTRICT). Deleting the auth user cascades
+  -- into profiles, billiards.admins and game.staff, so anything blocking a
+  -- cascade into those blocks the whole delete too.
+  --
+  -- Verified against a loaded copy of all three schemas: an account with
+  -- history is reported AND refused by the database (23503), a clean account
+  -- reports {} AND deletes. The answer predicts the outcome, which is the only
+  -- property that matters here. It also cannot drift - a table added next month
+  -- is covered the day it is added.
+  for r in
+    select c.conrelid::regclass::text as tbl, a.attname as col
+      from pg_constraint c
+      join unnest(c.conkey) with ordinality k(attnum, ord) on true
+      join pg_attribute a on a.attrelid = c.conrelid and a.attnum = k.attnum
+     where c.contype = 'f'
+       and c.confdeltype in ('a', 'r')
+       and array_length(c.conkey, 1) = 1
+       and c.confrelid in (
+             'auth.users'::regclass,
+             'public.profiles'::regclass,
+             -- A business whose schema is not installed collapses to a
+             -- duplicate of auth.users here, which the IN list ignores.
+             coalesce(to_regclass('billiards.admins'), 'auth.users'::regclass),
+             coalesce(to_regclass('game.staff'),       'auth.users'::regclass))
+  loop
+    execute format('select count(*) from %s where %I = $1', r.tbl, r.col)
+      into n using p_user_id;
 
-  if to_regclass('public.bookings') is not null then
-    execute 'select count(*) from public.bookings where created_by = $1' into n using p_user_id;
-    if n > 0 then v := v || jsonb_build_object('futsal_bookings', n); end if;
-  end if;
+    if n > 0 then
+      -- Aggregated per table: billiards.sessions counts once whether the person
+      -- opened, closed or corrected it, which is how a human reads it.
+      tbl := r.tbl;
+      v := v || jsonb_build_object(tbl, coalesce((v ->> tbl)::bigint, 0) + n);
+    end if;
+  end loop;
 
-  if to_regclass('public.court_closures') is not null then
-    execute 'select count(*) from public.court_closures where created_by = $1' into n using p_user_id;
-    if n > 0 then v := v || jsonb_build_object('futsal_closures', n); end if;
-  end if;
-
-  select count(*) into n from public.redemption_requests where resolved_by = p_user_id;
-  if n > 0 then v := v || jsonb_build_object('futsal_redemptions', n); end if;
-
-  if to_regclass('billiards.sessions') is not null then
-    execute $b$select count(*) from billiards.sessions
-              where opened_by = $1 or closed_by = $1 or voided_by = $1$b$ into n using p_user_id;
-    if n > 0 then v := v || jsonb_build_object('billiards_sessions', n); end if;
-
-    execute 'select count(*) from billiards.stock_movements where created_by = $1' into n using p_user_id;
-    if n > 0 then v := v || jsonb_build_object('billiards_stock_entries', n); end if;
-
-    execute 'select count(*) from billiards.admins where created_by = $1' into n using p_user_id;
-    if n > 0 then v := v || jsonb_build_object('billiards_accounts_created', n); end if;
-  end if;
-
-  if to_regclass('game.sessions') is not null then
-    execute 'select count(*) from game.sessions where created_by = $1 or voided_by = $1' into n using p_user_id;
-    if n > 0 then v := v || jsonb_build_object('game_sessions', n); end if;
-
-    execute 'select count(*) from game.staff where created_by = $1' into n using p_user_id;
-    if n > 0 then v := v || jsonb_build_object('game_accounts_created', n); end if;
-  end if;
-
-  return v;   -- '{}' means nothing is in the way; a hard delete will succeed
+  return v;
 end $$;
 
 -- ── Removing someone without destroying what they recorded ──────────────────

@@ -11,17 +11,24 @@ interface Props {
   staffUsername: string
 }
 
-/** Human wording for each thing that can block a delete. */
+/**
+ * Human wording per table. Keys are the real table names the database reports,
+ * so an unmapped one still reads sensibly rather than breaking the sentence.
+ */
 const BLOCKING_LABEL: Record<string, string> = {
-  futsal_point_entries: 'point entries',
-  futsal_bookings: 'bookings',
-  futsal_closures: 'court closures',
-  futsal_redemptions: 'redemption decisions',
-  billiards_sessions: 'billiards sessions',
-  billiards_stock_entries: 'billiards stock entries',
-  billiards_accounts_created: 'billiards accounts they created',
-  game_sessions: 'game shop sessions',
-  game_accounts_created: 'game shop accounts they created',
+  point_transactions: 'point entries',
+  redemption_requests: 'redemption decisions',
+  court_closures: 'court closures',
+  cms_posts: 'news posts',
+  'billiards.sessions': 'billiards sessions',
+  'billiards.stock_movements': 'billiards stock entries',
+  'billiards.admins': 'billiards accounts they created',
+  'game.sessions': 'game shop sessions',
+  'game.staff': 'game shop accounts they created',
+}
+
+function describe(table: string): string {
+  return BLOCKING_LABEL[table] ?? table.split('.').pop()!.replace(/_/g, ' ')
 }
 
 export default function DeleteStaffButton({ staffId, staffUsername }: Props) {
@@ -52,7 +59,7 @@ export default function DeleteStaffButton({ staffId, staffUsername }: Props) {
         const counts = (data.blocking ?? {}) as Record<string, number>
         setBlocked({
           reasons: Object.entries(counts).map(
-            ([k, n]) => `${n} ${BLOCKING_LABEL[k] ?? k.replace(/_/g, ' ')}`
+            ([k, n]) => `${n} ${describe(k)}`
           ),
         })
       } else {
