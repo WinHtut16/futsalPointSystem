@@ -55,6 +55,52 @@ begin
   perform set_config('request.jwt.claim.role', 'authenticated', false);
 end $$;
 
+-- Test helper: act as p_actor under p_role (authenticated/anon), run one
+-- expression through EXECUTE, and hand back what happened — the exact error
+-- message on failure, or the literal 'NO ERROR' on success. Matters that this
+-- returns the MESSAGE, not just whether it raised: a wrong actor calling an
+-- RPC with a made-up id can raise for the WRONG reason (row not found)
+-- even when the authorization guard is missing entirely. A test that only
+-- checked "did it raise" would pass either way and prove nothing.
+create or replace function public.test_call(p_actor uuid, p_role text, p_call text)
+returns text language plpgsql as $$
+declare
+  v_result text;
+begin
+  perform public.test_act_as(p_actor);
+  perform set_config('role', p_role, true);
+  begin
+    execute 'select ' || p_call;  -- no INTO: discards the result, works for void/record/scalar alike
+    v_result := 'NO ERROR';
+  exception when others then
+    v_result := sqlerrm;
+  end;
+  perform set_config('role', 'postgres', true);
+  return v_result;
+end $$;
+
+-- Same actor-switch, but for reading back an actual VALUE (a boolean check
+-- like is_superadmin(), a row count) rather than testing whether a call was
+-- denied. Kept separate from test_call on purpose: test_call discards its
+-- result (works for void/record returns alike, and "NO ERROR" IS the
+-- signal), which would silently swallow the very value this one exists to
+-- return.
+create or replace function public.test_value(p_actor uuid, p_role text, p_expr text)
+returns text language plpgsql as $$
+declare
+  v_result text;
+begin
+  perform public.test_act_as(p_actor);
+  perform set_config('role', p_role, true);
+  begin
+    execute 'select (' || p_expr || ')::text' into v_result;
+  exception when others then
+    v_result := 'ERROR: ' || sqlerrm;
+  end;
+  perform set_config('role', 'postgres', true);
+  return v_result;
+end $$;
+
 -- Supabase ships this publication; billiards' schema migration adds tables to it.
 do $$ begin
   if not exists (select 1 from pg_publication where pubname='supabase_realtime') then

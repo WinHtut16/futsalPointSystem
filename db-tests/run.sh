@@ -47,20 +47,22 @@ echo "== shared identity =="
 run "$FUTSAL/app-access-migration.sql" || exit 1
 
 echo "== the other two businesses =="
-run "$BILL/billiards-schema-migration.sql" || exit 1
+run "$BILL/billiards-schema-migration.sql"      || exit 1
+run "$BILL/phase1-audit-remediation.sql"        || exit 1
 run "$GAME/game-schema-migration.sql"      || exit 1
 run "$GAME/game-profile-migration.sql"     || exit 1
 run "$GAME/game-corrections-migration.sql" || exit 1
 
 echo "== portal and audit =="
 for f in app-access-grants-migration.sql admin-provisioning-migration.sql \
-         audit-log-migration.sql audit-money-migration.sql audit-catalogue-migration.sql; do
+         audit-log-migration.sql audit-money-migration.sql audit-catalogue-migration.sql \
+         superadmin-directory-migration.sql; do
   run "$FUTSAL/$f" || exit 1
 done
 
 echo
 echo "== assertions =="
-for f in 90-access.sql 91-catalogue.sql 92-integrity.sql; do
+for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 

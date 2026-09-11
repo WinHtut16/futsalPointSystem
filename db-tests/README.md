@@ -39,6 +39,8 @@ Then:
     cd db-tests
     ./run.sh
 
+or, from the repo root: `npm run test:db`.
+
 It prints one line per assertion and a count at the end. Any FAIL is a real
 finding: these all passed when they were written.
 
@@ -62,6 +64,18 @@ this code that *was* vulnerable.
 For the same reason there are control assertions ("grant_app_access IS
 executable by authenticated", "the global superadmin sees every business").
 A test that everything is forbidden passes beautifully on a broken database.
+
+## 93-crosstenant.sql
+
+The Phase 2 cross-tenant privilege matrix from the pre-launch audit, made
+permanent: a customer, an admin of the wrong business, and an account with a
+grant for an unrelated app, thrown at every billiards.\* and game.\* write RPC
+and the app_settings table — each asserted on the exact denial message, not
+just "it raised". A wrong actor calling an RPC with a made-up id can raise for
+the wrong reason (row not found) even with the auth guard deleted; only the
+message proves the guard fired. Paired with positive controls (a legitimate
+admin of that business must actually clear the guard) so a denial isn't
+trivially true because nothing exists yet.
 
 ## Confirmed to bite
 
