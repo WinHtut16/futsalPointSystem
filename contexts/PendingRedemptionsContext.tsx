@@ -16,7 +16,7 @@ interface PendingRedemptionsContextValue {
 
 const PendingRedemptionsContext = createContext<PendingRedemptionsContextValue>({ count: 0 })
 
-const POLL_INTERVAL_MS = 15_000
+const POLL_INTERVAL_MS = 30_000
 
 export function PendingRedemptionsProvider({
   initialCount,
@@ -37,49 +37,46 @@ export function PendingRedemptionsProvider({
   }, [])
 
   useEffect(() => {
-    const supabase = createClient()
+    /**
+     * Polled, never Realtime — and only while someone is looking.
+     *
+     * A postgres_changes channel used to sit here keeping the badge exact. It
+     * could never connect: the browser client reaches Supabase through the
+     * same-origin /sb rewrite so Myanmar operators have no *.supabase.co
+     * hostname to filter, and Vercel does not upgrade WebSockets across a
+     * rewrite. Worse, its status handler called fetchCount() on CHANNEL_ERROR,
+     * so every doomed reconnect bought an extra query on top of the interval.
+     *
+     * Pausing on a hidden tab is the real saving. An admin who leaves the
+     * dashboard open all shift was polling every 15s until they closed it; now
+     * a background tab costs nothing and gets one fresh count the instant it
+     * comes back to the foreground.
+     */
+    let timer: ReturnType<typeof setInterval> | undefined
+    const start = () => {
+      if (!timer) timer = setInterval(fetchCount, POLL_INTERVAL_MS)
+    }
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer)
+        timer = undefined
+      }
+    }
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop()
+      } else {
+        void fetchCount()
+        start()
+      }
+    }
 
-    const channel = supabase
-      .channel('admin-pending-badge')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'redemption_requests' },
-        (payload) => {
-          try {
-            if ((payload.new as { status: string }).status === 'pending') {
-              setCount((c) => c + 1)
-            }
-          } catch (err) {
-            console.error('[admin-pending-badge] INSERT handler error:', err)
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'redemption_requests' },
-        (payload) => {
-          try {
-            const prev = (payload.old as { status?: string }).status
-            const next = (payload.new as { status: string }).status
-            if (prev === 'pending' && next !== 'pending') {
-              setCount((c) => Math.max(0, c - 1))
-            }
-          } catch (err) {
-            console.error('[admin-pending-badge] UPDATE handler error:', err)
-          }
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          fetchCount()
-        }
-      })
-
-    const timer = setInterval(fetchCount, POLL_INTERVAL_MS)
+    start()
+    document.addEventListener('visibilitychange', onVisibilityChange)
 
     return () => {
-      supabase.removeChannel(channel)
-      clearInterval(timer)
+      stop()
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [fetchCount])
 

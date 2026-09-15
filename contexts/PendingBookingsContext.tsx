@@ -17,7 +17,7 @@ interface PendingBookingsContextValue {
 
 const PendingBookingsContext = createContext<PendingBookingsContextValue>({ count: 0, loaded: false })
 
-const POLL_INTERVAL_MS = 15_000
+const POLL_INTERVAL_MS = 30_000
 
 function myanmarToday(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon' }).format(new Date())
@@ -80,64 +80,46 @@ export function PendingBookingsProvider({
   useEffect(() => {
     fetchCount()
 
-    const supabase = createClient()
+    /**
+     * Polled, never Realtime — and only while someone is looking.
+     *
+     * A postgres_changes channel used to sit here keeping the badge exact. It
+     * could never connect: the browser client reaches Supabase through the
+     * same-origin /sb rewrite so Myanmar operators have no *.supabase.co
+     * hostname to filter, and Vercel does not upgrade WebSockets across a
+     * rewrite. Worse, its status handler called fetchCount() on CHANNEL_ERROR,
+     * so every doomed reconnect bought an extra query on top of the interval.
+     *
+     * Pausing on a hidden tab is the real saving. An admin who leaves the
+     * dashboard open all shift was polling every 15s until they closed it; now
+     * a background tab costs nothing and gets one fresh count the instant it
+     * comes back to the foreground.
+     */
+    let timer: ReturnType<typeof setInterval> | undefined
+    const start = () => {
+      if (!timer) timer = setInterval(fetchCount, POLL_INTERVAL_MS)
+    }
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer)
+        timer = undefined
+      }
+    }
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop()
+      } else {
+        void fetchCount()
+        start()
+      }
+    }
 
-    const channel = supabase
-      .channel('admin-pending-bookings-badge')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'bookings' },
-        (payload) => {
-          try {
-            const b = payload.new as { status: string; booking_date: string; deposit_received: boolean }
-            if (b.status !== 'pending' || b.deposit_received) return
-            const today = myanmarToday()
-            if (b.booking_date < today) return
-            if (b.booking_date > today) {
-              setCount((c) => c + 1)
-            } else {
-              // Today: need slot data to determine if future — refetch for accuracy
-              fetchCount()
-            }
-          } catch (err) {
-            console.error('[admin-pending-bookings-badge] INSERT handler error:', err)
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'bookings' },
-        (payload) => {
-          try {
-            const old = payload.old as { status?: string; deposit_received?: boolean; booking_date?: string }
-            const neu = payload.new as { status: string; deposit_received: boolean; booking_date: string }
-            const today = myanmarToday()
-            if (neu.booking_date < today) return
-            if (neu.booking_date > today) {
-              const prevInBadge = old.status === 'pending' && old.deposit_received === false
-              const nextInBadge = neu.status === 'pending' && neu.deposit_received === false
-              if (prevInBadge && !nextInBadge) setCount((c) => Math.max(0, c - 1))
-              else if (!prevInBadge && nextInBadge) setCount((c) => c + 1)
-            } else {
-              // Today: need slot data to determine active/grace — refetch for accuracy
-              fetchCount()
-            }
-          } catch (err) {
-            console.error('[admin-pending-bookings-badge] UPDATE handler error:', err)
-          }
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          fetchCount()
-        }
-      })
-
-    const timer = setInterval(fetchCount, POLL_INTERVAL_MS)
+    start()
+    document.addEventListener('visibilitychange', onVisibilityChange)
 
     return () => {
-      supabase.removeChannel(channel)
-      clearInterval(timer)
+      stop()
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [fetchCount])
 

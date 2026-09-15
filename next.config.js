@@ -32,13 +32,22 @@ const providerProbeHosts = probeProviders
 //   TODO: implement CSP nonces when ready to remove unsafe-inline.
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
+  // static.cloudflareinsights.com: the RUM beacon Cloudflare injects into
+  // proxied zones. See the connect-src note below - both are required.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://static.cloudflareinsights.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://res.cloudinary.com",
   "font-src 'self'",
   // Supabase REST + Realtime websocket. Direct *.supabase.co stays listed while the
   // browser still calls it; the /sb proxy below is same-origin and covered by 'self'.
-  `connect-src 'self' https://*.supabase.co wss://*.supabase.co${providerProbeHosts}`,
+  //
+  // cloudflareinsights.com is where the beacon POSTs its measurements
+  // (/cdn-cgi/rum). Pointless without the script-src entry above, and vice
+  // versa: allow only the script and the library loads then cannot report,
+  // which is the same number of CSP errors in a less obvious place. This is
+  // how the Core Web Vitals in the Cloudflare dashboard get populated - real
+  // LCP/INP/CLS from Myanmar handsets rather than our guesses.
+  `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com${providerProbeHosts}`,
   "frame-src 'self' https://www.google.com https://maps.google.com https://maps.googleapis.com https://www.facebook.com https://www.facebook.com/plugins/",
   "frame-ancestors 'none'",
   // Admin PWA install (public/pwa/manifest.webmanifest, public/sw.js).
