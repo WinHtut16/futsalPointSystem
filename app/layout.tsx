@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { cookies } from 'next/headers'
-import { Sora, Manrope, JetBrains_Mono, Noto_Sans_Myanmar, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
+import { Sora, Manrope, JetBrains_Mono, Noto_Sans_Myanmar } from 'next/font/google'
 import './globals.css'
 import Providers from '@/components/Providers'
 import type { Language } from '@/lib/i18n'
@@ -16,23 +16,10 @@ const notoMy = Noto_Sans_Myanmar({
   display: 'swap',
 })
 
-// Shared admin-suite type stack — same faces as Billiards and Game. Scoped
-// to [data-font-scope="admin"] in globals.css: (admin), (auth)/admin,
-// (portal). See DESIGN.md.
-const plexSans = IBM_Plex_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-plex-sans',
-  display: 'swap',
-})
-const plexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-plex-mono',
-  display: 'swap',
-})
-
-const fontVars = `${sora.variable} ${manrope.variable} ${jetbrains.variable} ${notoMy.variable} ${plexSans.variable} ${plexMono.variable}`
+// The Plex admin-suite stack lives in lib/fonts.ts and is applied only inside
+// the three admin-facing layouts ((admin), (auth)/admin, (portal)) — not
+// here — so customer routes never download it. See DESIGN.md.
+const fontVars = `${sora.variable} ${manrope.variable} ${jetbrains.variable} ${notoMy.variable}`
 
 export const metadata: Metadata = {
   title: 'Mya Thida Points',
@@ -43,7 +30,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: 'cover',
 }
 

@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 }
 
 // Merges field-by-field with the root layout's viewport (width/initialScale/
-// maximumScale/viewportFit) — only themeColor is added here, and only for
-// /admin/* pages. Value matches --color-primary in app/globals.css.
+// viewportFit) — only themeColor is added here, and only for /admin/* pages.
+// Value matches --color-primary in app/globals.css.
 export const viewport: Viewport = {
   themeColor: '#0b4327',
 }

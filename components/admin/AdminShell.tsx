@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { AppGrant, AppRole } from '@/lib/apps'
+import { plexFontVars } from '@/lib/fonts'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { usePendingRedemptions } from '@/contexts/PendingRedemptionsContext'
 import { usePendingBookings } from '@/contexts/PendingBookingsContext'
@@ -78,6 +79,16 @@ export default function AdminShell({
   const { count } = usePendingRedemptions()
   const { count: bookingCount } = usePendingBookings()
 
+  // Every nav Link below is prefetch={false}, kept deliberately blanket
+  // rather than the narrower per-route pattern MyaThida_Game uses (default
+  // prefetch, disabled only on its one polling route): this layout's
+  // getCurrentUser/getMyApps/getAppRole + pending-count queries above run on
+  // every nav destination's prefetch, and that parallel fan-out was the
+  // measured 3-4s admin load time this fix solved. Narrowing it back to
+  // "default except /admin/bookings" would reopen that on the other six
+  // routes to save mobile tap latency on one — the wrong trade. Costs a
+  // touch of tap latency on mobile (no hover to prewarm); that's the
+  // accepted trade-off.
   const sidebarW = collapsed ? 68 : 248
 
   useEffect(() => {
@@ -86,7 +97,7 @@ export default function AdminShell({
   }, [count, bookingCount])
 
   return (
-    <div data-font-scope="admin" className="flex min-h-screen bg-gray-50">
+    <div data-font-scope="admin" className={`${plexFontVars} flex min-h-screen bg-gray-50`}>
       {/* desktop sidebar — fixed full height */}
       <aside
         className="hidden md:block fixed inset-y-0 left-0 z-nav transition-[width] duration-200"

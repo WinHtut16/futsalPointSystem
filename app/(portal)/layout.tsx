@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { plexFontVars } from '@/lib/fonts'
 
 /**
  * Chrome-free shell for the portal routes (/admin and /admin/apps).
@@ -26,6 +27,11 @@ export const viewport: Viewport = {
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   // data-font-scope="admin" repoints --font-display/--font-body to the shared
   // Plex admin stack (see globals.css) — this route is staff-facing (the
-  // business chooser), not the customer brand.
-  return <div data-font-scope="admin">{children}</div>
+  // business chooser), not the customer brand. plexFontVars loads the Plex
+  // font files themselves — only here, so customer routes never download them.
+  return (
+    <div data-font-scope="admin" className={plexFontVars}>
+      {children}
+    </div>
+  )
 }
