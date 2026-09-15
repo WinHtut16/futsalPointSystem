@@ -46,6 +46,19 @@ export interface AppMeta {
   accent: string
   /** False until that zone is actually deployed; its tile renders disabled. */
   live: boolean
+  /**
+   * True when this panel is a SEPARATE Next.js deployment reached through a
+   * rewrite, rather than a route of this app.
+   *
+   * Links to one of these must be a plain <a>, never next/link. next/link makes
+   * this app's router try a soft navigation into an app it does not own: it asks
+   * the zone for an RSC payload describing THIS app's router tree, the zone
+   * cannot answer that, and the request 404s - once when the link is prefetched
+   * and again when it is clicked. The zones already link back here the same way,
+   * with plain <a>, for the mirror-image reason (their basePath would otherwise
+   * be prepended to a hub path).
+   */
+  crossZone: boolean
 }
 
 export const APPS: Record<AppName, AppMeta> = {
@@ -56,6 +69,7 @@ export const APPS: Record<AppName, AppMeta> = {
     descKey: 'portal.futsalDesc',
     accent: '#0b4327',
     live: true,
+    crossZone: false,
   },
   billiards: {
     name: 'billiards',
@@ -64,6 +78,7 @@ export const APPS: Record<AppName, AppMeta> = {
     descKey: 'portal.billiardsDesc',
     accent: '#8a3324',
     live: true,
+    crossZone: true,
   },
   game: {
     name: 'game',
@@ -72,6 +87,7 @@ export const APPS: Record<AppName, AppMeta> = {
     descKey: 'portal.gameDesc',
     accent: '#2f5fd0',
     live: true,
+    crossZone: true,
   },
 }
 

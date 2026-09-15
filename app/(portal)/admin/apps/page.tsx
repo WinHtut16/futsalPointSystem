@@ -148,19 +148,26 @@ function AppGrid({ apps }: { apps: AppGrant[] }) {
 
         const shell =
           'relative block overflow-hidden bg-white p-5 text-left transition-shadow'
+        const tileClass = `${shell} hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white`
+        const tileStyle = { borderRadius: 'var(--r-2xl)', boxShadow: 'var(--shadow-lg)' }
 
         // A tile for a zone that is not deployed yet is deliberately not a link.
         // Showing it greyed out tells the owner the plan is on track; making it
         // clickable would just produce a 404.
+        // Cross-zone tiles are a hard navigation on purpose - see AppMeta.crossZone.
+        // These two tiles are what produced the 404 pair in the console:
+        //   /admin/billiards -> 307 -> /admin/billiards/dashboard?_rsc=... -> 404
+        //   /admin/game      -> 307 -> /admin/game/floor?_rsc=...          -> 404
         return meta.live ? (
-          <Link
-            key={app}
-            href={meta.href}
-            className={`${shell} hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white`}
-            style={{ borderRadius: 'var(--r-2xl)', boxShadow: 'var(--shadow-lg)' }}
-          >
-            {inner}
-          </Link>
+          meta.crossZone ? (
+            <a key={app} href={meta.href} className={tileClass} style={tileStyle}>
+              {inner}
+            </a>
+          ) : (
+            <Link key={app} href={meta.href} prefetch={false} className={tileClass} style={tileStyle}>
+              {inner}
+            </Link>
+          )
         ) : (
           <div
             key={app}

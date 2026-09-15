@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Star } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Reward } from '@/types'
 import AccountHeader from './AccountHeader'
@@ -22,7 +21,6 @@ interface UnifiedAccountProps {
   name: string
   userId: string
   initialPoints: number
-  initialUpdatedAt: string
   earned: number
   redeemed: number
   joinedISO: string
@@ -40,45 +38,21 @@ const BOOKING_REFRESH_MS = 30_000
 export default function UnifiedAccount(props: UnifiedAccountProps) {
   const { t, lang } = useLanguage()
   const router = useRouter()
-  const livePoints = useRealtimePoints(props.userId, props.initialPoints, props.initialUpdatedAt)
+  const livePoints = useRealtimePoints(props.userId, props.initialPoints)
   const my = lang === 'my' ? 'my' : ''
   const [tab, setTab] = useState<Tab>(props.initialTab ?? 'upcoming')
   const [filter, setFilter] = useState<Filter>('all')
 
-  useEffect(() => {
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`customer-upcoming-${props.userId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'bookings' },
-        (payload) => {
-          try {
-            if ((payload.new as { customer_id: string }).customer_id !== props.userId) return
-            const newStatus = (payload.new as { status: string }).status
-            if (newStatus === 'cancelled' || newStatus === 'confirmed') {
-              router.refresh()
-            }
-          } catch (err) {
-            console.error('[customer-upcoming] realtime handler error:', err)
-          }
-        }
-      )
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [props.userId, router])
-
   /**
-   * Fallback for the subscription above, which is now expected to fail for most
-   * customers: Realtime is a WebSocket to *.supabase.co, refused outright by the
-   * Myanmar operators that filter Supabase, and it cannot follow the rest of our
-   * traffic through the /sb rewrite because Vercel does not upgrade WebSockets
-   * across a rewrite.
+   * The only thing refreshing this page after an admin confirms or cancels a
+   * booking.
    *
-   * That subscription was the ONLY thing refreshing this page after an admin
-   * confirmed or cancelled a booking. Without this, an affected customer would
-   * sit on a stale "pending" booking indefinitely. router.refresh() re-renders
-   * the server component over ordinary HTTP, which every network reaches.
+   * This started life as a fallback for a Realtime subscription. That
+   * subscription could never connect - the browser client reaches Supabase
+   * through the same-origin /sb rewrite, and Vercel does not upgrade WebSockets
+   * across a rewrite - so it was removed, and this is now the whole mechanism
+   * rather than a backstop. router.refresh() re-renders the server component
+   * over ordinary HTTP, which every network reaches.
    */
   useEffect(() => {
     const refresh = () => {

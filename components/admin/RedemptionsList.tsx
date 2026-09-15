@@ -86,61 +86,27 @@ export default function RedemptionsList({
     setRequests((prev) => prev.filter((r) => r.id !== id))
   }, [])
 
+  /**
+   * Refreshed on a timer, never over Realtime.
+   *
+   * A postgres_changes channel used to live here. It never connected once: the
+   * browser Supabase client talks through the same-origin /sb rewrite so that
+   * Myanmar operators filtering *.supabase.co have no hostname to match, and
+   * Vercel does not upgrade WebSocket connections across a rewrite - which
+   * next.config.js says in full where that rule is defined. All the channel
+   * ever did was fail and retry, on a loop, for as long as this screen was
+   * open. The poll below was doing the real work the whole time.
+   */
+  /**
+   * NOTE: fetchAll refreshes the PENDING queue only. The dead channel also used
+   * to slide a request into the resolved history the moment another admin
+   * approved or rejected it; that has not happened for as long as the channel
+   * has been broken, and it is not restored here. handleResolved already covers
+   * the admin doing the approving, and a page load covers everyone else.
+   */
   useEffect(() => {
-    const supabase = createClient()
-
-    const channel = supabase
-      .channel('redemptions-list')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'redemption_requests' },
-        async (payload) => {
-          try {
-            if ((payload.new as { status: string }).status !== 'pending') return
-            const { data } = await supabase
-              .from('redemption_requests')
-              .select(SELECT_QUERY)
-              .eq('id', (payload.new as { id: string }).id)
-              .single()
-            if (data) setRequests((prev) => [...prev, data as RedemptionRequest])
-          } catch (err) {
-            console.error('[redemptions-list] INSERT handler error:', err)
-          }
-        },
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'redemption_requests' },
-        async (payload) => {
-          try {
-            const updated = payload.new as { id: string; status: string }
-            if (updated.status !== 'pending') {
-              setRequests((prev) => prev.filter((r) => r.id !== updated.id))
-              const { data } = await supabase
-                .from('redemption_requests')
-                .select(SELECT_QUERY)
-                .eq('id', updated.id)
-                .single()
-              if (data) {
-                setHistory((prev) => {
-                  const without = prev.filter((r) => r.id !== updated.id)
-                  return [data as RedemptionRequest, ...without]
-                })
-              }
-            }
-          } catch (err) {
-            console.error('[redemptions-list] UPDATE handler error:', err)
-          }
-        },
-      )
-      .subscribe()
-
     const timer = setInterval(fetchAll, POLL_MS)
-
-    return () => {
-      supabase.removeChannel(channel)
-      clearInterval(timer)
-    }
+    return () => clearInterval(timer)
   }, [fetchAll])
 
   const groups = useMemo(() => groupByMonth(history), [history])

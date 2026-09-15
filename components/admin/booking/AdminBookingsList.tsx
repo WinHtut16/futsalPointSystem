@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Check, X, Phone, Clock, AlertTriangle, Search, ChevronLeft, ChevronRight, Plus, ChevronDown, Archive, Trash2, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { createClient } from '@/lib/supabase/client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import AdminNewBookingPanel from './AdminNewBookingPanel'
 import { usePendingBookings } from '@/contexts/PendingBookingsContext'
@@ -31,36 +30,9 @@ export type AdminBooking = {
   is_archived: boolean
 }
 
-const SELECT_QUERY =
-  'id, ref, status, booking_date, deposit_total, deposit_received, override_request, updated_at, source, guest_name, guest_phone, internal_notes, customer:profiles(username, phone), booking_slots(hour_start)'
-
-type RawRow = Record<string, unknown>
-
-function parseRow(b: RawRow): AdminBooking {
-  const rawCustomer = b.customer
-  const customer = Array.isArray(rawCustomer)
-    ? (rawCustomer as RawRow[])[0]
-    : (rawCustomer as RawRow | null)
-  return {
-    id: b.id as string,
-    ref: b.ref as string,
-    status: b.status as AdminBooking['status'],
-    booking_date: b.booking_date as string,
-    deposit_total: (b.deposit_total as number) ?? 0,
-    deposit_received: (b.deposit_received as boolean) ?? false,
-    override_request: (b.override_request as boolean) ?? false,
-    updated_at: (b.updated_at as string) ?? new Date(0).toISOString(),
-    customer: customer
-      ? { username: customer.username as string | null, phone: customer.phone as string | null }
-      : null,
-    hours: ((b.booking_slots as { hour_start: number }[]) ?? []).map((s) => s.hour_start),
-    source: (b.source as AdminBooking['source']) ?? null,
-    guest_name: (b.guest_name as string | null) ?? null,
-    guest_phone: (b.guest_phone as string | null) ?? null,
-    internal_notes: (b.internal_notes as string | null) ?? null,
-    is_archived: (b.is_archived as boolean) ?? false,
-  }
-}
+// How often this list re-reads itself from the server. Deposits and
+// confirmations move on this screen, so it is deliberately brisk.
+const BOOKING_REFRESH_MS = 30_000
 
 type TabFilter = 'all' | 'pending' | 'confirmed' | 'history'
 
@@ -327,8 +299,6 @@ export default function AdminBookingsList({
   const [rows, setRows] = useState(initial)
   const [busyMap, setBusyMap] = useState<Record<string, string>>({})
   const [errorMap, setErrorMap] = useState<Record<string, string | null>>({})
-  const [hasNewBookings, setHasNewBookings] = useState(false)
-  const [localExtraCount, setLocalExtraCount] = useState(0)
   const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -458,10 +428,11 @@ export default function AdminBookingsList({
   const [toInput, setToInput] = useState(currentTo)
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // The server is the only source of rows now, so a fresh `initial` simply
+  // replaces them. This used to also clear the optimistic-insert bookkeeping the
+  // Realtime handler kept; there is none to clear.
   useEffect(() => {
     setRows(initial)
-    setHasNewBookings(false)
-    setLocalExtraCount(0)
     setSelected(new Set())
   }, [initial])
 
@@ -531,78 +502,35 @@ export default function AdminBookingsList({
 
   const hasFilters = currentSearch || currentFrom || currentTo || (currentStatus && currentStatus !== 'pending')
 
+  /**
+   * Bookings re-read themselves on a timer. There is no Realtime here and there
+   * cannot be: the browser client reaches Supabase through the same-origin /sb
+   * rewrite so Myanmar operators have no *.supabase.co hostname to filter, and
+   * Vercel does not upgrade WebSockets across a rewrite.
+   *
+   * What stood here was worse than merely dead. It called subscribe() twice on
+   * one channel, and its status handler called router.refresh() on
+   * CHANNEL_ERROR - so every failed reconnect triggered a full server re-render,
+   * and on a socket that can never open the reconnects never stop. It was also
+   * the only thing keeping this list current, which means it was not doing that
+   * either: a deposit taken at the counter would not appear until someone
+   * navigated.
+   *
+   * Re-rendering the server component is strictly better than the local
+   * patching it replaced - the server re-reads every row, so there is no
+   * sort-position guesswork for an inserted booking and no updated_at
+   * comparison to decide whether an event arrived out of order.
+   *
+   * The visibilitychange effect below covers coming back to the tab, so this
+   * only has to handle someone sitting and watching.
+   */
   useEffect(() => {
-    const supabase = createClient()
-
-    const channel = supabase
-      .channel('admin-bookings-list')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'bookings' },
-        async (payload) => {
-          try {
-            if (currentStatusRef.current === 'history') return
-            const newId = (payload.new as { id: string }).id
-            const { data } = await supabase
-              .from('bookings')
-              .select(SELECT_QUERY)
-              .eq('id', newId)
-              .single()
-            if (data) {
-              const booking = parseRow(data as RawRow)
-              if (booking.booking_date < todayMM) return
-              const matchesFilter =
-                currentStatusRef.current === 'all' || booking.status === currentStatusRef.current
-              if (page === 1 && matchesFilter) {
-                setRows((prev) => {
-                  const idx = prev.findIndex((b) => b.booking_date > booking.booking_date)
-                  if (idx === -1) return [...prev, booking]
-                  return [...prev.slice(0, idx), booking, ...prev.slice(idx)]
-                })
-                setLocalExtraCount((c) => c + 1)
-              } else if (matchesFilter) {
-                setHasNewBookings(true)
-              }
-            }
-          } catch (err) {
-            console.error('[admin-bookings-list] INSERT handler error:', err)
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'bookings' },
-        (payload) => {
-          try {
-            const u = payload.new as { id: string; status: string; deposit_received: boolean; updated_at: string }
-            setRows((prev) => {
-              const activeStatus = currentStatusRef.current
-              if (activeStatus !== 'all' && activeStatus !== 'history' && u.status !== activeStatus) {
-                return prev.filter((b) => b.id !== u.id)
-              }
-              return prev.map((b) => {
-                if (b.id !== u.id) return b
-                const incomingTime = new Date(u.updated_at).getTime()
-                const currentTime = new Date(b.updated_at).getTime()
-                if (incomingTime < currentTime) return b
-                return { ...b, status: u.status as BookingStatus, deposit_received: u.deposit_received, updated_at: u.updated_at }
-              })
-            })
-          } catch (err) {
-            console.error('[admin-bookings-list] UPDATE handler error:', err)
-          }
-        }
-      )
-      .subscribe()
-
-    channel.subscribe((status) => {
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        router.refresh()
-      }
-    })
-
-    return () => { supabase.removeChannel(channel) }
-  }, [currentStatus, page, router])
+    const timer = setInterval(() => {
+      if (document.visibilityState !== 'visible') return
+      router.refresh()
+    }, BOOKING_REFRESH_MS)
+    return () => clearInterval(timer)
+  }, [router])
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -653,9 +581,11 @@ export default function AdminBookingsList({
     }
   }
 
-  const displayTotal = total + localExtraCount
+  // Straight from the server count. These used to carry a localExtraCount for
+  // bookings the Realtime handler had spliced in ahead of the server knowing
+  // about them; nothing splices any more, so there is no drift to correct.
   const fromIdx = (page - 1) * pageSize + 1
-  const toIdx = Math.min(page * pageSize + localExtraCount, displayTotal)
+  const toIdx = Math.min(page * pageSize, total)
 
   const statItems = [
     { label: t('booking.admin.statBookingsWeek' as never), value: stats.bookingsThisWeek, isPendingCard: false },
@@ -838,19 +768,10 @@ export default function AdminBookingsList({
         )}
       </div>
 
-      {hasNewBookings && (
-        <button
-          onClick={() => navigate({ page: '1' })}
-          className="w-full rounded-xl bg-amber-50 px-4 py-2.5 text-center text-sm font-semibold text-amber-800 hover:bg-amber-100"
-        >
-          {t('booking.admin.newOnThisPage' as never)} — click to go to page 1
-        </button>
-      )}
-
       {total > 0 && (
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span>
-            {t('booking.admin.showing' as never, { from: String(fromIdx), to: String(toIdx), total: String(displayTotal) })}
+            {t('booking.admin.showing' as never, { from: String(fromIdx), to: String(toIdx), total: String(total) })}
           </span>
           <span>{t('booking.admin.pageOf' as never, { page: String(page), total: String(totalPages) })}</span>
         </div>

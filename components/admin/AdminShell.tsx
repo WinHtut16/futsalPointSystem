@@ -124,6 +124,7 @@ export default function AdminShell({
           const showBadge = (it.badge && count > 0) || (it.bookingBadge && bookingCount > 0)
           return (
             <Link
+              prefetch={false}
               key={it.href}
               href={it.href}
               className={`flex flex-col items-center justify-center gap-0.5 ${active ? 'text-primary' : 'text-ink-muted'}`}
@@ -197,6 +198,7 @@ function MoreMenu({
               const showBadge = (it.badge && count > 0) || (it.bookingBadge && bookingCount > 0)
               return (
                 <Link
+                  prefetch={false}
                   key={it.href}
                   href={it.href}
                   onClick={onNavigate}
@@ -223,6 +225,7 @@ function MoreMenu({
 
       {apps.length > 1 && (
         <Link
+          prefetch={false}
           href="/admin/apps"
           onClick={onNavigate}
           className="flex items-center gap-3 rounded-[9px] px-3 py-2.5 text-ink hover:bg-surface-alt"
@@ -236,7 +239,7 @@ function MoreMenu({
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-alt font-display text-xs font-bold text-ink">
           {initials(username)}
         </div>
-        <Link href="/admin/profile" onClick={onNavigate} className="min-w-0 flex-1">
+        <Link prefetch={false} href="/admin/profile" onClick={onNavigate} className="min-w-0 flex-1">
           <div className="truncate font-display text-[13px] font-bold text-ink">{username}</div>
           <div className="text-[11px] capitalize text-ink-muted">{role}</div>
         </Link>
@@ -299,6 +302,7 @@ function Sidebar({
           A single-business staffer should never see that the others exist. */}
       {apps.length > 1 && (
         <Link
+          prefetch={false}
           href="/admin/apps"
           title={t('portal.switchApp')}
           className={`flex items-center gap-2.5 border-b border-white/10 text-white/70 transition-colors hover:bg-white/10 hover:text-white ${
@@ -339,6 +343,7 @@ function Sidebar({
                 const active = pathname.startsWith(it.href)
                 return (
                   <Link
+                    prefetch={false}
                     key={it.href}
                     href={it.href}
                     title={collapsed ? t(it.labelKey as never) : undefined}
@@ -392,7 +397,7 @@ function Sidebar({
           {initials(username)}
         </div>
         {!collapsed && (
-          <Link href="/admin/profile" className="min-w-0 transition-opacity hover:opacity-75">
+          <Link prefetch={false} href="/admin/profile" className="min-w-0 transition-opacity hover:opacity-75">
             <div className="truncate font-display text-[13px] font-bold">{username}</div>
             <div className="text-[11px] capitalize text-white/55">{role}</div>
           </Link>

@@ -53,43 +53,21 @@ export default function RewardsGrid({ rewards, userId, userPoints, initialPendin
     })
   }, [])
 
+  /**
+   * Refreshed on a timer, never over Realtime.
+   *
+   * A postgres_changes channel used to live here. It never connected once: the
+   * browser Supabase client talks through the same-origin /sb rewrite so that
+   * Myanmar operators filtering *.supabase.co have no hostname to match, and
+   * Vercel does not upgrade WebSocket connections across a rewrite - which
+   * next.config.js says in full where that rule is defined. All the channel
+   * ever did was fail and retry, on a loop, for as long as this screen was
+   * open. The poll below was doing the real work the whole time.
+   */
   useEffect(() => {
-    const supabase = createClient()
-
-    const channel = supabase
-      .channel(`customer-rewards-pending-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'redemption_requests',
-          filter: `customer_id=eq.${userId}`,
-        },
-        (payload) => {
-          try {
-            const updated = payload.new as { id: string; reward_id: string; status: string }
-            if (updated.status === 'approved' || updated.status === 'rejected') {
-              setPendingMap((prev) => {
-                const next = { ...prev }
-                delete next[updated.reward_id]
-                return next
-              })
-            }
-          } catch (err) {
-            console.error('[customer-rewards-pending] realtime handler error:', err)
-          }
-        }
-      )
-      .subscribe()
-
     const timer = setInterval(fetchPending, 20_000)
-
-    return () => {
-      supabase.removeChannel(channel)
-      clearInterval(timer)
-    }
-  }, [userId, fetchPending])
+    return () => clearInterval(timer)
+  }, [fetchPending])
 
   // Empty state
   if (rewards.length === 0) {
