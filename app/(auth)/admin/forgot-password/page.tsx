@@ -74,7 +74,7 @@ export default function AdminForgotPasswordPage() {
       <div className="relative z-10 w-full max-w-sm">
         <div className="mb-7 flex flex-col items-center text-center">
           <div className="mb-3 flex items-center justify-center" style={{ width: 84, height: 84, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 20 }}>
-            <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={928} height={844} className="rounded-xl object-contain" style={{ width: 52, height: 52 }} />
+            <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={232} height={211} className="rounded-xl object-contain" style={{ width: 52, height: 52 }} />
           </div>
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">Reset Password</h1>
           <p className="mt-1 text-sm text-white/75">Owner account only</p>

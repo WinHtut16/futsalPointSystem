@@ -52,8 +52,8 @@ export default async function AppsPage() {
             <Image
               src="/logo_black.jpg"
               alt="MyaThida"
-              width={928}
-              height={844}
+              width={232}
+              height={211}
               className="rounded-xl object-contain"
               style={{ width: 46, height: 46 }}
             />
