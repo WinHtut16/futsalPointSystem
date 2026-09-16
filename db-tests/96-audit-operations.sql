@@ -151,7 +151,13 @@ select chk('...and does NOT also log a second fake sale',
 -- moves. audit_log has no write policy, so revoking the insert is not enough -
 -- replace the writer with one that always raises.
 
-create or replace function public.audit(
+-- Sabotage it REVERSIBLY. The real function is renamed aside rather than
+-- overwritten, so putting it back cannot drift from whatever
+-- audit-money-migration.sql actually defines.
+alter function public.audit(text,text,text,text,text,text,jsonb,uuid)
+  rename to audit_under_test;
+
+create function public.audit(
   p_app text, p_action text, p_summary text,
   p_target_type text default null, p_target_id text default null,
   p_target_label text default null, p_details jsonb default null,
@@ -172,3 +178,22 @@ select chk('a counter transaction still completes when auditing is broken',
   'NO ERROR'::text);
 select chk('...and the money is actually recorded on the session',
   (select status from billiards.sessions where id='77772222-0000-0000-0000-000000000003'), 'closed'::text);
+
+-- ── Put audit() back before the next file runs ──────────────────────────────
+drop function public.audit(text,text,text,text,text,text,jsonb,uuid);
+alter function public.audit_under_test(text,text,text,text,text,text,jsonb,uuid)
+  rename to audit;
+-- The trigger functions above resolved public.audit to the saboteur's OID and
+-- cached it. That OID is now dropped, so without this the next call in this
+-- session fails with "cache lookup failed for function".
+discard plans;
+
+select chk('control: the restored audit() is the hardened one, not the stand-in',
+  public.test_call('11111111-1111-1111-1111-111111111111','authenticated',
+    $$public.audit('futsal','test.restored','probe',null,null,null,null,null)$$)
+  ~~ '%permission denied%', true);
+
+select public.audit('futsal','test.restored','audit() restored after the outage test',
+                    null, null, null, null, null);
+select chk('control: ...and it writes again, a real row this time',
+  (select count(*)::int from public.audit_log where action='test.restored'), 1);

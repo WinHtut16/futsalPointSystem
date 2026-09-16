@@ -62,10 +62,14 @@ for f in app-access-grants-migration.sql admin-provisioning-migration.sql \
   run "$FUTSAL/$f" || exit 1
 done
 
+# Game live sessions loads here, not with the other game files: it needs the
+# 8-arg public.audit() that audit-money-migration.sql creates above.
+run "$GAME/game-live-sessions-migration.sql" || exit 1
+
 echo
 echo "== assertions =="
 for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql 95-billiards-permissions.sql \
-         96-audit-operations.sql; do
+         96-audit-operations.sql 97-game-live-sessions.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
