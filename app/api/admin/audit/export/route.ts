@@ -4,6 +4,7 @@ import { requireAnyAdmin } from '@/lib/auth'
 import { getMyApps } from '@/lib/apps.server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isAppName } from '@/lib/apps'
+import { parseAuditKind, ROUTINE_AUDIT_ACTIONS_LIST } from '@/lib/audit'
 import { formatDateTime } from '@/lib/utils'
 import { serverError } from '@/lib/schemas'
 
@@ -52,6 +53,9 @@ export async function GET(req: Request) {
   const daysRaw = Number(url.searchParams.get('days'))
   const days = (RANGES as readonly number[]).includes(daysRaw) ? daysRaw : 30
   const actor = url.searchParams.get('actor')?.trim() || null
+  // Same filter as the page, from the same constant: the file has to be the
+  // log they were looking at.
+  const kind = parseAuditKind(url.searchParams.get('kind'))
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
 
   try {
@@ -67,6 +71,7 @@ export async function GET(req: Request) {
         .range(from, from + PAGE - 1)
       if (appFilter) q = q.eq('app', appFilter)
       if (actor) q = q.eq('actor_id', actor)
+      if (kind === 'decisions') q = q.not('action', 'in', ROUTINE_AUDIT_ACTIONS_LIST)
 
       const { data, error } = await q
       if (error) throw new Error(error.message)

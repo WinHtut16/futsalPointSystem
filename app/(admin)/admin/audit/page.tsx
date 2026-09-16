@@ -5,6 +5,7 @@ import { requireAnyAdmin } from '@/lib/auth'
 import { getMyApps } from '@/lib/apps.server'
 import { createClient } from '@/lib/supabase/server'
 import { APPS, APP_NAMES, isAppName, type AppName } from '@/lib/apps'
+import { parseAuditKind, ROUTINE_AUDIT_ACTIONS_LIST } from '@/lib/audit'
 import type { TranslationKey } from '@/lib/i18n'
 import AuditLogList, { type AuditRow } from '@/components/admin/AuditLogList'
 import T from '@/components/ui/T'
@@ -41,7 +42,7 @@ const RANGE_LABEL: Record<Range, TranslationKey> = {
 export default async function AuditPage({
   searchParams,
 }: {
-  searchParams: Promise<{ app?: string; days?: string; actor?: string; page?: string }>
+  searchParams: Promise<{ app?: string; days?: string; actor?: string; page?: string; kind?: string }>
 }) {
   await requireAnyAdmin()
 
@@ -56,6 +57,7 @@ export default async function AuditPage({
   const appFilter: AppName | null = sp.app && isAppName(sp.app) ? sp.app : null
   const days: Range = RANGES.includes(Number(sp.days) as Range) ? (Number(sp.days) as Range) : 30
   const actor = sp.actor?.trim() || null
+  const kind = parseAuditKind(sp.kind)
   const page = Math.max(1, Number(sp.page) || 1)
   const from = (page - 1) * PAGE_SIZE
 
@@ -75,6 +77,10 @@ export default async function AuditPage({
 
   if (appFilter) q = q.eq('app', appFilter)
   if (actor) q = q.eq('actor_id', actor)
+  // Hide routine trade. Excluding by action rather than selecting the wanted
+  // ones on purpose: a correction added later must show up here by default,
+  // not stay invisible until someone remembers to add it to an allow-list.
+  if (kind === 'decisions') q = q.not('action', 'in', ROUTINE_AUDIT_ACTIONS_LIST)
 
   const { data, error } = await q
 
@@ -82,6 +88,7 @@ export default async function AuditPage({
   if (appFilter) query.app = appFilter
   if (days !== 30) query.days = String(days)
   if (actor) query.actor = actor
+  if (kind !== 'all') query.kind = kind
 
   function href(next: Record<string, string | null>) {
     const merged = { ...query }
@@ -147,6 +154,13 @@ export default async function AuditPage({
             labelKey={RANGE_LABEL[d]}
           />
         ))}
+        <span className="w-px h-5 bg-gray-200 mx-1" />
+        <FilterChip href={href({ kind: null })} active={kind === 'all'} labelKey="audit.allActivity" />
+        <FilterChip
+          href={href({ kind: 'decisions' })}
+          active={kind === 'decisions'}
+          labelKey="audit.decisionsOnly"
+        />
       </div>
 
       {/* An error must never render as an empty log. "Nothing happened" and

@@ -15,17 +15,18 @@ DB="${TEST_DB:-myathida_test}"
 export PGHOST PGPORT PGUSER
 
 PSQL="psql -v ON_ERROR_STOP=1 -q"
+MIGLOG="$(mktemp)"
 
 psql -q -c "drop database if exists $DB" postgres
 psql -q -c "create database $DB" postgres
 
 run() {
   if [ ! -f "$1" ]; then echo "  MISSING $1"; return 1; fi
-  if $PSQL -d "$DB" -f "$1" > /tmp/mig.log 2>&1; then
+  if $PSQL -d "$DB" -f "$1" > "$MIGLOG" 2>&1; then
     echo "  ok    $(basename "$1")"
   else
     echo "  FAIL  $(basename "$1")"
-    grep -E "ERROR|FATAL" /tmp/mig.log | head -3 | sed 's/^/          /'
+    grep -E "ERROR|FATAL" "$MIGLOG" | head -3 | sed 's/^/          /'
     return 1
   fi
 }
@@ -56,14 +57,15 @@ run "$GAME/game-corrections-migration.sql" || exit 1
 echo "== portal and audit =="
 for f in app-access-grants-migration.sql admin-provisioning-migration.sql \
          audit-log-migration.sql audit-money-migration.sql audit-catalogue-migration.sql \
-         superadmin-directory-migration.sql billiards-permission-alignment-migration.sql; do
+         superadmin-directory-migration.sql billiards-permission-alignment-migration.sql \
+         audit-operations-migration.sql; do
   run "$FUTSAL/$f" || exit 1
 done
 
 echo
 echo "== assertions =="
-for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql \
-         95-billiards-permissions.sql; do
+for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql 95-billiards-permissions.sql \
+         96-audit-operations.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
