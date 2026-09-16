@@ -100,7 +100,7 @@ export default function SiteFooter() {
           </div>
         </div>
       </div>
-      <div className="mt-5 text-[11px] opacity-60">© 2026 Myathida Futsal · All rights reserved</div>
+      <div className="mt-5 text-[11px] opacity-60">© 2026 MyaThida Futsal Field · All rights reserved</div>
     </footer>
   )
 }

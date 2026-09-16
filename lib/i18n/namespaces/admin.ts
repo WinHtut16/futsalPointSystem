@@ -409,11 +409,11 @@ export const adminEN = {
   'portal.roleSuperadmin': 'Superadmin',
   'portal.comingSoon': 'Not open yet',
   'portal.switchApp': 'Switch business',
-  'portal.futsalTitle': 'Futsal',
+  'portal.futsalTitle': 'MyaThida Futsal Field',
   'portal.futsalDesc': 'Bookings, points and customers',
-  'portal.billiardsTitle': 'MyaThida Cue Club',
+  'portal.billiardsTitle': 'MyaThida Billiard & Snooker Club',
   'portal.billiardsDesc': 'Table sessions, orders and stock',
-  'portal.gameTitle': 'Game Shop',
+  'portal.gameTitle': 'AcJ Gaming Lounge',
   'portal.gameDesc': 'Stations, sessions and snacks',
 } as const
 
@@ -783,10 +783,10 @@ export const adminMY: { [K in keyof typeof adminEN]: string } = {
   'portal.roleSuperadmin': 'စူပါအက်ဒမင်',
   'portal.comingSoon': 'မဖွင့်ရသေးပါ',
   'portal.switchApp': 'လုပ်ငန်း ပြောင်းရန်',
-  'portal.futsalTitle': 'ဖူဆယ်',
+  'portal.futsalTitle': 'MyaThida Futsal Field',
   'portal.futsalDesc': 'ကြိုတင်မှာယူမှု၊ အမှတ်နှင့် ဖောက်သည်များ',
-  'portal.billiardsTitle': 'MyaThida Cue Club',
+  'portal.billiardsTitle': 'MyaThida Billiard & Snooker Club',
   'portal.billiardsDesc': 'စားပွဲအသုံးပြုမှု၊ အော်ဒါနှင့် ကုန်ပစ္စည်း',
-  'portal.gameTitle': 'ဂိမ်းဆိုင်',
+  'portal.gameTitle': 'AcJ Gaming Lounge',
   'portal.gameDesc': 'စက်များ၊ ကစားချိန်နှင့် အစားအသောက်',
 }

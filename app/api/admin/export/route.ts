@@ -275,7 +275,7 @@ export async function GET(req: Request) {
     ]
     readme.getRow(1).font = { bold: true }
     const nowIso = new Date().toISOString()
-    readme.addRow(['Export', 'MyaThida Futsal — data backup'])
+    readme.addRow(['Export', 'MyaThida Futsal Field — data backup'])
     readme.addRow(['Generated at (UTC ISO)', nowIso])
     readme.addRow(['Generated at (Myanmar)', formatDateTime(nowIso)])
     readme.addRow(['Scope', scopeLabel])
