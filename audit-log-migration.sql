@@ -76,9 +76,21 @@ alter table public.audit_log enable row level security;
 -- Read: any superadmin, scoped to the businesses they manage. A billiards-only
 -- superadmin sees billiards rows and nothing else; a global superadmin sees
 -- all three, because can_manage_app() admits them for every app.
+-- polname alone is not a safe existence check: it is not schema/table-scoped,
+-- so a policy of the same name on a DIFFERENT table satisfies "already
+-- exists" and this one is silently never created. That exact bug hit
+-- game.stock_movements (a stock_movements_select policy already existed on
+-- billiards.stock_movements, so game's own copy of the guard skipped
+-- creating game's — see game-perf-migration.sql). Only one table is named
+-- audit_log today, so this has not misfired yet, but it is the identical
+-- unscoped shape and this table is squarely in what the client is testing.
 do $$
 begin
-  if not exists (select 1 from pg_policy where polname = 'audit_log_select') then
+  if not exists (
+    select 1 from pg_policy
+     where polname = 'audit_log_select'
+       and polrelid = 'public.audit_log'::regclass
+  ) then
     create policy audit_log_select on public.audit_log
       for select to authenticated
       using (coalesce(public.can_manage_app(app), false));
