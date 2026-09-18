@@ -66,10 +66,26 @@ done
 # 8-arg public.audit() that audit-money-migration.sql creates above.
 run "$GAME/game-live-sessions-migration.sql" || exit 1
 
+# Perf audit (2026-09-18): RLS initplan wrapping + current_staff/report_summary
+# RPCs on the game schema. Nothing loaded after game-live-sessions-migration.sql
+# touches a game.* policy (checked: the remaining futsal/portal files and
+# billiards' own perf migration only write to game.staff or add audit triggers
+# on game.products/stations/pricing/sessions, never CREATE/ALTER/DROP POLICY on
+# anything in the game schema) — but this still has to run after every other
+# game-*.sql file, since it ALTERs policies they create.
+run "$GAME/game-perf-migration.sql" || exit 1
+
+# Perf audit (2026-09-18): RLS initplan wrapping + sessions_summary RPC. Must
+# load after billiards-permission-alignment-migration.sql above, which
+# drop/recreates several of the same billiards policies (menu_items_insert,
+# stock_movements_insert, menu_categories_*) — loading this earlier would have
+# its ALTER POLICY calls silently overwritten by that later DROP/CREATE.
+run "$BILL/perf-rls-initplan-migration.sql" || exit 1
+
 echo
 echo "== assertions =="
 for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql 95-billiards-permissions.sql \
-         96-audit-operations.sql 97-game-live-sessions.sql; do
+         96-audit-operations.sql 97-game-live-sessions.sql 98-billiards-perf.sql 99-game-perf.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
