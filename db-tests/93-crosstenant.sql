@@ -44,6 +44,12 @@ insert into auth.users (id, email) values
   ('66666666-6666-6666-6666-666666666666','stranger@akoatp-staff.com');
 update public.profiles set role='customer', username='stranger'
   where id='66666666-6666-6666-6666-666666666666';
+-- Act as the owner first. Without this the actor is whoever 92-integrity.sql
+-- left behind, can_manage_app('futsal') is false, the grant raises, and this
+-- file's central fixture silently does not exist - which quietly weakens every
+-- "X denied ..." assertion below from "a grant for the wrong app" to "no grant
+-- at all", the weaker case CUSTOMER1 already covers.
+select public.test_act_as('11111111-1111-1111-1111-111111111111');
 select public.grant_app_access('66666666-6666-6666-6666-666666666666','futsal','admin','stranger');
 
 select chk('setup: STRANGER (X) has a futsal grant, nothing else',
@@ -213,12 +219,18 @@ select chk('control: OWNER clears the auth guard on game.set_stock',
 select chk('anon denied checkout_session (billiards grants anon EXECUTE by default; the guard must catch it)',
   public.test_call(null,'anon','billiards.checkout_session(gen_random_uuid(),''cash'')'),
   'not authorized');
-select chk('anon denied record_session',
-  public.test_call(null,'anon','game.record_session(gen_random_uuid(),30)'),
-  'Not authorised to record sessions for the game shop.');
-select chk('anon denied delete_closed_sessions',
-  public.test_call(null,'anon','billiards.delete_closed_sessions(now() - interval ''30 days'')'),
-  'Only a superadmin can delete sessions.');
+-- These two are denied EARLIER than the guard: their execute grant is revoked
+-- from anon, so the call never reaches the body. That is the stronger outcome,
+-- and the assertion names the layer rather than accepting any error - a
+-- wildcard here would also pass if the function simply stopped existing. The
+-- in-body guard is not left untested: C, X and NEWGUY hit it above, and
+-- SHOPSTAFF passes through it.
+select chk('anon denied record_session at the grant, before the body runs',
+  public.test_call(null,'anon','game.record_session(gen_random_uuid(),30)')
+  ~~ '%permission denied for function%', true);
+select chk('anon denied delete_closed_sessions at the grant',
+  public.test_call(null,'anon','billiards.delete_closed_sessions(now() - interval ''30 days'')')
+  ~~ '%permission denied for function%', true);
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- 1.3 regression — billiards.app_settings, tightened by

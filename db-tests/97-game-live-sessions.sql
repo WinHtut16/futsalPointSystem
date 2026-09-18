@@ -9,6 +9,12 @@
 -- most are the boundaries where a copied formula goes subtly wrong: the grace
 -- period, the tier minimum, and the waiver floor. A bill that is wrong by one
 -- block is the kind of bug a customer notices and nobody can reproduce.
+--
+-- It is also the ONE rule for both doors onto the table now: a timer closed
+-- off and a duration typed in afterwards both charge through
+-- game.bill_minutes(). The assertions under "Both doors" below compare the two
+-- paths against each other, which is the only form that survives the client
+-- changing the block size.
 
 insert into auth.users (id, email) values
   ('88880000-0000-0000-0000-000000000001','g_super@akoatp-staff.com'),
@@ -151,6 +157,89 @@ begin
   perform chk('a waiver cannot push a bill below the tier minimum', v_charged, 30);
   delete from game.sessions where id = v_id;
 end $$;
+
+-- ── Both doors onto the table must price an hour the same ─────────────────
+-- record_session used to bill per typed minute floored at the tier minimum, so
+-- 62 minutes cost 62 min typed in and 60 min on a timer, and 36 minutes cost 36
+-- typed in and 40 on a timer. Not even consistently cheaper - it flipped with
+-- where in the block the duration landed, so no price could be quoted in
+-- advance and no day's takings could be reconciled against a rule. Both now
+-- call game.bill_minutes(), and THIS is the assertion that keeps them there: it
+-- compares the two paths against each other rather than against a hard-coded
+-- table, so it still holds if the client changes the blocks tomorrow.
+
+create or replace function _typed(p_minutes int) returns int
+language plpgsql as $$
+declare v_id uuid; v_charged int;
+begin
+  v_id := game.record_session('88881111-0000-0000-0000-000000000001'::uuid, p_minutes);
+  select charged_minutes into v_charged from game.sessions where id = v_id;
+  delete from game.sessions where id = v_id;
+  return v_charged;
+end $$;
+
+select public.test_act_as('88880000-0000-0000-0000-000000000002');
+
+do $$
+declare m int;
+begin
+  foreach m in array array[1, 2, 29, 30, 31, 34, 35, 36, 40, 41, 59, 60, 61, 62, 65, 66, 70, 119, 120, 121]
+  loop
+    perform chk(format('%s min costs the same typed in as timed', m), _typed(m), _bill(m));
+  end loop;
+end $$;
+
+-- The specific regression, stated in money rather than in minutes.
+select chk('62 min typed in bills 60, not 62',                       _typed(62), 60);
+select chk('36 min typed in bills 40, not 36',                       _typed(36), 40);
+select chk('34 min typed in keeps the grace, same as the timer',     _typed(34), 30);
+
+-- `minutes` is still the duration as entered. Only the CHARGE rounds, and the
+-- two columns being different is what lets anyone audit the rounding later.
+do $$
+declare v_id uuid; v_minutes int; v_charged int;
+begin
+  v_id := game.record_session('88881111-0000-0000-0000-000000000001'::uuid, 62);
+  select minutes, charged_minutes into v_minutes, v_charged
+    from game.sessions where id = v_id;
+  perform chk('the duration entered is stored as entered', v_minutes, 62);
+  perform chk('...while the charged duration is the rounded one', v_charged, 60);
+  -- Stated as a property, not a number: 91-catalogue.sql seeds PS5 at a
+  -- different rate from the one this file's own fixtures use, and an assertion
+  -- that hard-codes money breaks the next time anyone touches the seed.
+  perform chk('...and the playtime follows the charged minutes, at the tier rate',
+    (select playtime_total = round(rate_per_hour * charged_minutes / 60)
+       from game.sessions where id = v_id), true);
+  delete from game.sessions where id = v_id;
+end $$;
+
+-- A back-fill over a RUNNING session would record a second closed session and
+-- clear `occupied`, orphaning the live one. New failure mode, new guard.
+create temp table _clash (id uuid);
+insert into _clash select game.open_session('88881111-0000-0000-0000-000000000001'::uuid, 'clash');
+select chk('recording a session while one is running is refused',
+  public.test_call('88880000-0000-0000-0000-000000000002','authenticated',
+    $$game.record_session('88881111-0000-0000-0000-000000000001'::uuid, 45)$$)
+  ~~ '%has a session running%', true);
+select public.test_act_as('88880000-0000-0000-0000-000000000002');
+do $$
+begin
+  perform game.cancel_active_session((select id from _clash), 'clash test');
+end $$;
+drop table _clash;
+
+-- bill_minutes is the only place the arithmetic lives, so its own edges matter.
+select chk('bill_minutes refuses a zero block size instead of dividing by zero',
+  public.test_call('88880000-0000-0000-0000-000000000002','authenticated',
+    $$game.bill_minutes(60, 30, 0, 5, 0)$$)
+  ~~ '%increment must be positive%', true);
+select public.test_act_as('88880000-0000-0000-0000-000000000002');
+select chk('a negative waiver request is ignored rather than added on',
+  game.bill_minutes(66, 30, 10, 5, -3), 70);
+select chk('a waiver of many blocks still only takes one',
+  game.bill_minutes(120, 30, 10, 5, 5), 110);
+select chk('an exact block boundary does not roll to the next block',
+  game.bill_minutes(65, 30, 10, 5, 0), 60);
 
 -- ── Closing ─────────────────────────────────────────────────────────────────
 
