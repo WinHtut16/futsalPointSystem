@@ -188,6 +188,17 @@ export const config = {
     // service-worker update checks and manifest fetch never hit the
     // Supabase getUser() round-trip below — those requests carry no
     // session cookie and would otherwise 307 to /admin/login.
-    '/((?!_next/static|_next/image|favicon.ico|api/|sb/|net-check|sw\\.js|pwa/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    //
+    // admin/(billiards|game)/_next/(static|image) — perf audit (2026-09-18):
+    // this lookahead is anchored right after the leading `/`, so without this
+    // exclusion a zone's OWN hashed, immutable _next asset
+    // (/admin/billiards/_next/static/chunk.js) does not match the
+    // `_next/static` alternative above (which only matches at the START of
+    // the path) and runs the full getUser() + has_app_access() gate on every
+    // JS/CSS/font file a zone serves. Zone pages themselves
+    // (/admin/billiards/dashboard) are NOT covered by this and still go
+    // through the gate as before — only their _next/static and _next/image
+    // assets skip it now.
+    '/((?!_next/static|_next/image|admin/(?:billiards|game)/_next/(?:static|image)|favicon.ico|api/|sb/|net-check|sw\\.js|pwa/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
