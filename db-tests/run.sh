@@ -74,6 +74,7 @@ run "$GAME/game-live-sessions-migration.sql" || exit 1
 # anything in the game schema) — but this still has to run after every other
 # game-*.sql file, since it ALTERs policies they create.
 run "$GAME/game-perf-migration.sql" || exit 1
+run "$GAME/game-correct-session-migration.sql" || exit 1
 
 # Perf audit (2026-09-18): RLS initplan wrapping + sessions_summary RPC. Must
 # load after billiards-permission-alignment-migration.sql above, which
@@ -85,7 +86,8 @@ run "$BILL/perf-rls-initplan-migration.sql" || exit 1
 echo
 echo "== assertions =="
 for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql 95-billiards-permissions.sql \
-         96-audit-operations.sql 97-game-live-sessions.sql 98-billiards-perf.sql 99-game-perf.sql; do
+         96-audit-operations.sql 97-game-live-sessions.sql 98-billiards-perf.sql 99-game-perf.sql \
+         100-game-correct-session.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
