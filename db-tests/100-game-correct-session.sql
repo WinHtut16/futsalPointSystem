@@ -40,24 +40,25 @@ create temp table _before as
     from game.sessions where id = (select id from _fix);
 
 -- ── Who may correct ─────────────────────────────────────────────────────────
-
-select chk('a plain game admin cannot correct a paid session',
-  public.test_call('88880000-0000-0000-0000-000000000002','authenticated',
-    format($$game.correct_session(%L::uuid, 19, 'nope')$$, (select id from _fix)))
-  ~~ '%superadmin%', true);
+-- Widened by game-admin-permissions-migration.sql (2026-09-21): any active
+-- staff may correct a session, not superadmin-only — a wrong duration is a
+-- mistake anyone on shift should be able to fix, still traceable via
+-- corrected_by. Only anon is refused, at the grant.
 
 select chk('anon is denied at the grant, before the body runs',
   public.test_call(null,'anon',
     format($$game.correct_session(%L::uuid, 19, 'nope')$$, (select id from _fix)))
   ~~ '%permission denied for function%', true);
 
-select chk('control: the failed attempts changed nothing',
+select chk('control: the denied anon attempt changed nothing',
   (select total from game.sessions where id = (select id from _fix))
     = (select total from _before), true);
 
 -- ── The correction itself ───────────────────────────────────────────────────
+-- Done by a PLAIN admin (g_staff, NOT superadmin) — proving the widened rank
+-- actually works, not just that the old superadmin-only rank still does.
 
-select public.test_act_as('88880000-0000-0000-0000-000000000001');  -- superadmin
+select public.test_act_as('88880000-0000-0000-0000-000000000002');  -- plain admin
 select game.correct_session((select id from _fix), 19, 'Timer left running after the customer paid');
 
 -- THE ONE THAT MATTERS. A correction must not move revenue to another day.
@@ -89,9 +90,9 @@ select chk('the original charged minutes are kept',
 select chk('the original total is kept',
   (select original_total from game.sessions where id = (select id from _fix)),
   (select total from _before));
-select chk('...attributed to the superadmin who did it',
+select chk('...attributed to the plain admin who did it, not a superadmin',
   (select corrected_by from game.sessions where id = (select id from _fix)),
-  '88880000-0000-0000-0000-000000000001'::uuid);
+  '88880000-0000-0000-0000-000000000002'::uuid);
 select chk('...with the reason stored',
   (select correction_reason from game.sessions where id = (select id from _fix))
   ~~ '%Timer left running%', true);
@@ -118,7 +119,9 @@ select chk('the checkout trigger did NOT also log a bogus session.recorded',
 -- ── Correcting twice ────────────────────────────────────────────────────────
 -- The originals are captured once. A second correction must still show what the
 -- customer was FIRST charged, not what the previous correction left behind.
+-- Done by the superadmin this time — proving that rank is still allowed too.
 
+select public.test_act_as('88880000-0000-0000-0000-000000000001');  -- superadmin
 select game.correct_session((select id from _fix), 45, 'Second look at the CCTV');
 select chk('a second correction keeps the FIRST original, not the previous value',
   (select original_charged_minutes from game.sessions where id = (select id from _fix)),

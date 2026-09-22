@@ -76,6 +76,12 @@ run "$GAME/game-live-sessions-migration.sql" || exit 1
 run "$GAME/game-perf-migration.sql" || exit 1
 run "$GAME/game-correct-session-migration.sql" || exit 1
 
+# Widens correct_session/set_stock from superadmin-only to any active staff.
+# Its precondition block checks for game.set_stock, so game-stock-firstcount-
+# migration.sql (which defines it) must load first.
+run "$GAME/game-stock-firstcount-migration.sql" || exit 1
+run "$GAME/game-admin-permissions-migration.sql" || exit 1
+
 # Perf audit (2026-09-18): RLS initplan wrapping + sessions_summary RPC. Must
 # load after billiards-permission-alignment-migration.sql above, which
 # drop/recreates several of the same billiards policies (menu_items_insert,
@@ -83,11 +89,19 @@ run "$GAME/game-correct-session-migration.sql" || exit 1
 # its ALTER POLICY calls silently overwritten by that later DROP/CREATE.
 run "$BILL/perf-rls-initplan-migration.sql" || exit 1
 
+# Brings billiards' session correction/void-return/stock permissions in line
+# with the game shop (billiards-correct-session-migration.sql,
+# billiards-stock-alignment-migration.sql). The latter reverses part of
+# billiards-permission-alignment-migration.sql above (adjust_stock goes back
+# to is_active_admin()), so it must load after it, not before.
+run "$BILL/billiards-correct-session-migration.sql" || exit 1
+run "$BILL/billiards-stock-alignment-migration.sql" || exit 1
+
 echo
 echo "== assertions =="
 for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql 95-billiards-permissions.sql \
          96-audit-operations.sql 97-game-live-sessions.sql 98-billiards-perf.sql 99-game-perf.sql \
-         100-game-correct-session.sql; do
+         100-game-correct-session.sql 101-billiards-correct-session.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
