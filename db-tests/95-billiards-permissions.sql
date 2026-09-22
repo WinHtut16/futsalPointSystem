@@ -6,17 +6,29 @@
 -- manages the catalogue
 -- ════════════════════════════════════════════════════════════════════════════
 --
--- Billiards had drifted. adjust_stock checked is_active_admin(), and so did
--- the menu_items INSERT policy -- while UPDATE and DELETE checked
+-- Billiards had drifted twice. First: adjust_stock checked is_active_admin(),
+-- and so did the menu_items INSERT policy -- while UPDATE and DELETE checked
 -- is_superadmin(). A plain admin could create a menu item and then could not
--- fix a typo in its price. Futsal and the game shop were already
--- superadmin-only for the same operations.
+-- fix a typo in its price. billiards-permission-alignment-migration.sql
+-- (below, loaded before this file) closed that by moving adjust_stock and
+-- menu_items INSERT to superadmin, matching what was believed at the time to
+-- be the game shop's rule.
 --
--- The risk in tightening this is that the till breaks: taking an order also
--- moves stock. It does not, because every writer is SECURITY DEFINER and so
--- bypasses RLS -- but that is exactly the kind of reasoning that has to be
--- PROVED, not asserted, which is what the negative control at the bottom of
--- this file is for.
+-- Second, the game shop was since widened the OTHER way
+-- (game-admin-permissions-migration.sql): a plain admin restocks and toggles
+-- a snack's availability; only add/rename/reprice/delete stays superadmin.
+-- billiards-stock-alignment-migration.sql brings billiards to match THAT --
+-- "an admin runs the counter" now includes restocking, not just selling.
+-- Creating/renaming/repricing/deleting an item, and any direct write to
+-- stock_movements, stay superadmin-only.
+--
+-- The risk in loosening adjust_stock back to is_active_admin() is that
+-- something else regresses along with it. It does not: menu_items
+-- INSERT/UPDATE/DELETE and menu_categories writes are untouched RLS policies,
+-- unaffected by a change to one SECURITY DEFINER function's internal guard --
+-- but that is exactly the kind of reasoning that has to be PROVED, not
+-- asserted, which is what the negative control at the bottom of this file is
+-- for.
 
 insert into auth.users (id, email) values
   ('66660000-0000-0000-0000-000000000001','bsuper@akoatp-staff.com'),
@@ -63,28 +75,33 @@ begin
 end $probe$;
 
 -- ── 1. Stock adjustment ─────────────────────────────────────────────────────
+-- Widened by billiards-stock-alignment-migration.sql: any active admin, not
+-- superadmin-only, matching game.set_stock.
 
-select chk('a plain billiards admin cannot adjust stock',
+select chk('a plain billiards admin CAN adjust stock',
   public.test_call('66660000-0000-0000-0000-000000000002','authenticated',
-    $$billiards.adjust_stock('66662222-0000-0000-0000-000000000001'::uuid, 5, 'restock')$$),
-  'not authorized'::text);
-
-select chk('a billiards superadmin can',
-  public.test_call('66660000-0000-0000-0000-000000000001','authenticated',
     $$billiards.adjust_stock('66662222-0000-0000-0000-000000000001'::uuid, 5, 'restock')$$),
   'NO ERROR'::text);
 
 select chk('...and the stock actually moved',
   (select stock_qty from billiards.menu_items where id='66662222-0000-0000-0000-000000000001'), 55);
 
+select chk('a billiards superadmin can too',
+  public.test_call('66660000-0000-0000-0000-000000000001','authenticated',
+    $$billiards.adjust_stock('66662222-0000-0000-0000-000000000001'::uuid, 5, 'restock')$$),
+  'NO ERROR'::text);
+
+select chk('...both adjustments landed',
+  (select stock_qty from billiards.menu_items where id='66662222-0000-0000-0000-000000000001'), 60);
+
 -- The guard must refuse for the RIGHT reason. A test that only asked "did it
--- raise" would pass on a database where adjust_stock had been dropped.
-select chk('control: the refusal is the guard, not a missing row',
+-- raise" would pass on a database where the not-found check ran first.
+select chk('control: a not-found item raises menu-item-not-found, not an authorization error',
   public.test_call('66660000-0000-0000-0000-000000000002','authenticated',
     $$billiards.adjust_stock('00000000-dead-dead-dead-000000000000'::uuid, 5, 'restock')$$),
-  'not authorized'::text);
+  'menu item not found'::text);
 
-select chk('control: a futsal superadmin is not a billiards superadmin',
+select chk('control: a futsal-only account (no billiards grant at all) is still refused',
   public.test_call('66660000-0000-0000-0000-000000000003','authenticated',
     $$billiards.adjust_stock('66662222-0000-0000-0000-000000000001'::uuid, 5, 'restock')$$),
   'not authorized'::text);
@@ -165,7 +182,7 @@ select chk('a plain admin can still take an order',
   'NO ERROR'::text);
 
 select chk('...and the sale still decremented stock',
-  (select stock_qty from billiards.menu_items where id='66662222-0000-0000-0000-000000000001'), 53);
+  (select stock_qty from billiards.menu_items where id='66662222-0000-0000-0000-000000000001'), 58);
 
 select chk('...and the sale still wrote its stock movement',
   (select count(*)::int from billiards.stock_movements
@@ -180,22 +197,64 @@ select chk('...and a plain admin can still close the table',
 --
 -- Introspection rather than three hand-written calls: this keeps biting if
 -- someone later relaxes one system and forgets the other two.
+--
+-- "An admin runs the counter" now means restock AND enable/disable, in both
+-- systems -- it is the CATALOGUE (add/rename/reprice/delete) that stays
+-- superadmin-only, not stock/availability.
 
-select chk('game shop stock is superadmin-gated too',
+select chk('game shop restocking is active-staff-gated, not superadmin-only',
   (select pg_get_functiondef(p.oid) from pg_proc p
      join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname='game' and p.proname='set_stock') ~~ '%is_superadmin%',
+    where n.nspname='game' and p.proname='set_stock') ~~ '%is_active_staff%',
   true);
 
-select chk('billiards stock is superadmin-gated',
+select chk('billiards restocking is active-admin-gated, not superadmin-only',
   (select pg_get_functiondef(p.oid) from pg_proc p
      join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname='billiards' and p.proname='adjust_stock') ~~ '%is_superadmin%',
+    where n.nspname='billiards' and p.proname='adjust_stock') ~~ '%is_active_admin%',
   true);
 
+select chk('game shop availability toggle is active-staff-gated',
+  (select pg_get_functiondef(p.oid) from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname='game' and p.proname='set_product_active') ~~ '%is_active_staff%',
+  true);
+
+select chk('billiards availability toggle is active-admin-gated',
+  (select pg_get_functiondef(p.oid) from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname='billiards' and p.proname='set_menu_item_active') ~~ '%is_active_admin%',
+  true);
+
+-- The catalogue itself (add/rename/reprice/delete) is untouched by the stock
+-- widening -- RLS policies, not the adjust_stock function, and nothing here
+-- rewrote them.
 select chk('no billiards catalogue write is left on is_active_admin',
   (select count(*)::int from pg_policies
     where schemaname='billiards'
       and tablename in ('menu_items','menu_categories','stock_movements')
       and cmd <> 'SELECT'
       and coalesce(qual, with_check) like '%is_active_admin%'), 0);
+
+-- ── 6. Enable/disable a menu item ───────────────────────────────────────────
+
+select chk('a plain billiards admin can disable an item',
+  public.test_call('66660000-0000-0000-0000-000000000002','authenticated',
+    $$billiards.set_menu_item_active('66662222-0000-0000-0000-000000000001'::uuid, false)$$),
+  'NO ERROR'::text);
+
+select chk('...and it took effect',
+  (select is_active from billiards.menu_items where id='66662222-0000-0000-0000-000000000001'), false);
+
+select chk('...and the same plain admin can re-enable it',
+  public.test_call('66660000-0000-0000-0000-000000000002','authenticated',
+    $$billiards.set_menu_item_active('66662222-0000-0000-0000-000000000001'::uuid, true)$$),
+  'NO ERROR'::text);
+
+select chk('control: it never touched price -- catalogue edits stay superadmin-only',
+  (select price from billiards.menu_items where id='66662222-0000-0000-0000-000000000001'), 1000);
+
+select chk('control: a futsal-only account cannot toggle availability',
+  public.test_call('66660000-0000-0000-0000-000000000003','authenticated',
+    $$billiards.set_menu_item_active('66662222-0000-0000-0000-000000000001'::uuid, false)$$),
+  'Only active staff can change item availability.'::text);
