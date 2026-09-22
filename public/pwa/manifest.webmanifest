@@ -1,8 +1,8 @@
 {
   "id": "/admin",
-  "name": "Mya Thida Futsal — Admin",
+  "name": "MyaThida Admin Suite",
   "short_name": "MyaThida Admin",
-  "description": "Booking, points and customer management for Mya Thida Futsal staff.",
+  "description": "Futsal booking, billiards and PS4/PS5 game shop management for MyaThida staff.",
   "start_url": "/admin",
   "scope": "/admin",
   "display": "standalone",
