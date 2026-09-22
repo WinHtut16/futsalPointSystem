@@ -3,7 +3,7 @@
   "name": "Mya Thida Futsal — Admin",
   "short_name": "MyaThida Admin",
   "description": "Booking, points and customer management for Mya Thida Futsal staff.",
-  "start_url": "/admin/dashboard",
+  "start_url": "/admin",
   "scope": "/admin",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
