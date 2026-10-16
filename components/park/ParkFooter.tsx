@@ -1,0 +1,57 @@
+'use client'
+
+import Link from 'next/link'
+import { MessageCircle, Phone, Globe } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { PARK } from '@/lib/park/content'
+
+export default function ParkFooter() {
+  const { t } = useLanguage()
+  const year = new Date().getFullYear()
+
+  return (
+    <footer className="bg-park-jungle text-[#d7ebdf]">
+      <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-14 md:grid-cols-[1.4fr_1fr_1fr] md:px-8">
+        <div className="flex flex-col gap-3">
+          <span className="park-display text-2xl text-white">{t('park.brand')}</span>
+          <p className="max-w-[32ch] leading-relaxed">{t('park.footer.tagline')}</p>
+        </div>
+
+        <nav aria-labelledby="park-footer-places" className="flex flex-col gap-2">
+          <h2 id="park-footer-places" className="mb-1 font-semibold text-white">
+            {t('park.footer.places')}
+          </h2>
+          <Link href="/#pool" className="py-1 hover:text-white">{t('park.nav.poolFood')}</Link>
+          <Link href="/futsal" className="py-1 hover:text-white">{t('park.nav.futsal')}</Link>
+          <Link href="/games" className="py-1 hover:text-white">{t('park.nav.games')}</Link>
+          <Link href="/billiards" className="py-1 hover:text-white">{t('park.nav.billiards')}</Link>
+        </nav>
+
+        <div className="flex flex-col gap-2">
+          <h2 className="mb-1 font-semibold text-white">{t('park.footer.contact')}</h2>
+          <a href={PARK.viberUrl} className="inline-flex items-center gap-2 py-1 hover:text-white">
+            <MessageCircle size={18} aria-hidden="true" />
+            {t('park.footer.viber')}
+          </a>
+          {PARK.phone && (
+            <a href={`tel:${PARK.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 py-1 hover:text-white">
+              <Phone size={18} aria-hidden="true" />
+              {t('park.footer.call', { phone: PARK.phone })}
+            </a>
+          )}
+          {PARK.facebookUrl && (
+            <a href={PARK.facebookUrl} className="inline-flex items-center gap-2 py-1 hover:text-white" rel="noopener">
+              <Globe size={18} aria-hidden="true" />
+              {t('park.footer.facebook')}
+            </a>
+          )}
+        </div>
+      </div>
+      <div className="border-t border-white/10">
+        <p className="mx-auto max-w-[1200px] px-4 py-5 text-sm text-[#a9c9b7] md:px-8">
+          {t('park.footer.rights', { year: String(year) })}
+        </p>
+      </div>
+    </footer>
+  )
+}

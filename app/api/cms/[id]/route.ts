@@ -63,7 +63,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
     return serverError(error.message)
   }
-  revalidatePath('/', 'page')
+  revalidatePath('/futsal', 'page')
   revalidatePath('/news', 'page')
   return NextResponse.json({ id: updated.id })
 }
@@ -84,7 +84,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const supabase = await createServiceClient()
   const { error } = await supabase.from('cms_posts').delete().eq('id', idParse.data.id)
   if (error) return serverError(error.message)
-  revalidatePath('/', 'page')
+  revalidatePath('/futsal', 'page')
   revalidatePath('/news', 'page')
   return NextResponse.json({ ok: true })
 }

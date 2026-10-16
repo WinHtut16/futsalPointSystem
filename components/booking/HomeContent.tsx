@@ -32,7 +32,7 @@ export default function HomeContent({ posts, loggedOut = false }: { posts: NewsP
 
   useEffect(() => {
     if (!loggedOut) return
-    window.history.replaceState({}, '', '/')
+    window.history.replaceState({}, '', '/futsal')
     const timer = setTimeout(() => setShowToast(false), 3000)
     return () => clearTimeout(timer)
   }, [loggedOut])

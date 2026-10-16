@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import BookingLangToggle from './BookingLangToggle'
 
 const navItems = [
-  { k: 'home', href: '/', key: 'booking.nav.home' },
+  { k: 'home', href: '/futsal', key: 'booking.nav.home' },
   { k: 'booking', href: '/book', key: 'booking.nav.book' },
   { k: 'news', href: '/news', key: 'booking.nav.news' },
   { k: 'account', href: '/account', key: 'booking.nav.account' },
@@ -29,7 +29,7 @@ export default function SiteNavbar({
   const my = lang === 'my' ? 'my' : ''
   const pathname = usePathname()
 
-  const active = pathname === '/' ? 'home'
+  const active = pathname === '/futsal' ? 'home'
     : pathname.startsWith('/book') ? 'booking'
     : pathname === '/news' ? 'news'
     : pathname.startsWith('/account') ? 'account'
@@ -79,7 +79,7 @@ export default function SiteNavbar({
     <>
       {/* Desktop */}
       <div className="hidden items-center justify-between border-b border-line bg-surface px-8 py-4 md:flex">
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/futsal" className="flex items-center gap-2.5">
           <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={232} height={211} className="h-9 w-auto object-contain" />
           <span className="font-display text-[13px] font-bold tracking-widest text-ink-primary">MYA THIDA</span>
         </Link>
@@ -127,7 +127,7 @@ export default function SiteNavbar({
               <ChevronLeft size={18} />
             </button>
           ) : (
-            <Link href="/">
+            <Link href="/futsal">
               <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={232} height={211} className="h-7 w-auto object-contain" />
             </Link>
           )}

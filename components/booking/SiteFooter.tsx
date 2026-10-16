@@ -69,7 +69,7 @@ export default function SiteFooter() {
             <span className={my}>{t('booking.footer.quickLinks')}</span>
           </p>
           <nav className="flex flex-col gap-2.5 text-sm">
-            <Link href="/" className="opacity-70 transition-opacity hover:opacity-100">
+            <Link href="/futsal" className="opacity-70 transition-opacity hover:opacity-100">
               <span className={my}>{t('booking.nav.home')}</span>
             </Link>
             <Link href="/book" className="opacity-70 transition-opacity hover:opacity-100">

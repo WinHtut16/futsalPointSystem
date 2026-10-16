@@ -10,6 +10,31 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Park showcase tokens (CSS vars scoped to .park in app/(park)/park.css).
+        park: {
+          jungle: 'var(--park-jungle)',
+          'jungle-deep': 'var(--park-jungle-deep)',
+          pool: 'var(--park-pool)',
+          'pool-soft': 'var(--park-pool-soft)',
+          sun: 'var(--park-sun)',
+          'sun-deep': 'var(--park-sun-deep)',
+          lotus: 'var(--park-lotus)',
+          mist: 'var(--park-mist)',
+          ink: 'var(--park-ink)',
+          'ink-soft': 'var(--park-ink-soft)',
+          line: 'var(--park-line)',
+          noon: 'var(--park-noon)',
+          afternoon: 'var(--park-afternoon)',
+          dusk: 'var(--park-dusk)',
+          night: 'var(--park-night)',
+        },
+        venue: {
+          futsal: 'var(--venue-futsal)',
+          billiards: 'var(--venue-billiards)',
+          brass: 'var(--venue-billiards-brass)',
+          game: 'var(--venue-game)',
+          amber: 'var(--venue-game-amber)',
+        },
         brand: {
           50: '#f0fdf4',
           100: '#dcfce7',

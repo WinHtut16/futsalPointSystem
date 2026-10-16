@@ -23,8 +23,13 @@ const CUSTOMER_AUTH_ROUTES = ['/dashboard', '/history', '/rewards', '/bookings',
 // Note: /book is listed here but NOT in CUSTOMER_AUTH_ROUTES because it is publicly accessible
 // (unauthenticated visitors see a login-to-book CTA). Only logged-in admins are redirected away.
 const ADMIN_BLOCKED_ROUTES = ['/dashboard', '/bookings', '/book', '/rewards', '/account']
+// Park showcase pages (app/(park)) are static and session-free. Skipping them
+// avoids a getUser() round trip on the most-visited pages of the site.
+const PARK_PUBLIC_PATHS = ['/', '/games', '/billiards']
 
 export async function middleware(request: NextRequest) {
+  if (PARK_PUBLIC_PATHS.includes(request.nextUrl.pathname)) return NextResponse.next()
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(

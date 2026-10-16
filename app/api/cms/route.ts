@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
     return serverError(error.message)
   }
-  revalidatePath('/', 'page')
+  revalidatePath('/futsal', 'page')
   revalidatePath('/news', 'page')
   return NextResponse.json({ id: data?.id }, { status: 201 })
 }

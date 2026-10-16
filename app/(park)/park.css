@@ -1,0 +1,63 @@
+/* Park showcase tokens ("A day at MyaThida"). Scoped to .park so the futsal
+   booking site and admin suite are untouched. DESIGN.md governs the admin
+   suite; these pages are a separate public surface. */
+.park {
+  --park-jungle: #0f4d3c;
+  --park-jungle-deep: #0b3a2d;
+  --park-pool: #2bb3c0;
+  --park-pool-soft: #7fd3d9;
+  --park-sun: #ffcb47;
+  --park-sun-deep: #e0a400;
+  --park-lotus: #f08aa0;
+  --park-mist: #eef6f0;
+  --park-ink: #12302a;
+  --park-ink-soft: #2c4a41;
+  --park-line: #cfe3d8;
+  --park-noon: #fff6dc;
+  --park-afternoon: #f8ddb8;
+  --park-dusk: #1c2c48;
+  --park-night: #0b1e2d;
+
+  /* Venue hues, taken from each business's admin brand so park and venue
+     read as one family. */
+  --venue-futsal: #0b4327;
+  --venue-billiards: #8a3324;
+  --venue-billiards-brass: #d9b26a;
+  --venue-game: #2f5fd0;
+  --venue-game-amber: #f2b84b;
+
+  font-family: var(--font-park-body), var(--font-noto-my), system-ui, sans-serif;
+  color: var(--park-ink);
+  background: var(--park-mist);
+}
+
+html[lang='my'] .park {
+  line-height: var(--leading-my);
+}
+
+.park-display {
+  font-family: var(--font-park-display), var(--font-park-display-my), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+html[lang='my'] .park-display {
+  font-family: var(--font-park-display-my), var(--font-park-display), serif;
+  font-weight: 700;
+  letter-spacing: 0;
+  /* Burmese stacked vowels clip at the tight Latin display leading. */
+  line-height: 1.5;
+}
+
+.park :focus-visible {
+  outline: 3px solid var(--park-pool);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.park-scroll-x {
+  scrollbar-width: none;
+}
+.park-scroll-x::-webkit-scrollbar {
+  display: none;
+}

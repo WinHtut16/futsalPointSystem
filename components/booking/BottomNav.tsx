@@ -5,7 +5,7 @@ import { Home, Calendar, Sparkles, User } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 const items = [
-  { k: 'home', href: '/', Ic: Home, key: 'booking.nav.home' },
+  { k: 'home', href: '/futsal', Ic: Home, key: 'booking.nav.home' },
   { k: 'book', href: '/book', Ic: Calendar, key: 'booking.nav.book' },
   { k: 'news', href: '/news', Ic: Sparkles, key: 'booking.nav.news' },
   { k: 'me', href: '/account', Ic: User, key: 'booking.nav.account' },

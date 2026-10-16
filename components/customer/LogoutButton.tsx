@@ -11,7 +11,7 @@ export default function LogoutButton() {
     // Server-side sign-out (see app/api/auth/logout/route.ts) — reliable even
     // when the browser's own direct connection to Supabase is blocked.
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
-    router.push('/?logged_out=1')
+    router.push('/futsal?logged_out=1')
     router.refresh()
   }
 

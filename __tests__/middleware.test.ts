@@ -81,6 +81,19 @@ describe('middleware', () => {
     expect(mockProfileSingle).not.toHaveBeenCalled()
   })
 
+  it.each(['/', '/games', '/billiards'])('park page %s passes through without an auth lookup', async (path) => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    const res = await middleware(req(path))
+    expect(res.headers.get('location')).toBeNull()
+    expect(mockGetUser).not.toHaveBeenCalled()
+  })
+
+  it('/futsal still runs the auth lookup (not a park path)', async () => {
+    const res = await middleware(req('/futsal'))
+    expect(res.headers.get('location')).toBeNull()
+    expect(mockGetUser).toHaveBeenCalled()
+  })
+
   it('/admin/reset-password is accessible without a session (no redirect)', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } })
     const res = await middleware(req('/admin/reset-password'))
