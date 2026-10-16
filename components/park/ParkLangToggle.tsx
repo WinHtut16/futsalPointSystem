@@ -24,7 +24,7 @@ export default function ParkLangToggle({ dark = false }: { dark?: boolean }) {
           lang={L}
           aria-pressed={lang === L}
           onClick={() => setLang(L)}
-          className={`min-h-[38px] rounded-full px-3 text-sm font-semibold transition-colors ${lang === L ? on : off}`}
+          className={`min-h-[40px] rounded-full px-3 text-sm font-semibold transition-colors ${lang === L ? on : off}`}
         >
           {label}
         </button>

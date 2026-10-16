@@ -11,6 +11,7 @@ export const parkEN = {
   'park.nav.visit': 'Visit',
   'park.nav.bookFutsal': 'Book futsal',
   'park.lang.label': 'Language',
+  'park.skip': 'Skip to content',
 
   'park.footer.tagline': 'A family park with a pool, food, futsal, games and billiards.',
   'park.footer.places': 'Places',
@@ -185,6 +186,7 @@ export const parkMY: { [K in keyof typeof parkEN]: string } = {
   'park.nav.visit': 'လာရောက်ရန်',
   'park.nav.bookFutsal': 'ဖူဆယ်ကွင်း ဘိုကင်လုပ်ရန်',
   'park.lang.label': 'ဘာသာစကား',
+  'park.skip': 'အကြောင်းအရာသို့ ကျော်သွားရန်',
 
   'park.footer.tagline': 'ရေကူးကန်၊ စားသောက်ဆိုင်၊ ဖူဆယ်၊ ဂိမ်းနှင့် ဘီလိယက် ပါဝင်သော မိသားစု ပန်းခြံ။',
   'park.footer.places': 'နေရာများ',

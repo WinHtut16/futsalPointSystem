@@ -17,30 +17,30 @@ export default function ParkFooter() {
           <p className="max-w-[32ch] leading-relaxed">{t('park.footer.tagline')}</p>
         </div>
 
-        <nav aria-labelledby="park-footer-places" className="flex flex-col gap-2">
+        <nav aria-labelledby="park-footer-places" className="flex flex-col">
           <h2 id="park-footer-places" className="mb-1 font-semibold text-white">
             {t('park.footer.places')}
           </h2>
-          <Link href="/#pool" className="py-1 hover:text-white">{t('park.nav.poolFood')}</Link>
-          <Link href="/futsal" className="py-1 hover:text-white">{t('park.nav.futsal')}</Link>
-          <Link href="/games" className="py-1 hover:text-white">{t('park.nav.games')}</Link>
-          <Link href="/billiards" className="py-1 hover:text-white">{t('park.nav.billiards')}</Link>
+          <Link href="/#pool" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.poolFood')}</Link>
+          <Link href="/futsal" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.futsal')}</Link>
+          <Link href="/games" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.games')}</Link>
+          <Link href="/billiards" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.billiards')}</Link>
         </nav>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
           <h2 className="mb-1 font-semibold text-white">{t('park.footer.contact')}</h2>
-          <a href={PARK.viberUrl} className="inline-flex items-center gap-2 py-1 hover:text-white">
+          <a href={PARK.viberUrl} className="inline-flex min-h-[44px] items-center gap-2 hover:text-white">
             <MessageCircle size={18} aria-hidden="true" />
             {t('park.footer.viber')}
           </a>
           {PARK.phone && (
-            <a href={`tel:${PARK.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 py-1 hover:text-white">
+            <a href={`tel:${PARK.phone.replace(/\s/g, '')}`} className="inline-flex min-h-[44px] items-center gap-2 hover:text-white">
               <Phone size={18} aria-hidden="true" />
               {t('park.footer.call', { phone: PARK.phone })}
             </a>
           )}
           {PARK.facebookUrl && (
-            <a href={PARK.facebookUrl} className="inline-flex items-center gap-2 py-1 hover:text-white" rel="noopener">
+            <a href={PARK.facebookUrl} className="inline-flex min-h-[44px] items-center gap-2 hover:text-white" rel="noopener">
               <Globe size={18} aria-hidden="true" />
               {t('park.footer.facebook')}
             </a>

@@ -36,7 +36,7 @@ export default function ParkNav() {
         key={href}
         href={href}
         aria-current={current ? 'page' : undefined}
-        className={`whitespace-nowrap py-2 font-medium transition-colors ${current ? `${linkOn} underline decoration-2 underline-offset-8` : linkIdle}`}
+        className={`inline-flex min-h-[44px] items-center whitespace-nowrap font-medium transition-colors ${current ? `${linkOn} underline decoration-2 underline-offset-8` : linkIdle}`}
       >
         {t(key)}
       </Link>

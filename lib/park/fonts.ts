@@ -21,6 +21,8 @@ const notoSerifMy = Noto_Serif_Myanmar({
   weight: ['600', '700'],
   variable: '--font-park-display-my',
   display: 'swap',
+  // Only Burmese readers need it; don't make English visitors download it.
+  preload: false,
 })
 
 export const parkFontVars = `${youngSerif.variable} ${figtree.variable} ${notoSerifMy.variable}`

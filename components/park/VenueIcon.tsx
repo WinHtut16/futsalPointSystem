@@ -7,7 +7,7 @@ import RiveSlot from './RiveSlot'
 export type VenueIconKind = 'pool' | 'food' | 'futsal' | 'games' | 'billiards'
 
 const SPEC: Record<VenueIconKind, { anim: RiveKey; Icon: typeof Waves; chip: string }> = {
-  pool: { anim: 'iconPool', Icon: Waves, chip: 'bg-park-pool text-white' },
+  pool: { anim: 'iconPool', Icon: Waves, chip: 'bg-[#178490] text-white' },
   food: { anim: 'iconFood', Icon: UtensilsCrossed, chip: 'bg-park-sun text-park-ink' },
   futsal: { anim: 'iconFutsal', Icon: Volleyball, chip: 'bg-venue-futsal text-white' },
   games: { anim: 'iconGames', Icon: Gamepad2, chip: 'bg-venue-game text-white' },

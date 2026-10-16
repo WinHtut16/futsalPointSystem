@@ -50,6 +50,28 @@ html[lang='my'] .park-display {
   line-height: 1.5;
 }
 
+.park :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+.park p {
+  text-wrap: pretty;
+}
+
+.park-skip {
+  position: absolute;
+  left: 16px;
+  top: -64px;
+  z-index: 40;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: rgb(var(--park-jungle));
+  color: #fff;
+  font-weight: 600;
+}
+.park-skip:focus {
+  top: 12px;
+}
+
 .park :focus-visible {
   outline: 3px solid rgb(var(--park-pool));
   outline-offset: 3px;
@@ -65,8 +87,10 @@ html[lang='my'] .park-display {
 
 /* Hero load: the page's one orchestrated moment. Text rises in sequence while
    the arched pool photo is unveiled from the waterline up. */
+/* Starts partly visible: if a browser pauses animations (background tab,
+   headless capture) the copy is still readable. */
 @keyframes park-rise {
-  from { opacity: 0; transform: translateY(18px); }
+  from { opacity: 0.25; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes park-unveil {
@@ -74,12 +98,12 @@ html[lang='my'] .park-display {
   to { clip-path: inset(0 0 0 0 round 220px 220px 28px 28px); }
 }
 @keyframes park-pop {
-  from { opacity: 0; transform: scale(0.82); }
+  from { opacity: 0.25; transform: scale(0.88); }
   to { opacity: 1; transform: none; }
 }
 .park-rise { animation: park-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .park-unveil { animation: park-unveil 1100ms cubic-bezier(0.65, 0, 0.25, 1) 150ms both; }
-.park-pop { animation: park-pop 600ms cubic-bezier(0.3, 1.4, 0.5, 1) 900ms both; }
+.park-pop { animation: park-pop 700ms cubic-bezier(0.16, 1, 0.3, 1) 900ms both; }
 
 @media (prefers-reduced-motion: reduce) {
   .park-rise, .park-unveil, .park-pop { animation: none; }

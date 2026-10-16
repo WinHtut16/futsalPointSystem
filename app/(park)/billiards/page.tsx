@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import BilliardsContent from '@/components/park/venue/BilliardsContent'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/billiards' },
   title: 'Billiards',
   description: 'Three pool tables, snacks and cold drinks at MyaThida Park.',
 }

@@ -3,20 +3,37 @@ import './park.css'
 import { parkFontVars } from '@/lib/park/fonts'
 import ParkNav from '@/components/park/ParkNav'
 import ParkFooter from '@/components/park/ParkFooter'
+import SkipLink from '@/components/park/SkipLink'
+import { SITE_URL } from '@/lib/park/site'
+
+const DESCRIPTION =
+  'A family park in Myanmar with a swimming pool, poolside restaurant, futsal court, game shop and billiards.'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: 'MyaThida Park', template: '%s | MyaThida Park' },
-  description:
-    'A family park in Myanmar with a swimming pool, poolside restaurant, futsal court, game shop and billiards.',
-  icons: { icon: '/logo_black.jpg' },
+  description: DESCRIPTION,
+  applicationName: 'MyaThida Park',
+  icons: { icon: '/logo_black.jpg', apple: '/logo_black.jpg' },
+  openGraph: {
+    type: 'website',
+    siteName: 'MyaThida Park',
+    title: 'MyaThida Park',
+    description: DESCRIPTION,
+    locale: 'en_US',
+    alternateLocale: ['my_MM'],
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
-// Public showcase: no session, no Supabase reads. Static by default.
+// Public showcase: no session and no Supabase reads. (Still rendered per
+// request, because the root layout reads the `lang` cookie.)
 export default function ParkLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={`park ${parkFontVars} flex min-h-screen flex-col`}>
+      <SkipLink />
       <ParkNav />
-      <main id="main" className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1 outline-none">
         {children}
       </main>
       <ParkFooter />
