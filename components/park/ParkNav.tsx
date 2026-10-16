@@ -24,7 +24,7 @@ export default function ParkNav() {
   const dark = DARK_PATHS.some((p) => pathname.startsWith(p))
 
   const bar = dark
-    ? 'bg-park-night/90 border-white/10 text-white'
+    ? 'bg-black/60 border-white/10 text-white'
     : 'bg-park-mist/90 border-park-jungle/10 text-park-jungle'
   const linkIdle = dark ? 'text-white/80 hover:text-white' : 'text-park-ink-soft hover:text-park-jungle'
   const linkOn = dark ? 'text-white' : 'text-park-jungle'

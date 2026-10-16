@@ -60,9 +60,32 @@ export const GAME = {
   ],
 } as const
 
-/** Billiards, from Billiards_MyaThida seed. Rate is unconfirmed by the client. */
+/** Billiards, from Billiards_MyaThida/supabase/migrations/0002_seed.sql.
+ *  The seed rate is a placeholder the client has not confirmed, so it stays null. */
 export const BILLIARDS = {
   tables: 3,
   ratePerHour: null as number | null,
+  menu: {
+    drinks: [
+      { key: 'water', price: 500 },
+      { key: 'greenTea', price: 300 },
+      { key: 'coffee', price: 1000 },
+      { key: 'coke', price: 1000 },
+      { key: 'redBull', price: 1500 },
+      { key: 'beer', price: 3000 },
+    ],
+    food: [
+      { key: 'samosa', price: 500 },
+      { key: 'chips', price: 1000 },
+      { key: 'peanutsRoasted', price: 1500 },
+      { key: 'friedNoodles', price: 3000 },
+      { key: 'friedRice', price: 3500 },
+    ],
+  },
 } as const
+
+export type MenuItemKey =
+  | (typeof GAME.snacks)[number]['key']
+  | (typeof BILLIARDS.menu.drinks)[number]['key']
+  | (typeof BILLIARDS.menu.food)[number]['key']
 

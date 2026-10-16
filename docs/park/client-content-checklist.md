@@ -13,6 +13,11 @@ Anything shown as `[brackets]` in the mockups is waiting on one of these.
 - [ ] Short park story: year opened, size, what families love about it (2 or 3 sentences, in Burmese if possible)
 - [ ] Parking, wheelchair access, and any rules (outside food, swimwear, children supervision)
 
+## Copy to confirm
+- [ ] Burmese text across all park pages, read by a native speaker (lib/i18n/namespaces/park.ts)
+- [ ] Billiards bar menu, taken from the system seed; includes Myanmar Beer. Keep it on a family site?
+- [ ] Pool lines: "room for proper laps and for small swimmers", restaurant "runs along the pool edge"
+
 ## Photos
 Landscape and portrait of each if possible, at least 2000 px wide, no heavy filters. Families only with their consent.
 
