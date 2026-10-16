@@ -6,9 +6,9 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 // the futsal site, so a choice made here carries over to /futsal and /book.
 export default function ParkLangToggle({ dark = false }: { dark?: boolean }) {
   const { lang, setLang, t } = useLanguage()
-  const track = dark ? 'border-white/25' : 'border-[rgba(15,77,60,0.25)]'
+  const track = dark ? 'border-white/25' : 'border-park-jungle/25'
   const on = dark ? 'bg-white text-park-ink' : 'bg-park-jungle text-white'
-  const off = dark ? 'text-white/75 hover:text-white' : 'text-[rgba(15,77,60,0.75)] hover:text-park-jungle'
+  const off = dark ? 'text-white/75 hover:text-white' : 'text-park-jungle/75 hover:text-park-jungle'
 
   return (
     <div role="group" aria-label={t('park.lang.label')} className={`inline-flex rounded-full border p-[3px] ${track}`}>

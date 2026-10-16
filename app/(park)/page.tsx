@@ -1,15 +1,22 @@
-import T from '@/components/ui/T'
+import Hero from '@/components/park/home/Hero'
+import DayStory from '@/components/park/home/DayStory'
+import Gallery from '@/components/park/home/Gallery'
+import Visit from '@/components/park/home/Visit'
 
-// Phase 1 shell. The full "A day at MyaThida" landing lands in Phase 2.
+// "A day at MyaThida": the park landing reads as one day, morning to night,
+// then a gallery and how to get here (the next morning's light).
 export default function ParkHomePage() {
   return (
-    <section className="mx-auto max-w-[1200px] px-4 py-20 md:px-8 md:py-28">
-      <h1 className="park-display max-w-[14ch] text-5xl leading-[1.04] text-park-jungle md:text-7xl">
-        <T k="park.home.title" />
-      </h1>
-      <p className="mt-6 text-lg text-park-ink-soft">
-        <T k="park.shell.building" />
-      </p>
-    </section>
+    <>
+      <Hero />
+      <DayStory />
+      <Gallery />
+      <div
+        aria-hidden="true"
+        className="park-horizon"
+        style={{ ['--from' as string]: 'rgb(var(--park-night))', ['--to' as string]: 'rgb(var(--park-mist))' }}
+      />
+      <Visit />
+    </>
   )
 }

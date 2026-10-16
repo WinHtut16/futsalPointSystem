@@ -14,6 +14,9 @@ export const PARK = {
   address: null as string | null,
   addressMy: null as string | null,
   mapsUrl: null as string | null,
+  // Google Maps embed URL (Share > Embed a map). CSP frame-src already
+  // allows www.google.com.
+  mapsEmbedUrl: null as string | null,
   phone: null as string | null,
   facebookUrl: null as string | null,
   // Same Viber deep link the futsal site uses (CLAUDE.md: never a web URL).
@@ -63,6 +66,3 @@ export const BILLIARDS = {
   ratePerHour: null as number | null,
 } as const
 
-export function formatMMK(n: number): string {
-  return n.toLocaleString('en-US')
-}

@@ -21,9 +21,91 @@ export const parkEN = {
   'park.footer.rights': '© {year} MyaThida Park',
 
   'park.shell.building': 'This page is being built.',
-  'park.home.title': 'Stay the whole day.',
   'park.games.title': 'Nine screens and a room of your own',
   'park.billiards.title': 'Three tables under warm lamps',
+
+  // Hero
+  'park.home.altName': 'မြသီတာ ပန်းခြံ',
+  'park.home.title': 'Stay the whole day.',
+  'park.home.lead':
+    'Swim in the morning, eat lunch by the pool, play futsal when the sun drops, and end the night with games and billiards. All in one park.',
+  'park.home.ctaVisit': 'Plan your visit',
+  'park.home.ctaExplore': 'See what is here',
+
+  // Open-now card
+  'park.open.now': 'Open now',
+  'park.open.later': 'Opening later',
+  'park.open.futsalUntil': 'Futsal court until {time}',
+  'park.open.futsalOpensAt': 'Futsal court opens at {time}',
+  'park.open.sunLabel': 'Sun position for the current time in Myanmar',
+
+  // A day at MyaThida
+  'park.day.label': 'A day at MyaThida',
+  'park.day.morning.time': '8:00',
+  'park.day.morning.title': 'First swim, before the heat',
+  'park.day.morning.body':
+    'Start the day in the water while the air is still cool. There is room for proper laps and for small swimmers who just want to splash.',
+  'park.day.morning.entry': 'Entry',
+  'park.day.morning.hours': 'Pool hours',
+  'park.day.noon.time': '12:30',
+  'park.day.noon.title': 'Lunch by the water',
+  'park.day.noon.body':
+    'The restaurant runs along the pool edge, so lunch is a few steps from your towel. Order at the table while the children keep swimming.',
+  'park.day.afternoon.time': '16:00',
+  'park.day.afternoon.title': 'Five a side when the sun drops',
+  'park.day.afternoon.body':
+    'One floodlit futsal court, open from {open} to {close} every day. Pick a free hour online and pay a {deposit} MMK deposit to hold it.',
+  'park.day.afternoon.rateMorning': 'Weekdays before 2 PM',
+  'park.day.afternoon.rateEvening': 'Weekdays from 2 PM',
+  'park.day.afternoon.rateWeekend': 'Weekends and public holidays',
+  'park.day.afternoon.perHour': '{price} MMK an hour',
+  'park.day.afternoon.book': 'Book the court',
+  'park.day.afternoon.more': 'Futsal news and rewards',
+  'park.day.evening.time': '19:30',
+  'park.day.evening.title': 'After dark, the games come out',
+  'park.day.evening.body':
+    'Two rooms stay busy into the night. Bring friends, order snacks and play by the hour.',
+  'park.day.evening.gamesTitle': 'Game shop',
+  'park.day.evening.gamesBody': 'PS4 and PS5 on nine screens, plus a private VIP room for groups.',
+  'park.day.evening.gamesFrom': 'From {price} MMK an hour',
+  'park.day.evening.billiardsTitle': 'Billiards',
+  'park.day.evening.billiardsBody': 'Three pool tables, with snacks and cold drinks from the bar.',
+  'park.day.evening.billiardsRate': '{price} MMK an hour per table',
+  'park.day.evening.billiardsSee': 'Tables and rates',
+
+  // Gallery
+  'park.gallery.title': 'Around the park',
+  'park.gallery.prev': 'Previous photos',
+  'park.gallery.next': 'Next photos',
+
+  // Visit
+  'park.visit.title': 'Come and see us',
+  'park.visit.lead': 'Message us on Viber for directions, group visits or anything this page does not answer.',
+  'park.visit.hours': 'Opening hours',
+  'park.visit.pool': 'Pool',
+  'park.visit.restaurant': 'Restaurant',
+  'park.visit.futsal': 'Futsal court',
+  'park.visit.games': 'Game shop',
+  'park.visit.billiards': 'Billiards',
+  'park.visit.range': '{open} to {close}',
+  'park.visit.askUs': 'Ask us',
+  'park.visit.directions': 'Get directions',
+  'park.visit.mapTitle': 'Map showing MyaThida Park',
+
+  // Photo descriptions (alt text)
+  'park.photo.heroPool': 'Families swimming in the MyaThida pool in morning light',
+  'park.photo.heroFood': 'A plate of food on a table beside the pool',
+  'park.photo.poolKids': 'Children playing in the shallow end of the pool',
+  'park.photo.restaurant': 'Restaurant tables along the edge of the pool',
+  'park.photo.futsal': 'The MyaThida futsal court',
+  'park.photo.gameRoom': 'The game room with consoles on every screen',
+  'park.photo.billiards': 'A billiards table under its lamp',
+  'park.photo.entrance': 'The entrance gate of MyaThida Park',
+  'park.photo.galleryDeck': 'The pool deck',
+  'park.photo.galleryLunch': 'Lunch at the poolside restaurant',
+  'park.photo.galleryGarden': 'Trees and paths around the park',
+  'park.photo.galleryDusk': 'A futsal game at dusk',
+  'park.photo.galleryNight': 'Friends playing in the game room at night',
 } as const
 
 export const parkMY: { [K in keyof typeof parkEN]: string } = {
@@ -47,7 +129,83 @@ export const parkMY: { [K in keyof typeof parkEN]: string } = {
   'park.footer.rights': '© {year} မြသီတာ ပန်းခြံ',
 
   'park.shell.building': 'ဤစာမျက်နှာကို ပြင်ဆင်နေဆဲ ဖြစ်ပါသည်။',
-  'park.home.title': 'တစ်နေ့လုံး ပျော်ရွှင်ဖို့ လာခဲ့ပါ။',
   'park.games.title': 'မျက်နှာပြင် ကိုးခုနှင့် သီးသန့်အခန်း',
   'park.billiards.title': 'မီးရောင်နွေးနွေးအောက်က စားပွဲ သုံးလုံး',
+
+  'park.home.altName': 'MyaThida Park',
+  'park.home.title': 'တစ်နေ့လုံး ပျော်ရွှင်ဖို့ လာခဲ့ပါ။',
+  'park.home.lead':
+    'မနက်ပိုင်း ရေကူး၊ နေ့လယ် ရေကူးကန်ဘေးမှာ ထမင်းစား၊ နေအေးချိန် ဖူဆယ်ကန်ပြီး ညဘက်မှာ ဂိမ်းနဲ့ ဘီလိယက် ကစားပါ။ ပန်းခြံတစ်ခုတည်းမှာ အားလုံးရှိပါတယ်။',
+  'park.home.ctaVisit': 'လာရောက်ရန် စီစဉ်ပါ',
+  'park.home.ctaExplore': 'ဘာတွေရှိလဲ ကြည့်ပါ',
+
+  'park.open.now': 'ယခု ဖွင့်ထားသည်',
+  'park.open.later': 'နောက်မှ ဖွင့်မည်',
+  'park.open.futsalUntil': 'ဖူဆယ်ကွင်း {time} အထိ',
+  'park.open.futsalOpensAt': 'ဖူဆယ်ကွင်း {time} တွင် ဖွင့်မည်',
+  'park.open.sunLabel': 'မြန်မာစံတော်ချိန်အလိုက် နေ၏တည်နေရာ',
+
+  'park.day.label': 'မြသီတာမှာ တစ်နေ့တာ',
+  'park.day.morning.time': '၈:၀၀',
+  'park.day.morning.title': 'နေမပူခင် ပထမဆုံး ရေကူးချိန်',
+  'park.day.morning.body':
+    'လေအေးနေတုန်း ရေထဲမှာ တစ်နေ့တာကို စလိုက်ပါ။ အလျားလိုက် ကူးချင်သူတွေအတွက်ရော ရေကစားချင်တဲ့ ကလေးငယ်တွေအတွက်ပါ နေရာရှိပါတယ်။',
+  'park.day.morning.entry': 'ဝင်ကြေး',
+  'park.day.morning.hours': 'ရေကူးကန် ဖွင့်ချိန်',
+  'park.day.noon.time': '၁၂:၃၀',
+  'park.day.noon.title': 'ရေကန်ဘေးမှာ နေ့လယ်စာ',
+  'park.day.noon.body':
+    'စားသောက်ဆိုင်က ရေကူးကန်ဘေးတစ်လျှောက်မှာ ရှိလို့ မျက်နှာသုတ်ပဝါနဲ့ ခြေလှမ်းအနည်းငယ်သာ ကွာပါတယ်။ ကလေးတွေ ရေကူးနေတုန်း စားပွဲမှာပဲ မှာယူနိုင်ပါတယ်။',
+  'park.day.afternoon.time': '၁၆:၀၀',
+  'park.day.afternoon.title': 'နေအေးချိန်မှာ ငါးယောက်တစ်သင်း',
+  'park.day.afternoon.body':
+    'မီးထွန်းထားသော ဖူဆယ်ကွင်းတစ်ကွင်း၊ နေ့တိုင်း {open} မှ {close} အထိ ဖွင့်ပါသည်။ အွန်လိုင်းမှ အချိန်ရွေးပြီး စရံငွေ {deposit} ကျပ် ပေးချေကာ ကြိုတင်ယူနိုင်ပါသည်။',
+  'park.day.afternoon.rateMorning': 'ကြားရက် နေ့လယ် ၂ နာရီမတိုင်မီ',
+  'park.day.afternoon.rateEvening': 'ကြားရက် နေ့လယ် ၂ နာရီမှစ၍',
+  'park.day.afternoon.rateWeekend': 'စနေ၊ တနင်္ဂနွေနှင့် ရုံးပိတ်ရက်များ',
+  'park.day.afternoon.perHour': 'တစ်နာရီ {price} ကျပ်',
+  'park.day.afternoon.book': 'ကွင်း ဘိုကင်လုပ်ရန်',
+  'park.day.afternoon.more': 'ဖူဆယ် သတင်းနှင့် ဆုလက်ဆောင်များ',
+  'park.day.evening.time': '၁၉:၃၀',
+  'park.day.evening.title': 'မှောင်လာရင် ဂိမ်းချိန်ရောက်ပြီ',
+  'park.day.evening.body':
+    'အခန်းနှစ်ခုက ညအထိ စည်ကားနေပါတယ်။ သူငယ်ချင်းတွေနဲ့ လာ၊ မုန့်မှာပြီး နာရီနှုန်းနဲ့ ကစားပါ။',
+  'park.day.evening.gamesTitle': 'ဂိမ်းဆိုင်',
+  'park.day.evening.gamesBody': 'မျက်နှာပြင် ကိုးခုတွင် PS4 နှင့် PS5၊ အဖွဲ့လိုက်အတွက် သီးသန့် VIP အခန်းလည်း ရှိပါသည်။',
+  'park.day.evening.gamesFrom': 'တစ်နာရီ {price} ကျပ်မှစ၍',
+  'park.day.evening.billiardsTitle': 'ဘီလိယက်',
+  'park.day.evening.billiardsBody': 'ဘီလိယက်စားပွဲ သုံးလုံး၊ ဘားမှ မုန့်နှင့် အအေးများ ရရှိနိုင်ပါသည်။',
+  'park.day.evening.billiardsRate': 'စားပွဲတစ်လုံး တစ်နာရီ {price} ကျပ်',
+  'park.day.evening.billiardsSee': 'စားပွဲများနှင့် ဈေးနှုန်း',
+
+  'park.gallery.title': 'ပန်းခြံအနှံ့',
+  'park.gallery.prev': 'ယခင် ဓာတ်ပုံများ',
+  'park.gallery.next': 'နောက် ဓာတ်ပုံများ',
+
+  'park.visit.title': 'လာလည်ပါဦး',
+  'park.visit.lead': 'လမ်းညွှန်၊ အဖွဲ့လိုက်လာရောက်ခြင်း သို့မဟုတ် ဤစာမျက်နှာတွင် မပါသည့် မေးခွန်းများအတွက် Viber မှ မေးမြန်းပါ။',
+  'park.visit.hours': 'ဖွင့်ချိန်များ',
+  'park.visit.pool': 'ရေကူးကန်',
+  'park.visit.restaurant': 'စားသောက်ဆိုင်',
+  'park.visit.futsal': 'ဖူဆယ်ကွင်း',
+  'park.visit.games': 'ဂိမ်းဆိုင်',
+  'park.visit.billiards': 'ဘီလိယက်',
+  'park.visit.range': '{open} မှ {close}',
+  'park.visit.askUs': 'မေးမြန်းပါ',
+  'park.visit.directions': 'လမ်းညွှန် ကြည့်ရန်',
+  'park.visit.mapTitle': 'မြသီတာ ပန်းခြံ တည်နေရာ မြေပုံ',
+
+  'park.photo.heroPool': 'နံနက်ခင်း နေရောင်အောက် မြသီတာ ရေကူးကန်တွင် ရေကူးနေသော မိသားစုများ',
+  'park.photo.heroFood': 'ရေကူးကန်ဘေး စားပွဲပေါ်ရှိ အစားအစာ',
+  'park.photo.poolKids': 'ရေတိမ်ပိုင်းတွင် ကစားနေသော ကလေးများ',
+  'park.photo.restaurant': 'ရေကူးကန်ဘေးတစ်လျှောက် စားသောက်ဆိုင် စားပွဲများ',
+  'park.photo.futsal': 'မြသီတာ ဖူဆယ်ကွင်း',
+  'park.photo.gameRoom': 'မျက်နှာပြင်တိုင်းတွင် ဂိမ်းစက်ပါသော ဂိမ်းခန်း',
+  'park.photo.billiards': 'မီးအိမ်အောက်ရှိ ဘီလိယက်စားပွဲ',
+  'park.photo.entrance': 'မြသီတာ ပန်းခြံ ဝင်ပေါက်',
+  'park.photo.galleryDeck': 'ရေကူးကန် ကြမ်းခင်း',
+  'park.photo.galleryLunch': 'ရေကန်ဘေး စားသောက်ဆိုင်တွင် နေ့လယ်စာ',
+  'park.photo.galleryGarden': 'ပန်းခြံအတွင်း သစ်ပင်များနှင့် လမ်းများ',
+  'park.photo.galleryDusk': 'ညနေစောင်း ဖူဆယ်ပွဲ',
+  'park.photo.galleryNight': 'ညဘက် ဂိမ်းခန်းတွင် ကစားနေသော သူငယ်ချင်းများ',
 }

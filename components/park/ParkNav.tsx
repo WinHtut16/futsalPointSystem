@@ -24,8 +24,8 @@ export default function ParkNav() {
   const dark = DARK_PATHS.some((p) => pathname.startsWith(p))
 
   const bar = dark
-    ? 'bg-[rgba(11,30,45,0.88)] border-white/10 text-white'
-    : 'bg-[rgba(238,246,240,0.9)] border-[rgba(15,77,60,0.1)] text-park-jungle'
+    ? 'bg-park-night/90 border-white/10 text-white'
+    : 'bg-park-mist/90 border-park-jungle/10 text-park-jungle'
   const linkIdle = dark ? 'text-white/80 hover:text-white' : 'text-park-ink-soft hover:text-park-jungle'
   const linkOn = dark ? 'text-white' : 'text-park-jungle'
 
@@ -55,7 +55,7 @@ export default function ParkNav() {
             className="h-9 w-auto rounded-md object-contain"
             priority
           />
-          <span className="park-display text-xl">{t('park.brand')}</span>
+          <span className="park-display hidden text-xl min-[380px]:inline">{t('park.brand')}</span>
         </Link>
 
         <nav aria-label={t('park.nav.label')} className="hidden items-center gap-7 text-[15px] lg:flex">
