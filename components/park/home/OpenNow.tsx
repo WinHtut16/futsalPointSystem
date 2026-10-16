@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { HOURS } from '@/lib/park/content'
 import { formatHour, isOpenAt, myanmarHourNow } from '@/lib/park/time'
+import RiveSlot from '../RiveSlot'
 
 // Sun (or moon) on a horizon arc for the current Myanmar time, plus what is
 // open. The futsal court is the only venue with confirmed hours today; the
 // line grows as the client confirms the others in lib/park/content.ts.
-// Phase 4 swaps the SVG for the `sun-arc` Rive file; this stays as fallback.
+// The `sun-arc` Rive file takes over when ready (docs/park/rive-specs.md);
+// the SVG below is its fallback and the reduced-motion view.
 const RISE = 6
 const SET = 18
 
@@ -48,16 +50,24 @@ export default function OpenNow() {
       className="flex w-fit items-center gap-4 rounded-2xl bg-white px-4 py-3 shadow-[0_1px_0_rgb(15_77_60/0.08)]"
       aria-live="polite"
     >
-      <svg width="64" height="40" viewBox="0 0 64 40" role="img" aria-label={t('park.open.sunLabel')} className="shrink-0">
-        <path d="M6 34 A26 26 0 0 1 58 34" fill="none" className="stroke-park-line" strokeWidth="2" strokeDasharray="3 4" />
-        {hour !== null &&
-          (daylight ? (
-            <circle cx={p.x} cy={p.y} r="6.5" className="fill-park-sun" />
-          ) : (
-            <path d="M34 10 a7 7 0 1 0 6 11 a5.5 5.5 0 1 1 -6 -11 z" className="fill-park-dusk" />
-          ))}
-        <line x1="2" y1="34" x2="62" y2="34" className="stroke-park-jungle" strokeWidth="2" strokeLinecap="round" />
-      </svg>
+      <RiveSlot
+        anim="sunArc"
+        label={t('park.open.sunLabel')}
+        className="h-10 w-16 shrink-0"
+        values={{ numbers: { hour: hour ?? 9 }, booleans: { open } }}
+        fallback={
+          <svg width="64" height="40" viewBox="0 0 64 40" aria-hidden="true">
+            <path d="M6 34 A26 26 0 0 1 58 34" fill="none" className="stroke-park-line" strokeWidth="2" strokeDasharray="3 4" />
+            {hour !== null &&
+              (daylight ? (
+                <circle cx={p.x} cy={p.y} r="6.5" className="fill-park-sun" />
+              ) : (
+                <path d="M34 10 a7 7 0 1 0 6 11 a5.5 5.5 0 1 1 -6 -11 z" className="fill-park-dusk" />
+              ))}
+            <line x1="2" y1="34" x2="62" y2="34" className="stroke-park-jungle" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        }
+      />
       <div className={hour === null ? 'invisible' : undefined}>
         <div className="font-bold text-park-jungle">{open ? t('park.open.now') : t('park.open.later')}</div>
         {detail && <div className="text-sm text-park-ink-soft">{detail}</div>}

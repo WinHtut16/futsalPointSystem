@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copy-rive-wasm.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/copy-rive-wasm.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -15,6 +17,7 @@
     "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
+    "@rive-app/react-canvas": "^4.36.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.1",
     "cloudinary": "^2.10.0",

@@ -194,6 +194,9 @@ export const config = {
     // Supabase getUser() round-trip below — those requests carry no
     // session cookie and would otherwise 307 to /admin/login.
     //
+    // rive/ holds the park's animation runtime (rive.wasm) and .riv files:
+    // static, public, and fetched without a session.
+    //
     // admin/(billiards|game)/_next/(static|image) — perf audit (2026-09-18):
     // this lookahead is anchored right after the leading `/`, so without this
     // exclusion a zone's OWN hashed, immutable _next asset
@@ -204,6 +207,6 @@ export const config = {
     // (/admin/billiards/dashboard) are NOT covered by this and still go
     // through the gate as before — only their _next/static and _next/image
     // assets skip it now.
-    '/((?!_next/static|_next/image|admin/(?:billiards|game)/_next/(?:static|image)|favicon.ico|api/|sb/|net-check|sw\\.js|pwa/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|admin/(?:billiards|game)/_next/(?:static|image)|favicon.ico|api/|sb/|net-check|sw\\.js|pwa/|rive/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

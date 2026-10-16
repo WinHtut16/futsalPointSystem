@@ -34,7 +34,9 @@ const csp = [
   "default-src 'self'",
   // static.cloudflareinsights.com: the RUM beacon Cloudflare injects into
   // proxied zones. See the connect-src note below - both are required.
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://static.cloudflareinsights.com`,
+  // 'wasm-unsafe-eval': the park pages run the Rive animation runtime, which
+  // compiles WebAssembly. It permits WASM compilation only, not JS eval.
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ''} https://static.cloudflareinsights.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://res.cloudinary.com",
   "font-src 'self'",
