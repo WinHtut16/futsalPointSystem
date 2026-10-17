@@ -47,28 +47,34 @@ Do these only if visitors weren't already using myathida-park.com
 
 ## 4. Photos
 
-Put files under `public/images/park/` using the names in `lib/park/photos.ts`,
-then set `ready: true` on each.
+The photos on the site are made by `scripts/park-photos.py` from the client's
+originals in `D:\Myathida\client_photos` (kept outside the repo).
 
-- **Format:** JPEG or WebP. `next/image` serves AVIF/WebP at the right size, so
-  ship the original at about 2000 px on the long edge and under 1 MB.
-- **Shapes the layout crops to:**
-  - hero pool 4:5 portrait;
-  - hero food square;
-  - day photos 16:11;
-  - venue cards 16:9;
-  - gallery 4:5;
-  - venue heroes 5:4;
-  - entrance 4:3.
+**What the script does to each one:**
+- crops it to its slot;
+- removes the date stamps;
+- evens out colour and light;
+- blurs close faces;
+- strips EXIF and GPS.
 
-  Keep the subject near the centre.
-- **People:** families only with their consent.
+**To swap or add a photo:**
+1. Put the original in `client_photos/`.
+2. Edit its entry in `scripts/park-photos.json`: source, focus point, crop width, face boxes.
+3. Run:
 
-## 5. Rive
+   ```bash
+   python scripts/park-photos.py --sheet sheet.png
+   ```
 
-See `docs/park/rive-specs.md`. Each animation goes live when its file is in
-`public/rive/` and its flag in `lib/park/rive.ts` is `true`. They can ship
-after launch; the fallbacks are complete on their own.
+4. Check `sheet.png`, which shows each original beside its edit.
+
+**Still missing:**
+- Billiards photos, after the room opens. Add slots to `lib/park/photos.ts` and swap the drawn table out in `components/park/venue/BilliardsContent.tsx` and `DayStory.tsx`.
+- Food close-ups for the market lane and the poolside tables.
+
+## 5. Animations
+
+Done, in CSS (no files to add). See `docs/park/animations.md`.
 
 ## 6. After deploying
 

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { MessageCircle, Phone, Globe } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { PARK } from '@/lib/park/content'
+import ViberLink from './ViberLink'
 
 export default function ParkFooter() {
   const { t } = useLanguage()
@@ -29,10 +30,10 @@ export default function ParkFooter() {
 
         <div className="flex flex-col">
           <h2 className="mb-1 font-semibold text-white">{t('park.footer.contact')}</h2>
-          <a href={PARK.viberUrl} className="inline-flex min-h-[44px] items-center gap-2 hover:text-white">
+          <ViberLink className="inline-flex min-h-[44px] items-center gap-2 hover:text-white">
             <MessageCircle size={18} aria-hidden="true" />
             {t('park.footer.viber')}
-          </a>
+          </ViberLink>
           {PARK.phone && (
             <a href={`tel:${PARK.phone.replace(/\s/g, '')}`} className="inline-flex min-h-[44px] items-center gap-2 hover:text-white">
               <Phone size={18} aria-hidden="true" />

@@ -6,14 +6,13 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { PHOTOS, type PhotoKey } from '@/lib/park/photos'
 import ParkPhoto from '../ParkPhoto'
 
-// Ordered morning to night, like the rest of the page. Widths vary so the
+// Ordered afternoon to night, like the rest of the page. Widths vary so the
 // strip reads as a contact sheet, not a row of identical cards.
 const SLIDES: { photo: PhotoKey; width: string }[] = [
-  { photo: 'galleryDeck', width: 'w-[78vw] sm:w-[420px]' },
-  { photo: 'galleryLunch', width: 'w-[64vw] sm:w-[320px]' },
-  { photo: 'galleryGarden', width: 'w-[84vw] sm:w-[520px]' },
-  { photo: 'galleryDusk', width: 'w-[70vw] sm:w-[380px]' },
-  { photo: 'galleryNight', width: 'w-[78vw] sm:w-[440px]' },
+  { photo: 'galleryFutsal', width: 'w-[70vw] sm:w-[380px]' },
+  { photo: 'galleryPath', width: 'w-[84vw] sm:w-[480px]' },
+  { photo: 'galleryPlaza', width: 'w-[74vw] sm:w-[420px]' },
+  { photo: 'galleryMarket', width: 'w-[84vw] sm:w-[480px]' },
 ]
 
 export default function Gallery() {

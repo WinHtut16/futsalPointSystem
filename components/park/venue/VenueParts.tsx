@@ -7,6 +7,7 @@ import type { Hours, MenuItemKey } from '@/lib/park/content'
 import { formatAmount, formatHour } from '@/lib/park/time'
 import type { PhotoKey } from '@/lib/park/photos'
 import ParkPhoto from '../ParkPhoto'
+import ViberLink from '../ViberLink'
 
 // Building blocks shared by the game shop and billiards pages. Each page
 // passes its own palette as a Theme so the two rooms feel like different
@@ -28,6 +29,8 @@ export function VenueHero({
   title,
   lead,
   photo,
+  media,
+  badge,
   primary,
   secondary,
   glow,
@@ -35,7 +38,11 @@ export function VenueHero({
   theme: Theme
   title: TranslationKey
   lead: TranslationKey
-  photo: PhotoKey
+  /** A photo slot, or `media` for anything else (an illustration). */
+  photo?: PhotoKey
+  media?: React.ReactNode
+  /** Shown above the title, e.g. an opening date. */
+  badge?: React.ReactNode
   primary: { href: string; label: TranslationKey }
   secondary: { href: string; label: TranslationKey }
   glow: string // shadow class: the room's light spilling around the photo
@@ -45,6 +52,11 @@ export function VenueHero({
     <section className={theme.ground}>
       <div className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 pb-20 pt-10 md:px-8 md:pt-14 lg:grid-cols-2 lg:gap-14">
         <div className="flex flex-col gap-6">
+          {badge && (
+            <div className="park-rise" style={{ animationDelay: '40ms' }}>
+              {badge}
+            </div>
+          )}
           <h1
             className={`park-rise park-display ${
               lang === 'my' ? 'text-[34px] sm:text-5xl' : 'max-w-[14ch] text-[44px] leading-[1.03] sm:text-6xl lg:text-[68px]'
@@ -57,22 +69,37 @@ export function VenueHero({
             {t(lead)}
           </p>
           <div className="park-rise flex flex-wrap gap-3" style={{ animationDelay: '380ms' }}>
-            <a href={primary.href} className={`${btnBase} ${theme.primaryBtn}`}>
+            <HeroLink href={primary.href} className={`${btnBase} ${theme.primaryBtn}`}>
               {t(primary.label)}
-            </a>
-            <a href={secondary.href} className={`${btnBase} ${theme.secondaryBtn}`}>
+            </HeroLink>
+            <HeroLink href={secondary.href} className={`${btnBase} ${theme.secondaryBtn}`}>
               {t(secondary.label)}
-            </a>
+            </HeroLink>
           </div>
         </div>
-        <ParkPhoto
-          photo={photo}
-          priority
-          sizes="(min-width: 1024px) 580px, 92vw"
-          className={`park-rise aspect-[5/4] rounded-[28px] ${glow}`}
-        />
+        {photo ? (
+          <ParkPhoto
+            photo={photo}
+            priority
+            sizes="(min-width: 1024px) 580px, 92vw"
+            className={`park-rise aspect-[5/4] rounded-[28px] ${glow}`}
+          />
+        ) : (
+          <div className={`park-rise rounded-[28px] ${glow}`}>{media}</div>
+        )}
       </div>
     </section>
+  )
+}
+
+// In-page anchors stay plain links; Viber links go through openViber().
+function HeroLink({ href, className, children }: { href: string; className: string; children: React.ReactNode }) {
+  return href.startsWith('viber:') ? (
+    <ViberLink className={className}>{children}</ViberLink>
+  ) : (
+    <a href={href} className={className}>
+      {children}
+    </a>
   )
 }
 

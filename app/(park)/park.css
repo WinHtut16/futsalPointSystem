@@ -115,3 +115,99 @@ html[lang='my'] .park-display {
   height: 140px;
   background: linear-gradient(to bottom, var(--from), var(--to));
 }
+
+/* Venue icons (components/park/VenueIcon.tsx). Each has a quiet idle loop;
+   `.vi-hover` (pointer over the surrounding block) swaps in a livelier one.
+   Scale and rotation pivot on each part's own box. */
+.vi * { transform-box: fill-box; transform-origin: center; }
+
+/* Pool: waves drift out of phase; on hover they swell and a droplet hops. */
+@keyframes vi-drift { from { transform: translateX(calc(var(--d) * -1)); } to { transform: translateX(var(--d)); } }
+@keyframes vi-hop { 0%, 100% { opacity: 0; transform: translateY(4px); } 30% { opacity: 1; } 50% { opacity: 1; transform: translateY(-8px); } 80% { opacity: 0; transform: translateY(4px); } }
+.vi-pool-wave { --d: 3px; animation: vi-drift 2s ease-in-out infinite alternate; }
+.vi-pool-wave-2 { --d: -3px; }
+.vi-pool-wave-3 { animation-delay: -1s; }
+.vi-hover .vi-pool-wave { --d: 6px; animation-duration: 0.8s; }
+.vi-hover .vi-pool-wave-2 { --d: -6px; }
+.vi-pool-drop { opacity: 0; }
+.vi-hover .vi-pool-drop { animation: vi-hop 1s ease-in-out infinite; }
+
+/* Food: steam curls rise and fade in turn; on hover the chopsticks dip. */
+@keyframes vi-steam { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 0.55; } 70%, 100% { opacity: 0; transform: translateY(-10px); } }
+@keyframes vi-dip { 0%, 70%, 100% { transform: none; } 30% { transform: translate(-2px, 9px) rotate(-6deg); } }
+.vi-steam { opacity: 0; animation: vi-steam 2s ease-out infinite; }
+.vi-steam-2 { animation-delay: -1s; }
+.vi-hover .vi-steam { animation-duration: 1s; }
+.vi-chopsticks { transform-origin: 100% 0; }
+.vi-hover .vi-chopsticks { animation: vi-dip 1s ease-in-out infinite; }
+
+/* Futsal: the ball turns slowly; on hover it bounces and squashes. */
+@keyframes vi-spin { to { transform: rotate(360deg); } }
+@keyframes vi-bounce {
+  0%, 100% { transform: none; animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+  40% { transform: translateY(-16px); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3); }
+  80% { transform: translateY(2px) scale(1.12, 0.86); }
+}
+@keyframes vi-shadow { 0%, 80%, 100% { transform: none; opacity: 0.25; } 40% { transform: scale(0.6); opacity: 0.12; } }
+.vi-ball-spin { animation: vi-spin 6s linear infinite; }
+.vi-ball-bounce { transform-origin: 50% 100%; }
+.vi-hover .vi-ball-bounce { animation: vi-bounce 0.8s infinite; }
+.vi-hover .vi-shadow { animation: vi-shadow 0.8s ease-in-out infinite; }
+
+/* Games: face buttons light one after another; on hover the pad rocks. */
+@keyframes vi-blink { 0%, 20%, 100% { transform: none; } 10% { transform: scale(1.35); } }
+@keyframes vi-rock { 0%, 100% { transform: none; } 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
+@keyframes vi-press { 0%, 60%, 100% { transform: none; } 30% { transform: scale(0.82); } }
+.vi-btn { animation: vi-blink 2s ease-in-out infinite; }
+.vi-btn-2 { animation-delay: 0.4s; }
+.vi-btn-3 { animation-delay: 0.8s; }
+.vi-btn-4 { animation-delay: 1.2s; }
+.vi-hover .vi-pad { animation: vi-rock 1s ease-in-out infinite; }
+.vi-hover .vi-dpad { animation: vi-press 0.5s ease-in-out infinite; }
+
+/* Billiards: the cue lines up; on hover it strikes and the balls roll. */
+@keyframes vi-aim { from { transform: none; } to { transform: translateX(-3px); } }
+@keyframes vi-strike {
+  0%, 100% { transform: none; }
+  22% { transform: translate(-5px, 2px); }
+  33%, 74% { transform: translate(6px, -2.6px); animation-timing-function: ease-in-out; }
+}
+@keyframes vi-roll { 0%, 31%, 100% { transform: none; } 59%, 74% { transform: translateX(14px); } }
+@keyframes vi-nudge { 0%, 57%, 100% { transform: none; } 70%, 81% { transform: translateX(4px); } }
+.vi-cue { animation: vi-aim 1s ease-in-out infinite alternate; }
+.vi-hover .vi-cue { animation: vi-strike 0.9s ease-out infinite; }
+.vi-hover .vi-cueball { animation: vi-roll 0.9s ease-out infinite; }
+.vi-hover .vi-eight { animation: vi-nudge 0.9s ease-out infinite; }
+
+/* Market: string lights glow in turn; on hover the awning flaps and the
+   pot puffs. */
+@keyframes vi-glow { 0%, 42%, 100% { opacity: 0.45; } 17% { opacity: 1; } }
+@keyframes vi-flap { 0%, 100% { transform: none; } 50% { transform: scaleY(1.08); } }
+@keyframes vi-puff { 0% { opacity: 0; transform: none; } 20% { opacity: 1; } 80%, 100% { opacity: 0; transform: translateY(-9px); } }
+.vi-light { animation: vi-glow 2.4s ease-in-out infinite; }
+.vi-light-2 { animation-delay: 0.6s; }
+.vi-light-3 { animation-delay: 1.2s; }
+.vi-hover .vi-light { opacity: 1; animation: none; }
+.vi-awning { transform-origin: 50% 0; }
+.vi-hover .vi-awning { animation: vi-flap 0.5s ease-in-out infinite; }
+.vi-pot-steam { opacity: 0; }
+.vi-hover .vi-pot-steam { animation: vi-puff 1s ease-out infinite; }
+
+/* Sun arc (components/park/home/SunArc.tsx): the sun glides to the hour, its
+   glow breathes; at night the moon shows and the stars twinkle. */
+@keyframes vi-breathe { 0%, 100% { transform: none; } 50% { transform: scale(1.12); } }
+@keyframes vi-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+.sa-sun { transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1), opacity 400ms; }
+.sa-glow { transform-box: fill-box; transform-origin: center; animation: vi-breathe 2.5s ease-in-out infinite; }
+.sa-night { transition: opacity 400ms; }
+.sa-star { animation: vi-twinkle 3s ease-in-out infinite; }
+.sa-star:nth-child(2) { animation-delay: -0.6s; }
+.sa-star:nth-child(3) { animation-delay: -1.2s; }
+.sa-star:nth-child(4) { animation-delay: -1.8s; }
+.sa-star:nth-child(5) { animation-delay: -2.4s; }
+.sa-horizon { transition: stroke 300ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vi *, .sa-glow, .sa-star { animation: none !important; }
+  .sa-sun, .sa-night { transition: none; }
+}

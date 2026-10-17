@@ -4,11 +4,13 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n'
-import { FUTSAL_RATES, GAME, BILLIARDS, HOURS } from '@/lib/park/content'
+import { FUTSAL_RATES, GAME, BILLIARDS, HOURS, billiardsOpening } from '@/lib/park/content'
 import { formatAmount, formatHour } from '@/lib/park/time'
 import type { PhotoKey } from '@/lib/park/photos'
 import ParkPhoto from '../ParkPhoto'
 import VenueIcon, { type VenueIconKind } from '../VenueIcon'
+import OpeningBadge from '../OpeningBadge'
+import { TableSvg } from '../venue/BreakTable'
 
 // The landing's spine: one real day at the park, morning to night. Each
 // stretch of the day has its own ground colour, and a horizon band blends
@@ -100,7 +102,7 @@ export default function DayStory() {
           timeClass="text-[#a66f00]"
           title="park.day.morning.title"
           body={t('park.day.morning.body')}
-          photo="poolKids"
+          photo="poolSwim"
           icon="pool"
         />
         <div className="h-24 md:h-32" />
@@ -109,7 +111,7 @@ export default function DayStory() {
           timeClass="text-[#b06000]"
           title="park.day.noon.title"
           body={t('park.day.noon.body')}
-          photo="restaurant"
+          photo="poolDining"
           icon="food"
           reverse
         />
@@ -172,11 +174,13 @@ export default function DayStory() {
             <p className="text-[17px] leading-relaxed text-[#c3cfe0]">{t('park.day.evening.body')}</p>
           </div>
 
+          <MarketLane />
+
           <div className="grid gap-6 md:grid-cols-2">
             <VenueCard
               href="/games"
               icon="games"
-              photo="gameRoom"
+              media={<ParkPhoto photo="gameRoom" sizes="(min-width: 768px) 560px, 92vw" className="aspect-[16/9] rounded-[18px]" />}
               title={t('park.day.evening.gamesTitle')}
               body={t('park.day.evening.gamesBody')}
               meta={t('park.day.evening.gamesFrom', { price: mmk(GAME.rates.ps4) })}
@@ -187,13 +191,22 @@ export default function DayStory() {
             <VenueCard
               href="/billiards"
               icon="billiards"
-              photo="billiards"
+              // No photos until the room opens: the drawn table stands in.
+              media={
+                <div className="flex aspect-[16/9] items-center justify-center rounded-[18px] bg-[#1f1214] p-6">
+                  <TableSvg className="w-full max-w-[420px]" />
+                </div>
+              }
               title={t('park.day.evening.billiardsTitle')}
               body={t('park.day.evening.billiardsBody')}
               meta={
-                BILLIARDS.ratePerHour
-                  ? t('park.day.evening.billiardsRate', { price: mmk(BILLIARDS.ratePerHour) })
-                  : t('park.day.evening.billiardsSee')
+                billiardsOpening() ? (
+                  <OpeningBadge />
+                ) : BILLIARDS.ratePerHour ? (
+                  t('park.day.evening.billiardsRate', { price: mmk(BILLIARDS.ratePerHour) })
+                ) : (
+                  t('park.day.evening.billiardsSee')
+                )
               }
               card="bg-[#3a2230] hover:bg-[#452838]"
               metaClass="text-venue-brass"
@@ -208,10 +221,34 @@ export default function DayStory() {
   )
 }
 
+// The market lane has no page of its own, so it is a feature row rather
+// than a link card: photo and text side by side, set apart from the two rooms.
+function MarketLane() {
+  const { t } = useLanguage()
+  const [hover, setHover] = useState(false)
+  return (
+    <article
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+      className="grid items-center gap-6 rounded-[28px] bg-[#162440] p-5 md:grid-cols-[7fr_5fr] md:gap-10 md:p-6"
+    >
+      <ParkPhoto photo="marketLane" sizes="(min-width: 768px) 640px, 92vw" className="aspect-[16/9] rounded-[18px]" />
+      <div className="flex flex-col gap-3">
+        <h3 className="park-display flex items-center gap-3 text-3xl">
+          <VenueIcon kind="market" hover={hover} size={44} />
+          {t('park.day.evening.marketTitle')}
+        </h3>
+        <p className="font-semibold text-park-sun">{t('park.day.evening.marketMeta')}</p>
+        <p className="leading-relaxed text-[#c3cfe0]">{t('park.day.evening.marketBody')}</p>
+      </div>
+    </article>
+  )
+}
+
 function VenueCard({
   href,
   icon,
-  photo,
+  media,
   title,
   body,
   meta,
@@ -221,10 +258,10 @@ function VenueCard({
 }: {
   href: string
   icon: VenueIconKind
-  photo: PhotoKey
+  media: React.ReactNode
   title: string
   body: string
-  meta: string
+  meta: React.ReactNode
   card: string
   metaClass: string
   bodyClass: string
@@ -239,8 +276,8 @@ function VenueCard({
       onBlur={() => setHover(false)}
       className={`group flex flex-col gap-4 rounded-[28px] p-5 transition-colors ${card}`}
     >
-      <ParkPhoto photo={photo} sizes="(min-width: 768px) 560px, 92vw" className="aspect-[16/9] rounded-[18px]" />
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      {media}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <h3 className="park-display flex items-center gap-3 text-3xl">
           <VenueIcon kind={icon} hover={hover} size={44} />
           {title}

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <!-- Artboard Games, 112 x 112. Idle: face buttons light one after another.
+       Hover: pad tilts +/-6 degrees, D-pad presses in time. -->
+  <circle id="chip" cx="56" cy="56" r="56" fill="#2F5FD0"/>
+  <g id="pad">
+    <path id="pad-body" d="M36 42 H76 C86 42 92 50 94 62 C96 74 90 80 84 78 C78 76 74 68 68 68 H44 C38 68 34 76 28 78 C22 80 16 74 18 62 C20 50 26 42 36 42 Z" fill="#FFFFFF"/>
+    <g id="dpad">
+      <rect id="dpad-h" x="30" y="53" width="16" height="6" rx="2" fill="#12302A"/>
+      <rect id="dpad-v" x="35" y="48" width="6" height="16" rx="2" fill="#12302A"/>
+    </g>
+    <g id="buttons">
+      <circle id="btn-1" cx="78" cy="49" r="3.6" fill="#F2B84B"/>
+      <circle id="btn-2" cx="85" cy="56" r="3.6" fill="#F2B84B"/>
+      <circle id="btn-3" cx="78" cy="63" r="3.6" fill="#F2B84B"/>
+      <circle id="btn-4" cx="71" cy="56" r="3.6" fill="#F2B84B"/>
+    </g>
+  </g>
+</svg>

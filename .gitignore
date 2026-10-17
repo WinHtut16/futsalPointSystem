@@ -44,5 +44,3 @@ next-env.d.ts
 # Playwright MCP tool logs
 .playwright-mcp/
 
-# Rive runtime WASM, copied from node_modules by scripts/copy-rive-wasm.mjs
-public/rive/rive.wasm

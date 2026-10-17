@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { Waves, UtensilsCrossed, Volleyball, Gamepad2, CircleDot, Trees } from 'lucide-react'
+import { Waves, UtensilsCrossed, Volleyball, Gamepad2, CircleDot, Trees, Store } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { PHOTOS, type PhotoKey, type PhotoTone, type PhotoIcon } from '@/lib/park/photos'
 
@@ -12,6 +12,7 @@ const TONE: Record<PhotoTone, string> = {
   game: 'bg-venue-game text-white/30',
   billiards: 'bg-venue-billiards text-white/25',
   mist: 'bg-park-line text-park-jungle/25',
+  night: 'bg-park-night text-white/25',
 }
 
 const ICON: Record<PhotoIcon, typeof Waves> = {
@@ -21,6 +22,7 @@ const ICON: Record<PhotoIcon, typeof Waves> = {
   gamepad: Gamepad2,
   billiards: CircleDot,
   trees: Trees,
+  store: Store,
 }
 
 // A photo slot. `className` sets shape and size (aspect ratio, radius); the

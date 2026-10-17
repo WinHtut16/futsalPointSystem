@@ -7,7 +7,7 @@ import SkipLink from '@/components/park/SkipLink'
 import { SITE_URL } from '@/lib/park/site'
 
 const DESCRIPTION =
-  'A family park in Myanmar with a swimming pool, poolside restaurant, futsal court, game shop and billiards.'
+  'A family park in Yangon with a covered pool, poolside dining, a night market lane, a futsal court, ACJ Gaming and billiards.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

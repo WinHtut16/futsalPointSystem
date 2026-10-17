@@ -1,0 +1,337 @@
+{
+  "_doc": "Edit recipe for scripts/park-photos.py. focus/width/faces/inpaint are fractions of the source photo (after rotate). width = crop width as a fraction of source width; aspect = [w, h]. Tone: exposure in stops; shadows/highlights/contrast/vibrance 0..1; wb = gray-world strength 0..1; tint = RGB gains; denoise = OpenCV h (0 = off).",
+  "srcRoot": "../client_photos",
+  "outDir": "public/images/park",
+  "photos": [
+    {
+      "out": "hero-pool.jpg",
+      "src": "park/IMG_20261010_140028_898.jpg",
+      "focus": [
+        0.62,
+        0.5
+      ],
+      "width": 0.625,
+      "aspect": [
+        5,
+        6
+      ],
+      "wb": 0.4,
+      "shadows": 0.32,
+      "highlights": 0.15,
+      "contrast": 0.14,
+      "vibrance": 0.16,
+      "maxLong": 2000
+    },
+    {
+      "out": "hero-market.jpg",
+      "src": "market_lane/market.jpg",
+      "focus": [
+        0.24,
+        0.47
+      ],
+      "width": 0.42,
+      "aspect": [
+        1,
+        1
+      ],
+      "denoise": 6,
+      "wb": 0.2,
+      "tint": [
+        1.04,
+        1.0,
+        0.95
+      ],
+      "shadows": 0.2,
+      "highlights": 0.2,
+      "contrast": 0.12,
+      "vibrance": 0.1,
+      "maxLong": 900
+    },
+    {
+      "out": "pool-swim.jpg",
+      "src": "park/IMG_20260823_103930_5_Panorama.jpg",
+      "focus": [
+        0.64,
+        0.47
+      ],
+      "width": 0.45,
+      "aspect": [
+        16,
+        11
+      ],
+      "wb": 0.35,
+      "shadows": 0.3,
+      "highlights": 0.12,
+      "contrast": 0.15,
+      "vibrance": 0.12
+    },
+    {
+      "out": "pool-dining.jpg",
+      "src": "park/IMG_20260823_104001_0_Panorama.jpg",
+      "focus": [
+        0.29,
+        0.5
+      ],
+      "width": 0.32,
+      "aspect": [
+        16,
+        11
+      ],
+      "wb": 0.35,
+      "shadows": 0.3,
+      "highlights": 0.12,
+      "contrast": 0.15,
+      "vibrance": 0.12
+    },
+    {
+      "out": "futsal-court.jpg",
+      "src": "futsal/photo_4_2026-10-17_11-01-07.jpg",
+      "focus": [
+        0.5,
+        0.55
+      ],
+      "width": 1.0,
+      "aspect": [
+        16,
+        11
+      ],
+      "wb": 0.2,
+      "shadows": 0.2,
+      "highlights": 0.1,
+      "contrast": 0.1,
+      "vibrance": 0.06
+    },
+    {
+      "out": "games-lounge.jpg",
+      "src": "game/normal.jpg",
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "width": 1.0,
+      "aspect": [
+        4,
+        3
+      ],
+      "wb": 0.6,
+      "shadows": 0.2,
+      "highlights": 0.12,
+      "contrast": 0.15,
+      "vibrance": 0.1
+    },
+    {
+      "out": "games-vip.jpg",
+      "src": "game/vip_room.jpg",
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "width": 1.0,
+      "aspect": [
+        4,
+        3
+      ],
+      "wb": 0.4,
+      "shadows": 0.15,
+      "highlights": 0.25,
+      "contrast": 0.1,
+      "vibrance": 0.06,
+      "maxLong": 1600
+    },
+    {
+      "out": "games-controllers.jpg",
+      "src": "game/controllers_viproom.jpg",
+      "focus": [
+        0.5,
+        0.55
+      ],
+      "width": 1.0,
+      "aspect": [
+        4,
+        3
+      ],
+      "wb": 0.3,
+      "shadows": 0.15,
+      "highlights": 0.1,
+      "contrast": 0.1,
+      "vibrance": 0.05,
+      "maxLong": 1600
+    },
+    {
+      "out": "market-lane.jpg",
+      "src": "market_lane/IMG_20260924_182621_554.jpg",
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "width": 1.0,
+      "aspect": [
+        16,
+        9
+      ],
+      "faces": [
+        [
+          0.082,
+          0.47,
+          0.112,
+          0.512
+        ],
+        [
+          0.112,
+          0.484,
+          0.142,
+          0.524
+        ]
+      ],
+      "denoise": 6,
+      "wb": 0.15,
+      "shadows": 0.18,
+      "highlights": 0.22,
+      "contrast": 0.1,
+      "vibrance": 0.08
+    },
+    {
+      "out": "visit-entrance.jpg",
+      "src": "park/IMG_20261010_140139_317.jpg",
+      "focus": [
+        0.55,
+        0.45
+      ],
+      "width": 0.88,
+      "aspect": [
+        4,
+        3
+      ],
+      "wb": 0.3,
+      "shadows": 0.18,
+      "highlights": 0.15,
+      "contrast": 0.1,
+      "vibrance": 0.08
+    },
+    {
+      "out": "gallery-path.jpg",
+      "src": "park/IMG_20260913_174554_592.jpg",
+      "focus": [
+        0.5,
+        0.62
+      ],
+      "width": 0.45,
+      "aspect": [
+        4,
+        5
+      ],
+      "faces": [
+        [
+          0.316,
+          0.698,
+          0.35,
+          0.74
+        ],
+        [
+          0.377,
+          0.684,
+          0.411,
+          0.725
+        ]
+      ],
+      "wb": 0.15,
+      "shadows": 0.15,
+      "highlights": 0.12,
+      "contrast": 0.12,
+      "vibrance": 0.1,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-plaza.jpg",
+      "src": "park/IMG_20260913_174534_807.jpg",
+      "focus": [
+        0.44,
+        0.43
+      ],
+      "width": 0.4,
+      "aspect": [
+        4,
+        5
+      ],
+      "faces": [
+        [
+          0.632,
+          0.758,
+          0.672,
+          0.828
+        ],
+        [
+          0.676,
+          0.718,
+          0.724,
+          0.785
+        ]
+      ],
+      "wb": 0.1,
+      "shadows": 0.2,
+      "highlights": 0.1,
+      "contrast": 0.12,
+      "vibrance": 0.1,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-futsal.jpg",
+      "src": "futsal/photo_3_2026-10-17_11-01-07.jpg",
+      "focus": [
+        0.6,
+        0.5
+      ],
+      "width": 0.425,
+      "aspect": [
+        4,
+        5
+      ],
+      "wb": 0.15,
+      "shadows": 0.15,
+      "highlights": 0.1,
+      "contrast": 0.08,
+      "vibrance": 0.05,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-market.jpg",
+      "src": "market_lane/IMG_20260924_183049_969.jpg",
+      "focus": [
+        0.6,
+        0.5
+      ],
+      "width": 0.6,
+      "aspect": [
+        4,
+        5
+      ],
+      "faces": [
+        [
+          0.29,
+          0.505,
+          0.322,
+          0.552
+        ],
+        [
+          0.322,
+          0.495,
+          0.348,
+          0.537
+        ],
+        [
+          0.747,
+          0.445,
+          0.772,
+          0.483
+        ]
+      ],
+      "denoise": 6,
+      "wb": 0.15,
+      "shadows": 0.15,
+      "highlights": 0.22,
+      "contrast": 0.1,
+      "vibrance": 0.08,
+      "maxLong": 1600
+    }
+  ]
+}

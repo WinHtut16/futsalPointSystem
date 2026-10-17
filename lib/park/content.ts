@@ -5,31 +5,37 @@
 // docs/park/client-content-checklist.md). Components must hide a row whose
 // value is null rather than print a placeholder.
 
-export type VenueKey = 'pool' | 'restaurant' | 'futsal' | 'games' | 'billiards'
+export type VenueKey = 'pool' | 'futsal' | 'games' | 'billiards' | 'market'
 
 /** Opening hours as 24h integers in Myanmar time, e.g. { open: 6, close: 22 }. */
 export type Hours = { open: number; close: number }
 
+// Contact details are the futsal site's (components/booking/SiteFooter.tsx);
+// the park and the court share one front desk.
 export const PARK = {
-  address: null as string | null,
-  addressMy: null as string | null,
-  mapsUrl: null as string | null,
-  // Google Maps embed URL (Share > Embed a map). CSP frame-src already
-  // allows www.google.com.
-  mapsEmbedUrl: null as string | null,
-  phone: null as string | null,
-  facebookUrl: null as string | null,
+  address: 'Bahan, Yangon' as string | null,
+  addressMy: 'ဗဟန်း၊ ရန်ကုန်' as string | null,
+  mapsUrl: 'https://maps.google.com/?q=Mya+Thida+Futsal+Field' as string | null,
+  // Google Maps embed (Share > Embed a map). CSP frame-src allows www.google.com.
+  mapsEmbedUrl:
+    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3818.933074902053!2d96.26678117492148!3d16.829675883965503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30c18d5b8f51271b%3A0x7d25d15c3edb529e!2sMya%20Thida%20Futsal%20Field!5e0!3m2!1sen!2sth!4v1780281934835!5m2!1sen!2sth' as
+      | string
+      | null,
+  phone: '+95 9 797 272000' as string | null,
+  facebookUrl: 'https://www.facebook.com/mtdfutsal' as string | null,
+  busLines: ['2', '3', '6', '60', '133', '144'],
   // Same Viber deep link the futsal site uses (CLAUDE.md: never a web URL).
+  // Links should call openViber() from lib/viber.ts, which handles iOS.
   viberUrl: 'viber://chat?number=%2B959797272000',
 }
 
 export const HOURS: Record<VenueKey, Hours | null> = {
   pool: null,
-  restaurant: null,
   // lib/booking.ts dayHours: 16 slots, 06:00 to 21:00, last slot ends 22:00.
   futsal: { open: 6, close: 22 },
   games: null,
   billiards: null,
+  market: null,
 }
 
 /** Futsal court rates per hour (MMK). Mirrors lib/booking.ts priceForHour. */
@@ -65,6 +71,9 @@ export const GAME = {
 export const BILLIARDS = {
   tables: 3,
   ratePerHour: null as number | null,
+  /** First month the room is open, 'YYYY-MM'. Until then the site shows an
+   *  "Opening in …" badge; after it the badge disappears on its own. */
+  opensOn: '2026-11',
   menu: {
     drinks: [
       { key: 'water', price: 500 },
@@ -89,3 +98,10 @@ export type MenuItemKey =
   | (typeof BILLIARDS.menu.drinks)[number]['key']
   | (typeof BILLIARDS.menu.food)[number]['key']
 
+/** Year and month (1-12) billiards opens, or null once that month has begun in Myanmar time. */
+export function billiardsOpening(now: Date = new Date()): { year: number; month: number } | null {
+  const [year, month] = BILLIARDS.opensOn.split('-').map(Number)
+  // Myanmar is UTC+6:30; the first of the month starts at 17:30 UTC the day before.
+  const opens = Date.UTC(year, month - 1, 1) - 390 * 60_000
+  return now.getTime() >= opens ? null : { year, month }
+}

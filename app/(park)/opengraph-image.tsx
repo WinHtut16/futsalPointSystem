@@ -2,12 +2,12 @@ import { ImageResponse } from 'next/og'
 
 // Link preview for Viber, Facebook and Messenger shares (the channels
 // Myanmar visitors actually use). Applies to every park page.
-export const alt = 'MyaThida Park: pool, food, futsal, games and billiards'
+export const alt = 'MyaThida Park: pool, night market, futsal, games and billiards'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 const TITLE = 'MyaThida Park'
-const LINE = 'Pool, poolside food, futsal, games and billiards. Stay the whole day.'
+const LINE = 'Pool, night market, futsal, games and billiards. Stay the whole day.'
 
 // Young Serif, subset to just the glyphs on the card. Fetched server-side at
 // render time; if Google Fonts is unreachable the title falls back to serif.

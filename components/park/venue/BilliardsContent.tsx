@@ -1,9 +1,11 @@
 'use client'
 
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { BILLIARDS, HOURS, PARK } from '@/lib/park/content'
+import { BILLIARDS, HOURS, PARK, billiardsOpening } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
-import BreakTable from './BreakTable'
+import BreakTable, { TableSvg } from './BreakTable'
+import OpeningBadge from '../OpeningBadge'
+import ViberLink from '../ViberLink'
 import { MenuList, VenueHero, VenueStrip, type Theme } from './VenueParts'
 
 // Oxblood and brass, the billiards room's colours from its admin system.
@@ -25,8 +27,14 @@ export default function BilliardsContent() {
       <VenueHero
         theme={theme}
         title="park.billiards.title"
-        lead="park.billiards.lead"
-        photo="billiards"
+        lead={billiardsOpening() ? 'park.billiards.openingBody' : 'park.billiards.lead'}
+        badge={<OpeningBadge />}
+        media={
+          // Mid-game in the hero; the racked table waits further down with its Break button.
+          <div className="flex aspect-[5/4] items-center justify-center rounded-[28px] bg-[#2a1719] p-8">
+            <TableSvg broken />
+          </div>
+        }
         primary={{ href: PARK.viberUrl, label: 'park.billiards.ctaAsk' }}
         secondary={{ href: '#menu', label: 'park.billiards.ctaMenu' }}
         glow="shadow-[0_30px_90px_rgb(217_178_106/0.22)]"
@@ -48,9 +56,9 @@ export default function BilliardsContent() {
                 {BILLIARDS.ratePerHour ? (
                   t('park.billiards.rateValue', { price: formatAmount(BILLIARDS.ratePerHour, lang) })
                 ) : (
-                  <a href={PARK.viberUrl} className="underline decoration-white/30 underline-offset-4 hover:text-white">
+                  <ViberLink className="underline decoration-white/30 underline-offset-4 hover:text-white">
                     {t('park.billiards.rateAsk')}
-                  </a>
+                  </ViberLink>
                 )}
               </p>
             </div>

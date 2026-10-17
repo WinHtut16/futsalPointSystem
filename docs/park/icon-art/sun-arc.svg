@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="80" viewBox="0 0 128 80">
+  <!-- Artboard SunArc, 128 x 80. Animate `sun` along the arc (or use the
+       SunArc Luau script instead and keep only `arc` + `horizon`). -->
+  <g id="stars" opacity="0">
+    <circle id="star-1" cx="30" cy="30" r="1.6" fill="#F2F5FF"/>
+    <circle id="star-2" cx="48" cy="14" r="1.6" fill="#F2F5FF"/>
+    <circle id="star-3" cx="84" cy="18" r="1.6" fill="#F2F5FF"/>
+    <circle id="star-4" cx="100" cy="34" r="1.6" fill="#F2F5FF"/>
+    <circle id="star-5" cx="70" cy="40" r="1.6" fill="#F2F5FF"/>
+  </g>
+  <path id="arc" d="M12 68 A52 52 0 0 1 116 68" fill="none" stroke="#CFE3D8" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 8"/>
+  <g id="sun">
+    <circle id="sun-glow" cx="34" cy="31" r="20" fill="#FFCB47" opacity="0.35"/>
+    <circle id="sun-body" cx="34" cy="31" r="13" fill="#FFCB47"/>
+  </g>
+  <g id="moon" opacity="0">
+    <circle id="moon-body" cx="64" cy="16" r="11" fill="#F2F5FF"/>
+    <circle id="moon-crater-1" cx="60" cy="13" r="2.2" fill="#D9DEEC"/>
+    <circle id="moon-crater-2" cx="68" cy="20" r="1.6" fill="#D9DEEC"/>
+  </g>
+  <path id="horizon" d="M4 68 H124" stroke="#0F4D3C" stroke-width="4" stroke-linecap="round"/>
+</svg>

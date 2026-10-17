@@ -59,7 +59,7 @@ export default function Hero() {
             className="park-unveil aspect-[4/5] rounded-[220px_220px_28px_28px] sm:aspect-square lg:aspect-[5/6]"
           />
           <ParkPhoto
-            photo="heroFood"
+            photo="heroMarket"
             sizes="240px"
             className="park-pop absolute -bottom-6 left-0 aspect-square w-[38%] rounded-full border-8 border-park-mist sm:-left-8 lg:-left-10 lg:bottom-14"
           />

@@ -4,6 +4,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { GAME, HOURS, PARK } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
 import GameFloor from './GameFloor'
+import ParkPhoto from '../ParkPhoto'
 import { MenuList, PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
 
 // Console blue with amber, the game shop's own colours from its admin system.
@@ -47,6 +48,24 @@ export default function GamesContent() {
             </ul>
           </div>
           <GameFloor />
+        </div>
+      </section>
+
+      <section aria-labelledby="games-vip" className={`${theme.ground} pt-20 md:pt-24`}>
+        <div className="mx-auto grid max-w-[1200px] items-end gap-6 px-4 md:px-8 lg:grid-cols-[7fr_5fr] lg:gap-10">
+          <ParkPhoto
+            photo="gameVip"
+            sizes="(min-width: 1024px) 680px, 92vw"
+            className="aspect-[4/3] rounded-[28px] shadow-[0_30px_90px_rgb(242_184_75/0.18)]"
+          />
+          <div className="flex flex-col gap-5">
+            <ParkPhoto photo="gameControllers" sizes="(min-width: 1024px) 460px, 92vw" className="hidden aspect-[4/3] rounded-[22px] lg:block" />
+            <h2 id="games-vip" className="park-display text-[34px] leading-[1.1] md:text-[42px]">
+              {t('park.games.vipTitle')}
+            </h2>
+            <p className={`max-w-[40ch] text-[17px] leading-relaxed ${theme.muted}`}>{t('park.games.vipBody')}</p>
+            <p className="font-semibold text-venue-amber">{t('park.venue.perHour', { price: n(GAME.rates.vip) })}</p>
+          </div>
         </div>
       </section>
 

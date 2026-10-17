@@ -31,3 +31,18 @@ export function formatAmount(n: number, lang: Language): string {
   const s = n.toLocaleString('en-US')
   return lang === 'my' ? s.replace(/\d/g, (d) => toMyDigits(+d)) : s
 }
+
+const MONTHS_MY = [
+  'ဇန်နဝါရီ', 'ဖေဖော်ဝါရီ', 'မတ်', 'ဧပြီ', 'မေ', 'ဇွန်',
+  'ဇူလိုင်', 'သြဂုတ်', 'စက်တင်ဘာ', 'အောက်တိုဘာ', 'နိုဝင်ဘာ', 'ဒီဇင်ဘာ',
+]
+
+/** "November 2026" / "နိုဝင်ဘာ ၂၀၂၆". `month` is 1-12. */
+export function formatMonth(year: number, month: number, lang: Language): string {
+  if (lang === 'my') return `${MONTHS_MY[month - 1]} ${toMyDigits(year)}`
+  return new Date(Date.UTC(year, month - 1, 15)).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}

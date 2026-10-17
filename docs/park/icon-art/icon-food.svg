@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <!-- Artboard Food, 112 x 112. Idle: steam curls rise 10 px and fade, staggered.
+       Hover: chopsticks dip into the bowl and lift, then a bigger puff. -->
+  <circle id="chip" cx="56" cy="56" r="56" fill="#FFCB47"/>
+  <path id="steam-1" d="M46 40 c-4 -5 4 -8 0 -14" fill="none" stroke="#12302A" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+  <path id="steam-2" d="M60 40 c-4 -5 4 -8 0 -14" fill="none" stroke="#12302A" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+  <g id="chopsticks">
+    <path id="chopstick-1" d="M66 22 L84 50" stroke="#12302A" stroke-width="4" stroke-linecap="round"/>
+    <path id="chopstick-2" d="M74 20 L88 48" stroke="#12302A" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g id="bowl">
+    <path id="bowl-body" d="M30 52 H82 A26 26 0 0 1 30 52 Z" fill="#12302A"/>
+    <path id="bowl-foot" d="M46 78 H66" stroke="#12302A" stroke-width="5" stroke-linecap="round"/>
+    <path id="bowl-rim" d="M28 52 H84" stroke="#12302A" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>

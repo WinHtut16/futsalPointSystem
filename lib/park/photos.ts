@@ -1,10 +1,12 @@
 import type { TranslationKey } from '@/lib/i18n'
 
-// Every photo slot on the park pages. Drop the client's file at `file` under
-// public/ and set `ready: true`; until then ParkPhoto draws a quiet tinted
-// block in the slot's tone (and, in development only, the file it expects).
-export type PhotoTone = 'pool' | 'sun' | 'jungle' | 'game' | 'billiards' | 'mist'
-export type PhotoIcon = 'waves' | 'utensils' | 'ball' | 'gamepad' | 'billiards' | 'trees'
+// Every photo slot on the park pages. Files under public/images/park/ are
+// produced by scripts/park-photos.py from the client's originals (crop, light
+// retouch, faces blurred, EXIF stripped); edit scripts/park-photos.json and
+// re-run it rather than editing the JPEGs. A slot with `ready: false` draws a
+// quiet tinted block in its tone (and, in development, the file it expects).
+export type PhotoTone = 'pool' | 'sun' | 'jungle' | 'game' | 'billiards' | 'mist' | 'night'
+export type PhotoIcon = 'waves' | 'utensils' | 'ball' | 'gamepad' | 'billiards' | 'trees' | 'store'
 
 export type Photo = {
   file: string
@@ -15,19 +17,20 @@ export type Photo = {
 }
 
 export const PHOTOS = {
-  heroPool: { file: '/images/park/hero-pool.jpg', ready: false, alt: 'park.photo.heroPool', tone: 'pool', icon: 'waves' },
-  heroFood: { file: '/images/park/hero-food.jpg', ready: false, alt: 'park.photo.heroFood', tone: 'sun', icon: 'utensils' },
-  poolKids: { file: '/images/park/pool-kids.jpg', ready: false, alt: 'park.photo.poolKids', tone: 'pool', icon: 'waves' },
-  restaurant: { file: '/images/park/restaurant.jpg', ready: false, alt: 'park.photo.restaurant', tone: 'sun', icon: 'utensils' },
-  futsal: { file: '/images/court1.jpg', ready: true, alt: 'park.photo.futsal', tone: 'jungle', icon: 'ball' },
-  gameRoom: { file: '/images/park/game-room.jpg', ready: false, alt: 'park.photo.gameRoom', tone: 'game', icon: 'gamepad' },
-  billiards: { file: '/images/park/billiards.jpg', ready: false, alt: 'park.photo.billiards', tone: 'billiards', icon: 'billiards' },
-  entrance: { file: '/images/park/entrance.jpg', ready: false, alt: 'park.photo.entrance', tone: 'mist', icon: 'trees' },
-  galleryDeck: { file: '/images/park/gallery-deck.jpg', ready: false, alt: 'park.photo.galleryDeck', tone: 'pool', icon: 'waves' },
-  galleryLunch: { file: '/images/park/gallery-lunch.jpg', ready: false, alt: 'park.photo.galleryLunch', tone: 'sun', icon: 'utensils' },
-  galleryGarden: { file: '/images/park/gallery-garden.jpg', ready: false, alt: 'park.photo.galleryGarden', tone: 'mist', icon: 'trees' },
-  galleryDusk: { file: '/images/park/gallery-dusk.jpg', ready: false, alt: 'park.photo.galleryDusk', tone: 'jungle', icon: 'ball' },
-  galleryNight: { file: '/images/park/gallery-night.jpg', ready: false, alt: 'park.photo.galleryNight', tone: 'game', icon: 'gamepad' },
+  heroPool: { file: '/images/park/hero-pool.jpg', ready: true, alt: 'park.photo.heroPool', tone: 'pool', icon: 'waves' },
+  heroMarket: { file: '/images/park/hero-market.jpg', ready: true, alt: 'park.photo.heroMarket', tone: 'night', icon: 'store' },
+  poolSwim: { file: '/images/park/pool-swim.jpg', ready: true, alt: 'park.photo.poolSwim', tone: 'pool', icon: 'waves' },
+  poolDining: { file: '/images/park/pool-dining.jpg', ready: true, alt: 'park.photo.poolDining', tone: 'sun', icon: 'utensils' },
+  futsal: { file: '/images/park/futsal-court.jpg', ready: true, alt: 'park.photo.futsal', tone: 'jungle', icon: 'ball' },
+  gameRoom: { file: '/images/park/games-lounge.jpg', ready: true, alt: 'park.photo.gameRoom', tone: 'game', icon: 'gamepad' },
+  gameVip: { file: '/images/park/games-vip.jpg', ready: true, alt: 'park.photo.gameVip', tone: 'game', icon: 'gamepad' },
+  gameControllers: { file: '/images/park/games-controllers.jpg', ready: true, alt: 'park.photo.gameControllers', tone: 'game', icon: 'gamepad' },
+  marketLane: { file: '/images/park/market-lane.jpg', ready: true, alt: 'park.photo.marketLane', tone: 'night', icon: 'store' },
+  entrance: { file: '/images/park/visit-entrance.jpg', ready: true, alt: 'park.photo.entrance', tone: 'mist', icon: 'trees' },
+  galleryFutsal: { file: '/images/park/gallery-futsal.jpg', ready: true, alt: 'park.photo.galleryFutsal', tone: 'jungle', icon: 'ball' },
+  galleryPath: { file: '/images/park/gallery-path.jpg', ready: true, alt: 'park.photo.galleryPath', tone: 'mist', icon: 'trees' },
+  galleryPlaza: { file: '/images/park/gallery-plaza.jpg', ready: true, alt: 'park.photo.galleryPlaza', tone: 'mist', icon: 'trees' },
+  galleryMarket: { file: '/images/park/gallery-market.jpg', ready: true, alt: 'park.photo.galleryMarket', tone: 'night', icon: 'store' },
 } satisfies Record<string, Photo>
 
 export type PhotoKey = keyof typeof PHOTOS

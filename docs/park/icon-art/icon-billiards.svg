@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <!-- Artboard Billiards, 112 x 112. Idle: cue slides back and forth 3 px.
+       Hover: cue strikes, cue ball rolls 14 px right into the 8 ball, both ease back. -->
+  <circle id="chip" cx="56" cy="56" r="56" fill="#8A3324"/>
+  <g id="ball-8">
+    <circle id="ball-8-body" cx="76" cy="58" r="11" fill="#111111"/>
+    <circle id="ball-8-spot" cx="76" cy="58" r="4.5" fill="#F7F3EA"/>
+  </g>
+  <circle id="cue-ball" cx="50" cy="58" r="11" fill="#F7F3EA"/>
+  <g id="cue">
+    <path id="cue-shaft" d="M14 72 L34 63" stroke="#F6ECE6" stroke-width="5" stroke-linecap="round"/>
+    <path id="cue-tip" d="M34 63 L38 61.2" stroke="#D9B26A" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,4 +1,4 @@
-import { HOURS, PARK, FUTSAL_RATES, GAME, type Hours } from './content'
+import { HOURS, PARK, FUTSAL_RATES, GAME, billiardsOpening, type Hours } from './content'
 import { SITE_URL } from './site'
 
 // schema.org description of the park for search engines. Built from
@@ -21,7 +21,7 @@ export function parkJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/logo_black.jpg`,
     description:
-      'A family park in Myanmar with a swimming pool, poolside restaurant, futsal court, game shop and billiards.',
+      'A family park in Yangon with a covered pool, poolside dining, a night market lane, a futsal court, ACJ Gaming and billiards.',
     ...(PARK.address ? { address: { '@type': 'PostalAddress', streetAddress: PARK.address, addressCountry: 'MM' } } : {}),
     ...(PARK.phone ? { telephone: PARK.phone } : {}),
     ...(PARK.mapsUrl ? { hasMap: PARK.mapsUrl } : {}),
@@ -36,19 +36,24 @@ export function parkJsonLd() {
       },
       {
         '@type': 'EntertainmentBusiness',
-        name: 'MyaThida Game Shop',
+        name: 'ACJ Gaming',
         url: `${SITE_URL}/games`,
         openingHoursSpecification: openingHours(HOURS.games),
         priceRange: `${GAME.rates.ps4}-${GAME.rates.vip} MMK per hour`,
       },
-      {
-        '@type': 'EntertainmentBusiness',
-        name: 'MyaThida Billiards',
-        url: `${SITE_URL}/billiards`,
-        openingHoursSpecification: openingHours(HOURS.billiards),
-      },
-      { '@type': 'PublicSwimmingPool', name: 'MyaThida Pool', openingHoursSpecification: openingHours(HOURS.pool) },
-      { '@type': 'Restaurant', name: 'MyaThida Poolside Restaurant', openingHoursSpecification: openingHours(HOURS.restaurant) },
+      // Billiards is listed only once it has opened.
+      ...(billiardsOpening()
+        ? []
+        : [
+            {
+              '@type': 'EntertainmentBusiness',
+              name: 'MyaThida Billiards',
+              url: `${SITE_URL}/billiards`,
+              openingHoursSpecification: openingHours(HOURS.billiards),
+            },
+          ]),
+      { '@type': 'PublicSwimmingPool', name: 'Mini Water Boom', openingHoursSpecification: openingHours(HOURS.pool) },
+      { '@type': 'FoodEstablishment', name: 'MyaThida Market Lane', openingHoursSpecification: openingHours(HOURS.market) },
     ],
   }
 }
