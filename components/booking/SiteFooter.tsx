@@ -2,11 +2,19 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Phone, MapPin, Clock, MessageCircle, ExternalLink, Bus } from 'lucide-react'
+import { Phone, MapPin, Clock, MessageCircle, ExternalLink, Bus, TreePalm } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { openViber } from '@/lib/viber'
 
 const VIBER_DEEP = 'viber://chat?number=%2B959797272000'
+
+// The rest of the park, so the futsal pages never end in a dead end.
+const PARK_LINKS = [
+  { href: '/', key: 'park.nav.home' },
+  { href: '/#pool', key: 'park.nav.poolFood' },
+  { href: '/games', key: 'park.nav.games' },
+  { href: '/billiards', key: 'park.nav.billiards' },
+] as const
 
 export default function SiteFooter() {
   const { t, lang } = useLanguage()
@@ -60,6 +68,19 @@ export default function SiteFooter() {
               <MapPin size={14} />
               <span className={my}>{t('booking.footer.getDirections')}</span>
             </a>
+          </div>
+          <div className="mt-6">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide opacity-60">
+              <TreePalm size={13} aria-hidden="true" />
+              <span className={my}>{t('booking.footer.park')}</span>
+            </p>
+            <nav aria-label={t('park.brand')} className="flex flex-wrap gap-2">
+              {PARK_LINKS.map(({ href, key }) => (
+                <Link key={href} href={href} className={btnCls}>
+                  <span className={my}>{t(key)}</span>
+                </Link>
+              ))}
+            </nav>
           </div>
         </div>
 

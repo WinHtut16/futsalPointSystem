@@ -6,6 +6,9 @@ export const bookingEN = {
   'booking.nav.account': 'My account',
   'booking.nav.login': 'Login',
   'booking.nav.bookNow': 'Book now',
+  'booking.nav.park': 'Park',
+  'booking.nav.backToPark': 'Back to MyaThida Park',
+  'booking.footer.park': 'Around the park',
 
   // Home — hero + sections
   'booking.home.heroKicker': 'YANGON · MYATHIDA PITCH',
@@ -344,6 +347,9 @@ export const bookingMY: { [K in keyof typeof bookingEN]: string } = {
   'booking.nav.account': 'အကောင့်',
   'booking.nav.login': 'ဝင်ရောက်',
   'booking.nav.bookNow': 'ဘွတ်ကင်လုပ်ရန်',
+  'booking.nav.park': 'ပန်းခြံ',
+  'booking.nav.backToPark': 'မြသီတာ ပန်းခြံသို့ ပြန်ရန်',
+  'booking.footer.park': 'ပန်းခြံအတွင်း',
 
   // Home
   'booking.home.heroKicker': 'ရန်ကုန် · မြသီတာ ဘောလုံးကွင်း',

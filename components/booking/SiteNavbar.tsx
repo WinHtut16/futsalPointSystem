@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, ChevronLeft, User } from 'lucide-react'
+import { Calendar, ChevronLeft, TreePalm, User } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
@@ -20,6 +20,8 @@ const navItems = [
 // active/back/mobileTitle are derived from the current pathname so this
 // component never needs per-page props and never re-mounts on navigation.
 // initialFirstName seeds auth state server-side (no flash on first paint).
+// The logo and the "MyaThida Park" link lead back to the park landing at `/`;
+// the futsal pages are one stop in the park, not a dead end.
 export default function SiteNavbar({
   initialFirstName,
 }: {
@@ -79,11 +81,19 @@ export default function SiteNavbar({
     <>
       {/* Desktop */}
       <div className="hidden items-center justify-between border-b border-line bg-surface px-8 py-4 md:flex">
-        <Link href="/futsal" className="flex items-center gap-2.5">
-          <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={232} height={211} className="h-9 w-auto object-contain" />
+        <Link href="/" className="flex items-center gap-2.5" aria-label={t('park.nav.home')}>
+          <Image src="/logo_black.jpg" alt="" width={232} height={211} className="h-9 w-auto object-contain" />
           <span className="font-display text-[13px] font-bold tracking-widest text-ink-primary">MYA THIDA</span>
         </Link>
         <div className="flex items-center gap-7">
+          <Link
+            href="/"
+            className={`flex items-center gap-1.5 border-b-2 border-transparent pb-1.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink-primary ${my}`}
+          >
+            <TreePalm size={15} aria-hidden="true" />
+            {t('park.brand')}
+          </Link>
+          <span aria-hidden="true" className="h-4 w-px bg-line" />
           {navItems.map(({ k, href, key }) => (
             <Link
               key={k}
@@ -127,8 +137,16 @@ export default function SiteNavbar({
               <ChevronLeft size={18} />
             </button>
           ) : (
-            <Link href="/futsal">
-              <Image src="/logo_black.jpg" alt="Mya Thida Futsal" width={232} height={211} className="h-7 w-auto object-contain" />
+            <Link
+              href="/"
+              aria-label={t('booking.nav.backToPark')}
+              className="flex items-center gap-2 rounded-full border border-line py-1 pl-1 pr-3"
+            >
+              <Image src="/logo_black.jpg" alt="" width={232} height={211} className="h-7 w-auto object-contain" />
+              <span className={`flex items-center gap-1 text-xs font-semibold text-ink-primary ${my}`}>
+                <TreePalm size={13} aria-hidden="true" className="text-primary" />
+                {t('booking.nav.park')}
+              </span>
             </Link>
           )}
           {mobileTitle && (
