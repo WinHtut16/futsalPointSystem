@@ -332,6 +332,160 @@
       "contrast": 0.1,
       "vibrance": 0.08,
       "maxLong": 1600
+    },
+    {
+      "out": "gallery-pool-water.jpg",
+      "src": "park/pool_closeup.jpg",
+      "focus": [
+        0.5,
+        0.58
+      ],
+      "width": 0.95,
+      "aspect": [
+        4,
+        3
+      ],
+      "wb": 0.2,
+      "shadows": 0.15,
+      "highlights": 0.18,
+      "contrast": 0.12,
+      "vibrance": 0.12,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-pool-ladder.jpg",
+      "src": "park/close_up_pool_ladder.jpg",
+      "focus": [
+        0.6,
+        0.5
+      ],
+      "width": 0.6,
+      "aspect": [
+        4,
+        5
+      ],
+      "wb": 0.2,
+      "shadows": 0.2,
+      "highlights": 0.15,
+      "contrast": 0.12,
+      "vibrance": 0.1,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-poolside.jpg",
+      "src": "park/pool_side_restaurant.jpg",
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "width": 1.0,
+      "aspect": [
+        4,
+        3
+      ],
+      "wb": 0.2,
+      "shadows": 0.25,
+      "highlights": 0.15,
+      "contrast": 0.12,
+      "vibrance": 0.1,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-greens.jpg",
+      "src": "park/park_green.jpg",
+      "focus": [
+        0.55,
+        0.5
+      ],
+      "width": 0.6,
+      "aspect": [
+        4,
+        5
+      ],
+      "wb": 0.15,
+      "shadows": 0.15,
+      "highlights": 0.15,
+      "contrast": 0.1,
+      "vibrance": 0.08,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-evening-walk.jpg",
+      "src": "park/evening_park.jpg",
+      "focus": [
+        0.6,
+        0.45
+      ],
+      "width": 0.6,
+      "aspect": [
+        4,
+        5
+      ],
+      "wb": 0.1,
+      "shadows": 0.25,
+      "highlights": 0.12,
+      "contrast": 0.12,
+      "vibrance": 0.1,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-sunset-statue.jpg",
+      "src": "park/evening_park2.jpg",
+      "focus": [
+        0.62,
+        0.6
+      ],
+      "width": 0.75,
+      "aspect": [
+        4,
+        3
+      ],
+      "wb": 0.05,
+      "shadows": 0.25,
+      "highlights": 0.1,
+      "contrast": 0.1,
+      "vibrance": 0.1,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-futsal-night.jpg",
+      "src": "futsal/futsal_night.jpg",
+      "focus": [
+        0.5,
+        0.52
+      ],
+      "width": 0.95,
+      "aspect": [
+        4,
+        3
+      ],
+      "denoise": 4,
+      "wb": 0.15,
+      "shadows": 0.2,
+      "highlights": 0.15,
+      "contrast": 0.1,
+      "vibrance": 0.08,
+      "maxLong": 1600
+    },
+    {
+      "out": "gallery-lane-bluehour.jpg",
+      "src": "market_lane/market_lane_night.jpg",
+      "focus": [
+        0.42,
+        0.52
+      ],
+      "width": 0.6,
+      "aspect": [
+        4,
+        5
+      ],
+      "denoise": 5,
+      "wb": 0.1,
+      "shadows": 0.2,
+      "highlights": 0.2,
+      "contrast": 0.1,
+      "vibrance": 0.08,
+      "maxLong": 1600
     }
   ]
 }

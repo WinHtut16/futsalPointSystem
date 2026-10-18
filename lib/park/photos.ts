@@ -31,6 +31,14 @@ export const PHOTOS = {
   galleryPath: { file: '/images/park/gallery-path.jpg', ready: true, alt: 'park.photo.galleryPath', tone: 'mist', icon: 'trees' },
   galleryPlaza: { file: '/images/park/gallery-plaza.jpg', ready: true, alt: 'park.photo.galleryPlaza', tone: 'mist', icon: 'trees' },
   galleryMarket: { file: '/images/park/gallery-market.jpg', ready: true, alt: 'park.photo.galleryMarket', tone: 'night', icon: 'store' },
+  galleryPoolWater: { file: '/images/park/gallery-pool-water.jpg', ready: true, alt: 'park.photo.galleryPoolWater', tone: 'pool', icon: 'waves' },
+  galleryPoolLadder: { file: '/images/park/gallery-pool-ladder.jpg', ready: true, alt: 'park.photo.galleryPoolLadder', tone: 'pool', icon: 'waves' },
+  galleryPoolside: { file: '/images/park/gallery-poolside.jpg', ready: true, alt: 'park.photo.galleryPoolside', tone: 'sun', icon: 'utensils' },
+  galleryGreens: { file: '/images/park/gallery-greens.jpg', ready: true, alt: 'park.photo.galleryGreens', tone: 'jungle', icon: 'trees' },
+  galleryEveningWalk: { file: '/images/park/gallery-evening-walk.jpg', ready: true, alt: 'park.photo.galleryEveningWalk', tone: 'mist', icon: 'trees' },
+  gallerySunsetStatue: { file: '/images/park/gallery-sunset-statue.jpg', ready: true, alt: 'park.photo.gallerySunsetStatue', tone: 'sun', icon: 'trees' },
+  galleryFutsalNight: { file: '/images/park/gallery-futsal-night.jpg', ready: true, alt: 'park.photo.galleryFutsalNight', tone: 'jungle', icon: 'ball' },
+  galleryLaneBlueHour: { file: '/images/park/gallery-lane-bluehour.jpg', ready: true, alt: 'park.photo.galleryLaneBlueHour', tone: 'night', icon: 'store' },
 } satisfies Record<string, Photo>
 
 export type PhotoKey = keyof typeof PHOTOS

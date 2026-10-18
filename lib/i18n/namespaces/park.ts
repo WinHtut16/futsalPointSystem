@@ -71,8 +71,13 @@ export const parkEN = {
 
   // Gallery
   'park.gallery.title': 'Around the park',
-  'park.gallery.prev': 'Previous photos',
-  'park.gallery.next': 'Next photos',
+  'park.gallery.prev': 'Previous photo',
+  'park.gallery.next': 'Next photo',
+  'park.gallery.hint': 'Tap a photo to see it full size.',
+  'park.gallery.open': 'Open photo: {caption}',
+  'park.gallery.viewer': 'Photo viewer',
+  'park.gallery.count': '{n} / {total}',
+  'park.gallery.close': 'Close photo viewer',
 
   // Visit
   'park.visit.title': 'Come and see us',
@@ -204,6 +209,14 @@ export const parkEN = {
   'park.photo.galleryPath': 'Children on a garden path in the evening sun',
   'park.photo.galleryPlaza': 'Families in the park plaza at sunset',
   'park.photo.galleryMarket': 'A family walking along the market lane at night',
+  'park.photo.galleryPoolWater': 'Light on the water in the covered pool',
+  'park.photo.galleryPoolLadder': 'The pool ladder and tiled deck under the roof',
+  'park.photo.galleryPoolside': 'Families at the tables beside the pool',
+  'park.photo.galleryGreens': 'Palm fronds and lawns in the park garden',
+  'park.photo.galleryEveningWalk': 'An evening walk under the park trees',
+  'park.photo.gallerySunsetStatue': 'The sun setting behind the statue in the plaza',
+  'park.photo.galleryFutsalNight': 'An evening game under the futsal court lights',
+  'park.photo.galleryLaneBlueHour': 'The market lane lighting up at dusk',
 } as const
 
 export const parkMY: { [K in keyof typeof parkEN]: string } = {
@@ -273,8 +286,13 @@ export const parkMY: { [K in keyof typeof parkEN]: string } = {
   'park.day.evening.billiardsSee': 'စားပွဲများနှင့် ဈေးနှုန်း',
 
   'park.gallery.title': 'ပန်းခြံအနှံ့',
-  'park.gallery.prev': 'ယခင် ဓာတ်ပုံများ',
-  'park.gallery.next': 'နောက် ဓာတ်ပုံများ',
+  'park.gallery.prev': 'ယခင် ဓာတ်ပုံ',
+  'park.gallery.next': 'နောက် ဓာတ်ပုံ',
+  'park.gallery.hint': 'ပုံအကြီး ကြည့်ရန် ဓာတ်ပုံကို နှိပ်ပါ။',
+  'park.gallery.open': 'ဓာတ်ပုံဖွင့်ရန် - {caption}',
+  'park.gallery.viewer': 'ဓာတ်ပုံ ကြည့်ရှုရန်',
+  'park.gallery.count': '{n} / {total}',
+  'park.gallery.close': 'ဓာတ်ပုံ ကြည့်ရှုမှု ပိတ်ရန်',
 
   'park.visit.title': 'လာလည်ပါဦး',
   'park.visit.lead': 'လမ်းညွှန်၊ အဖွဲ့လိုက်လာရောက်ခြင်း သို့မဟုတ် ဤစာမျက်နှာတွင် မပါသည့် မေးခွန်းများအတွက် Viber မှ မေးမြန်းပါ။',
@@ -399,5 +417,13 @@ export const parkMY: { [K in keyof typeof parkEN]: string } = {
   'park.photo.galleryPath': 'ညနေနေရောင်အောက် ဥယျာဉ်လမ်းပေါ်ရှိ ကလေးများ',
   'park.photo.galleryPlaza': 'နေဝင်ချိန် ပန်းခြံ ရင်ပြင်ရှိ မိသားစုများ',
   'park.photo.galleryMarket': 'ညဘက် ဈေးတန်းတစ်လျှောက် လမ်းလျှောက်နေသော မိသားစု',
+  'park.photo.galleryPoolWater': 'အမိုးအောက် ရေကူးကန်ရေပြင်ပေါ်ရှိ အလင်းရောင်',
+  'park.photo.galleryPoolLadder': 'အမိုးအောက်ရှိ ရေကူးကန်လှေကားနှင့် ကြွေပြားခင်း',
+  'park.photo.galleryPoolside': 'ရေကူးကန်ဘေးရှိ စားပွဲများတွင် မိသားစုများ',
+  'park.photo.galleryGreens': 'ပန်းခြံဥယျာဉ်ရှိ ထန်းရွက်များနှင့် မြက်ခင်းများ',
+  'park.photo.galleryEveningWalk': 'ပန်းခြံ သစ်ပင်များအောက် ညနေခင်း လမ်းလျှောက်ခြင်း',
+  'park.photo.gallerySunsetStatue': 'ရင်ပြင်ရှိ ရုပ်တုနောက်ဘက်တွင် နေဝင်ခြင်း',
+  'park.photo.galleryFutsalNight': 'ဖူဆယ်ကွင်း မီးရောင်အောက် ညနေပွဲ',
+  'park.photo.galleryLaneBlueHour': 'မှောင်စပြုချိန် မီးလင်းလာသော ဈေးတန်း',
 
 }

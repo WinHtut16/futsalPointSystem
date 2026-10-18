@@ -590,3 +590,74 @@ li:hover > .arc-box {
   .park-float { animation: none; }
   .roll > span { transition: none; }
 }
+
+/* Gallery (components/park/home/Gallery.tsx): printed snapshots on the
+   night table. A print is the photo inside a white border with a soft
+   shadow. */
+.gp-print {
+  display: block;
+  padding: 7px;
+  background: #f7f3ea;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 32px rgb(0 0 0 / 0.38);
+  cursor: zoom-in;
+}
+.gp-print:focus-visible { outline: 3px solid rgb(var(--park-sun)); outline-offset: 3px; }
+
+/* Desktop scene: the section is tall, its content pins under the nav, and
+   --k (0 = in the pile, 1 = dealt out) moves each print. */
+.gp-scene { height: 300vh; }
+.gp-sticky {
+  position: sticky;
+  top: 72px;
+  height: calc(100vh - 72px);
+  display: flex;
+  flex-direction: column;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+.gp-stage { flex: 1; width: 100%; }
+.gp-print-scene {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  --k: 0;
+  translate:
+    calc(-50% + var(--px, 0px) + (var(--sx, 0px) - var(--px, 0px)) * var(--k))
+    calc(-50% + var(--py, 0px) + (var(--sy, 0px) - var(--py, 0px)) * var(--k));
+  rotate: calc(var(--pr, 0deg) + (var(--sr, 0deg) - var(--pr, 0deg)) * var(--k));
+  transition: scale 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms;
+}
+.gp-print-scene:hover,
+.gp-print-scene:focus-visible {
+  scale: 1.06;
+  z-index: 50 !important;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.3), 0 26px 50px rgb(0 0 0 / 0.5);
+}
+
+/* Phones / reduced motion: a scatter of prints, each a little askew. */
+.gp-print-grid {
+  width: 100%;
+  rotate: var(--gr, 0deg);
+  transition: rotate 300ms, scale 300ms;
+}
+.gp-print-grid:hover { rotate: 0deg; scale: 1.03; }
+@keyframes gp-drop {
+  from { opacity: 0; translate: 0 -40px; scale: 1.08; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+.gp-print-grid.is-armed { opacity: 0; }
+.gp-print-grid.is-armed.is-seen { animation: gp-drop 650ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Viewer */
+.gv::backdrop { background: rgb(5 12 20 / 0.94); }
+.gv[open] { animation: gv-in 220ms ease-out; }
+@keyframes gv-in { from { opacity: 0; } to { opacity: 1; } }
+.gv-photo { animation: gv-photo 260ms ease-out; }
+@keyframes gv-photo { from { opacity: 0; scale: 0.985; } to { opacity: 1; scale: 1; } }
+::view-transition-group(gallery-photo) { animation-duration: 420ms; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-print-grid, .gp-print-grid:hover { transition: none; scale: 1; }
+  .gv[open], .gv-photo { animation: none; }
+}
