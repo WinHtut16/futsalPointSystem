@@ -14,10 +14,11 @@ const SEATS: Seat[] = [
   ...GAME.ps5Screens.map((n) => ({ id: `tv${n}`, n, kind: 'ps5' as const })),
 ]
 
-const FILL = {
-  ps4: 'bg-[#3b5ba8] text-white',
-  ps5: 'bg-[#5b82e0] text-[#0a1a40]',
-  vip: 'bg-venue-amber text-[#1a1300]',
+// Each TV is a lit outline in its console's tube colour (arc-seat, park.css).
+const TUBE = {
+  ps4: 'tube-blue',
+  ps5: 'tube-cyan',
+  vip: 'tube-amber',
 }
 
 export default function GameFloor() {
@@ -37,9 +38,7 @@ export default function GameFloor() {
         aria-pressed={on}
         aria-label={`${label(s)}, ${consoleName(s)}`}
         onClick={() => setPicked(on ? null : s)}
-        className={`flex items-center justify-center rounded-xl font-bold transition-[transform,box-shadow] duration-200 motion-reduce:transition-none ${FILL[s.kind]} ${
-          on ? 'scale-[1.06] shadow-[0_0_0_3px_#0c1530,0_0_0_6px_rgb(var(--venue-game-amber))]' : 'hover:scale-[1.03]'
-        } ${extra}`}
+        className={`arc-seat arc-num flex items-center justify-center rounded-xl ${TUBE[s.kind]} ${extra}`}
       >
         {s.kind === 'vip' ? t('park.games.vip') : s.n}
       </button>
@@ -48,13 +47,13 @@ export default function GameFloor() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div role="group" aria-label={t('park.games.floorLabel')} className="flex flex-col gap-3 rounded-3xl border border-white/10 p-4 sm:p-5">
+      <div role="group" aria-label={t('park.games.floorLabel')} className="arc-floor flex flex-col gap-3 rounded-3xl p-4 sm:p-5">
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
           {SEATS.map((s) => seatBtn(s, 'aspect-[4/3] text-lg'))}
         </div>
-        {seatBtn({ id: 'vip', kind: 'vip' }, 'h-24 text-base')}
+        {seatBtn({ id: 'vip', kind: 'vip' }, 'h-24 text-xl')}
       </div>
-      <p aria-live="polite" className="min-h-[3em] text-[#b9c5e4]">
+      <p aria-live="polite" className="min-h-[3em] text-[rgb(var(--arc-muted))]">
         {picked
           ? t('park.games.selected', {
               seat: label(picked),

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import GamesContent from '@/components/park/venue/GamesContent'
+import { arcadeFontVar } from '@/lib/park/arcade-font'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/games' },
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 }
 
 export default function GamesPage() {
-  return <GamesContent />
+  // .arcade: the night-time neon theme, scoped to this page (park.css).
+  return (
+    <div className={`arcade ${arcadeFontVar}`}>
+      <GamesContent />
+    </div>
+  )
 }

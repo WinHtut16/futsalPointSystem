@@ -211,3 +211,200 @@ html[lang='my'] .park-display {
   .vi *, .sa-glow, .sa-star { animation: none !important; }
   .sa-sun, .sa-night { transition: none; }
 }
+
+/* ── ACJ Gaming (/games): the room at night ─────────────────────────────────
+   Neon-tube signage over LED-lit screens. Everything is scoped to .arcade so
+   the rest of the park stays daylit. Tubes: electric blue (PS4), cyan (PS5),
+   amber (VIP, the shop's own brand colour), magenta for the room's light. */
+.arcade {
+  --arc-ground: 9 8 22;
+  --arc-panel: 17 14 40;
+  --arc-blue: 122 112 255;
+  --arc-cyan: 72 228 255;
+  --arc-magenta: 255 76 200;
+  --arc-amber: var(--venue-game-amber);
+  --arc-text: 238 240 255;
+  --arc-muted: 184 190 226;
+  position: relative;
+  isolation: isolate;
+  background: rgb(var(--arc-ground));
+  color: rgb(var(--arc-text));
+}
+/* Faint CRT scanlines over the whole room. Purely decorative. */
+.arcade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.028) 0 1px, transparent 1px 3px);
+}
+.arc-hero {
+  background:
+    radial-gradient(60% 70% at 78% 45%, rgb(var(--arc-magenta) / 0.16), transparent 70%),
+    radial-gradient(45% 60% at 12% 30%, rgb(var(--arc-cyan) / 0.1), transparent 70%);
+}
+.arc-panel {
+  background: rgb(var(--arc-panel));
+}
+
+/* Sign type: the Tilt Neon face for Latin, the park's Burmese display face
+   otherwise. */
+.arc-font {
+  font-family: var(--font-arcade), var(--font-park-display-my), sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+html[lang='my'] .arc-font {
+  font-family: var(--font-park-display-my), var(--font-arcade), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.5;
+}
+
+/* Seat numbers and short Latin labels stay in the sign face in both
+   languages; any Burmese in them falls through to the Burmese face. */
+.arc-num {
+  font-family: var(--font-arcade), var(--font-park-display-my), sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* A lit tube: near-white core, coloured halo. --tube picks the gas. */
+.arc-sign {
+  --tube: var(--arc-cyan);
+  color: rgb(240 253 255);
+  text-shadow:
+    0 0 2px rgb(var(--tube) / 0.9),
+    0 0 10px rgb(var(--tube) / 0.7),
+    0 0 28px rgb(var(--tube) / 0.45),
+    0 0 64px rgb(var(--tube) / 0.25);
+}
+.arc-sign-soft {
+  --tube: var(--arc-cyan);
+  color: rgb(var(--arc-text));
+  text-shadow: 0 0 8px rgb(var(--tube) / 0.55), 0 0 26px rgb(var(--tube) / 0.25);
+}
+/* Halos blur Burmese stacked vowels; keep them tighter. */
+html[lang='my'] .arc-sign {
+  text-shadow: 0 0 6px rgb(var(--tube) / 0.6), 0 0 22px rgb(var(--tube) / 0.3);
+}
+html[lang='my'] .arc-sign-soft {
+  text-shadow: 0 0 10px rgb(var(--tube) / 0.3);
+}
+/* Scoped under .arcade so they outrank each component's default tube. */
+.arcade .tube-blue { --tube: var(--arc-blue); }
+.arcade .tube-cyan { --tube: var(--arc-cyan); }
+.arcade .tube-magenta { --tube: var(--arc-magenta); }
+.arcade .tube-amber { --tube: var(--arc-amber); }
+
+/* A screen with its backlight on: a thin lit edge and a soft spill. */
+.arc-screen {
+  --tube: var(--arc-magenta);
+  box-shadow:
+    0 0 0 1.5px rgb(var(--tube) / 0.85),
+    0 0 22px rgb(var(--tube) / 0.4),
+    0 0 90px rgb(var(--tube) / 0.22);
+}
+
+/* Prices read like LED segment displays. */
+.arc-led {
+  color: rgb(var(--arc-amber));
+  text-shadow: 0 0 10px rgb(var(--arc-amber) / 0.45);
+}
+
+/* Buttons */
+.arc-btn-primary {
+  background: rgb(var(--arc-amber));
+  color: #1a1300;
+  box-shadow: 0 0 0 1px rgb(255 230 170 / 0.6) inset, 0 0 26px rgb(var(--arc-amber) / 0.45);
+  transition: box-shadow 200ms ease-out, background-color 200ms ease-out;
+}
+.arc-btn-primary:hover {
+  background: #ffd27a;
+  box-shadow: 0 0 0 1px rgb(255 240 200 / 0.8) inset, 0 0 40px rgb(var(--arc-amber) / 0.65);
+}
+.arc-btn-ghost {
+  border: 1.5px solid rgb(var(--arc-cyan) / 0.85);
+  color: rgb(225 250 255);
+  box-shadow: 0 0 14px rgb(var(--arc-cyan) / 0.25), 0 0 10px rgb(var(--arc-cyan) / 0.15) inset;
+  transition: box-shadow 200ms ease-out, background-color 200ms ease-out;
+}
+.arc-btn-ghost:hover {
+  background: rgb(var(--arc-cyan) / 0.1);
+  box-shadow: 0 0 26px rgb(var(--arc-cyan) / 0.45), 0 0 14px rgb(var(--arc-cyan) / 0.25) inset;
+}
+
+/* Floor plan: every TV is a lit outline in its console's colour. */
+.arc-floor {
+  border: 1px solid rgb(var(--arc-cyan) / 0.22);
+  background: rgb(var(--arc-ground) / 0.6);
+  box-shadow: 0 0 40px rgb(var(--arc-blue) / 0.12) inset;
+}
+.arc-seat {
+  --tube: var(--arc-blue);
+  border: 2px solid rgb(var(--tube) / 0.9);
+  background: rgb(var(--tube) / 0.08);
+  color: rgb(var(--arc-text));
+  text-shadow: 0 0 8px rgb(var(--tube) / 0.8);
+  box-shadow: 0 0 12px rgb(var(--tube) / 0.35), 0 0 12px rgb(var(--tube) / 0.18) inset;
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease-out, background-color 200ms ease-out;
+}
+.arc-seat:hover {
+  background: rgb(var(--tube) / 0.16);
+  box-shadow: 0 0 22px rgb(var(--tube) / 0.55), 0 0 14px rgb(var(--tube) / 0.25) inset;
+}
+.arc-seat[aria-pressed='true'] {
+  background: rgb(var(--tube) / 0.28);
+  box-shadow: 0 0 0 2px rgb(var(--arc-ground)), 0 0 0 4px rgb(var(--tube)), 0 0 36px rgb(var(--tube) / 0.7);
+  transform: scale(1.05);
+}
+.arc-swatch {
+  border: 2px solid rgb(var(--tube));
+  box-shadow: 0 0 8px rgb(var(--tube) / 0.7);
+}
+
+/* Closing band as a marquee: a row of bulbs chasing along each edge. */
+.arc-marquee {
+  position: relative;
+  background: rgb(var(--arc-amber));
+  color: #1a1300;
+}
+.arc-marquee::before,
+.arc-marquee::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  height: 10px;
+  background: radial-gradient(circle, rgb(255 250 225) 0 2.5px, rgb(255 250 225 / 0) 3.5px) 0 50% / 18px 10px repeat-x;
+  filter: drop-shadow(0 0 3px rgb(255 240 190));
+  animation: arc-chase 1.2s steps(3) infinite;
+}
+.arc-marquee::before { top: 4px; }
+.arc-marquee::after { bottom: 4px; animation-direction: reverse; }
+@keyframes arc-chase {
+  to { background-position: 18px 50%; }
+}
+
+/* The sign switching on: a few stutters, then steady. Starts partly lit so a
+   paused animation (background tab, headless capture) still reads. */
+@keyframes arc-flicker {
+  0% { opacity: 0.35; }
+  6% { opacity: 1; }
+  9% { opacity: 0.4; }
+  13% { opacity: 1; }
+  24% { opacity: 0.55; }
+  27%, 100% { opacity: 1; }
+}
+.arc-flicker {
+  animation: arc-flicker 1.6s steps(1, end) 250ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arc-flicker,
+  .arc-marquee::before,
+  .arc-marquee::after { animation: none; }
+  .arc-seat,
+  .arc-btn-primary,
+  .arc-btn-ghost { transition: none; }
+  .arc-seat[aria-pressed='true'] { transform: none; }
+}

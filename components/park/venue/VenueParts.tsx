@@ -34,6 +34,8 @@ export function VenueHero({
   primary,
   secondary,
   glow,
+  sectionClass = '',
+  titleClass = 'park-rise park-display',
 }: {
   theme: Theme
   title: TranslationKey
@@ -46,10 +48,14 @@ export function VenueHero({
   primary: { href: string; label: TranslationKey }
   secondary: { href: string; label: TranslationKey }
   glow: string // shadow class: the room's light spilling around the photo
+  /** Extra classes on the hero band (e.g. an ambient light wash). */
+  sectionClass?: string
+  /** Face and entrance for the title; defaults to the park display serif. */
+  titleClass?: string
 }) {
   const { t, lang } = useLanguage()
   return (
-    <section className={theme.ground}>
+    <section className={`${theme.ground} ${sectionClass}`}>
       <div className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 pb-20 pt-10 md:px-8 md:pt-14 lg:grid-cols-2 lg:gap-14">
         <div className="flex flex-col gap-6">
           {badge && (
@@ -58,7 +64,7 @@ export function VenueHero({
             </div>
           )}
           <h1
-            className={`park-rise park-display ${
+            className={`${titleClass} ${
               lang === 'my' ? 'text-[34px] sm:text-5xl' : 'max-w-[14ch] text-[44px] leading-[1.03] sm:text-6xl lg:text-[68px]'
             }`}
             style={{ animationDelay: '100ms' }}

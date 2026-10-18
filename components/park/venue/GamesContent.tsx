@@ -7,16 +7,20 @@ import GameFloor from './GameFloor'
 import ParkPhoto from '../ParkPhoto'
 import { MenuList, PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
 
-// Console blue with amber, the game shop's own colours from its admin system.
+// The room at night: neon-tube signs over LED-lit screens (the .arcade and
+// arc-* classes in park.css; the page wrapper in app/(park)/games/page.tsx
+// sets .arcade). Amber stays the shop's own brand colour.
 const theme: Theme = {
-  ground: 'bg-[#0c1530] text-[#e8edfa]',
-  panel: 'bg-[#111d40]',
-  muted: 'text-[#b9c5e4]',
-  accent: 'text-venue-amber',
-  rule: 'divide-white/15 border-white/15',
-  primaryBtn: 'bg-venue-amber text-[#1a1300] hover:bg-[#ffd27a]',
-  secondaryBtn: 'border-[1.5px] border-[#5b82e0] text-[#e8edfa] hover:bg-white/10',
+  ground: 'text-[rgb(var(--arc-text))]',
+  panel: 'arc-panel',
+  muted: 'text-[rgb(var(--arc-muted))]',
+  accent: 'arc-led',
+  rule: 'divide-white/10 border-white/10',
+  primaryBtn: 'arc-btn-primary',
+  secondaryBtn: 'arc-btn-ghost',
 }
+
+const h2 = 'arc-font arc-sign-soft text-[36px] leading-[1.1] md:text-[46px]'
 
 export default function GamesContent() {
   const { t, lang } = useLanguage()
@@ -31,20 +35,22 @@ export default function GamesContent() {
         photo="gameRoom"
         primary={{ href: '#rates', label: 'park.games.ctaRates' }}
         secondary={{ href: PARK.viberUrl, label: 'park.games.ctaVip' }}
-        glow="shadow-[0_30px_90px_rgb(47_95_208/0.4)]"
+        glow="arc-screen"
+        sectionClass="arc-hero"
+        titleClass="arc-font arc-sign tube-cyan arc-flicker"
       />
 
-      <section aria-labelledby="games-floor" className={`${theme.panel} py-20 text-[#e8edfa] md:py-24`}>
+      <section aria-labelledby="games-floor" className={`${theme.panel} py-20 md:py-24`}>
         <div className="mx-auto grid max-w-[1200px] items-start gap-10 px-4 md:px-8 lg:grid-cols-[5fr_7fr] lg:gap-14">
           <div className="flex flex-col gap-4">
-            <h2 id="games-floor" className="park-display text-[34px] leading-[1.1] md:text-[42px]">
+            <h2 id="games-floor" className={`${h2} tube-cyan`}>
               {t('park.games.floorTitle')}
             </h2>
             <p className={`max-w-[42ch] text-[17px] leading-relaxed ${theme.muted}`}>{t('park.games.floorBody')}</p>
             <ul className="flex flex-wrap gap-5 pt-1 text-[15px]" aria-hidden="true">
-              <li className="flex items-center gap-2"><span className="h-3.5 w-3.5 rounded bg-[#3b5ba8]" />{t('park.games.ps4')}</li>
-              <li className="flex items-center gap-2"><span className="h-3.5 w-3.5 rounded bg-[#5b82e0]" />{t('park.games.ps5')}</li>
-              <li className="flex items-center gap-2"><span className="h-3.5 w-3.5 rounded bg-venue-amber" />{t('park.games.vip')}</li>
+              <li className="flex items-center gap-2"><span className="arc-swatch tube-blue h-3.5 w-3.5 rounded" />{t('park.games.ps4')}</li>
+              <li className="flex items-center gap-2"><span className="arc-swatch tube-cyan h-3.5 w-3.5 rounded" />{t('park.games.ps5')}</li>
+              <li className="flex items-center gap-2"><span className="arc-swatch tube-amber h-3.5 w-3.5 rounded" />{t('park.games.vip')}</li>
             </ul>
           </div>
           <GameFloor />
@@ -56,15 +62,15 @@ export default function GamesContent() {
           <ParkPhoto
             photo="gameVip"
             sizes="(min-width: 1024px) 680px, 92vw"
-            className="aspect-[4/3] rounded-[28px] shadow-[0_30px_90px_rgb(242_184_75/0.18)]"
+            className="arc-screen tube-amber aspect-[4/3] rounded-[28px]"
           />
           <div className="flex flex-col gap-5">
-            <ParkPhoto photo="gameControllers" sizes="(min-width: 1024px) 460px, 92vw" className="hidden aspect-[4/3] rounded-[22px] lg:block" />
-            <h2 id="games-vip" className="park-display text-[34px] leading-[1.1] md:text-[42px]">
+            <ParkPhoto photo="gameControllers" sizes="(min-width: 1024px) 460px, 92vw" className="arc-screen tube-cyan hidden aspect-[4/3] rounded-[22px] lg:block" />
+            <h2 id="games-vip" className={`${h2} tube-amber`}>
               {t('park.games.vipTitle')}
             </h2>
             <p className={`max-w-[40ch] text-[17px] leading-relaxed ${theme.muted}`}>{t('park.games.vipBody')}</p>
-            <p className="font-semibold text-venue-amber">{t('park.venue.perHour', { price: n(GAME.rates.vip) })}</p>
+            <p className="arc-led text-lg font-semibold">{t('park.venue.perHour', { price: n(GAME.rates.vip) })}</p>
           </div>
         </div>
       </section>
@@ -72,7 +78,7 @@ export default function GamesContent() {
       <section id="rates" className={`${theme.ground} scroll-mt-32 py-20 md:py-24`}>
         <div className="mx-auto grid max-w-[1200px] items-start gap-14 px-4 md:px-8 lg:grid-cols-2">
           <div className="flex flex-col gap-5">
-            <h2 className="park-display text-[34px] md:text-[42px]">{t('park.games.ratesTitle')}</h2>
+            <h2 className={`${h2} tube-magenta`}>{t('park.games.ratesTitle')}</h2>
             <PriceRows
               theme={theme}
               rows={[
@@ -81,20 +87,20 @@ export default function GamesContent() {
                 ['park.games.rateVip', GAME.rates.vip],
               ]}
             />
-            <p className="text-[15px] leading-relaxed text-[#9aa9cf]">
+            <p className={`text-[15px] leading-relaxed ${theme.muted}`}>
               {t('park.games.rules', { min: n(GAME.minimumMinutes), block: n(GAME.blockMinutes), grace: n(GAME.graceMinutes) })}
             </p>
           </div>
           <div className="flex flex-col gap-5">
-            <h2 className="park-display text-[34px] md:text-[42px]">{t('park.games.snacksTitle')}</h2>
+            <h2 className={`${h2} tube-blue`}>{t('park.games.snacksTitle')}</h2>
             <MenuList theme={theme} items={GAME.snacks} />
-            <p className="text-sm text-[#9aa9cf]">{t('park.venue.prices')}</p>
+            <p className={`text-sm ${theme.muted}`}>{t('park.venue.prices')}</p>
           </div>
         </div>
       </section>
 
       <VenueStrip
-        band="bg-venue-amber text-[#1a1300]"
+        band="arc-marquee"
         hours={HOURS.games}
         also={{ href: '/billiards', label: 'park.games.alsoBilliards' }}
       />
