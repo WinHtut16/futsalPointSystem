@@ -32,11 +32,14 @@ export default function ParkPhoto({
   className = '',
   sizes,
   priority = false,
+  children,
 }: {
   photo: PhotoKey
   className?: string
   sizes: string
   priority?: boolean
+  /** Drawn over the image, inside the rounded frame (e.g. LivePhoto's sheen). */
+  children?: React.ReactNode
 }) {
   const { t } = useLanguage()
   const p = PHOTOS[photo]
@@ -48,6 +51,7 @@ export default function ParkPhoto({
     return (
       <div className={`${pos} overflow-hidden ${className}`}>
         <Image src={p.file} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
+        {children}
       </div>
     )
   }
@@ -56,6 +60,7 @@ export default function ParkPhoto({
   return (
     <div role="img" aria-label={alt} className={`${pos} flex items-center justify-center overflow-hidden ${TONE[p.tone]} ${className}`}>
       <Icon aria-hidden="true" strokeWidth={1.25} className="h-1/4 w-1/4 max-h-24 max-w-24" />
+      {children}
       {process.env.NODE_ENV === 'development' && (
         <span className="absolute bottom-2 left-2 rounded bg-white/85 px-2 py-0.5 font-mono text-[11px] text-park-ink">
           {p.file}

@@ -521,3 +521,72 @@ li:hover > .arc-box {
   .day-sky { transition: opacity 200ms; transform: none; }
   .day-sky-clock { animation: none; }
 }
+
+/* LivePhoto (components/park/LivePhoto.tsx): reveal, depth drift, hover
+   tilt with a scene-coloured light. Individual transform properties
+   (translate / scale / rotate) so the effects stack without fighting. */
+.lp {
+  perspective: 1100px;
+  --lp-light: 255 236 200;
+}
+.lp[data-light='water'] { --lp-light: 160 236 255; }
+.lp[data-light='warm'] { --lp-light: 255 214 150; }
+.lp[data-light='lights'] { --lp-light: 255 196 110; }
+
+.lp-frame {
+  transform: rotateX(var(--lp-rx, 0deg)) rotateY(var(--lp-ry, 0deg));
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1), clip-path 1100ms cubic-bezier(0.65, 0, 0.25, 1);
+  will-change: transform;
+}
+.lp.is-tilting .lp-frame { transition: transform 160ms ease-out, clip-path 1100ms cubic-bezier(0.65, 0, 0.25, 1); }
+.lp-frame img {
+  translate: 0 var(--lp-y, 0px);
+  scale: 1.1;
+  transition: scale 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Wipe open from the bottom, image settling from a closer zoom. */
+.lp.is-armed .lp-frame { clip-path: inset(100% 0 0 0); }
+.lp.is-armed .lp-frame img { scale: 1.32; }
+.lp.is-armed.is-seen .lp-frame { clip-path: inset(0 0 0 0); }
+.lp.is-armed.is-seen .lp-frame img { scale: 1.1; }
+
+.lp-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle at var(--lp-mx, 50%) var(--lp-my, 50%),
+    rgb(var(--lp-light) / 0.85) 0,
+    rgb(var(--lp-light) / 0.3) 26%,
+    transparent 60%
+  );
+  mix-blend-mode: soft-light;
+  transition: opacity 350ms ease-out;
+}
+.lp.is-tilting .lp-sheen { opacity: 1; }
+/* The night lane's light reads as a glow, not a tint. */
+.lp[data-light='lights'] .lp-sheen { mix-blend-mode: screen; }
+.lp[data-light='lights'].is-tilting .lp-sheen { opacity: 0.7; }
+
+/* Hero: the round night-market photo floats once it has popped in. */
+@keyframes park-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -7px; }
+}
+.park-float { animation: park-pop 700ms cubic-bezier(0.16, 1, 0.3, 1) 900ms both, park-float 6s ease-in-out 1.8s infinite; }
+
+/* Section times roll up into place the first time they come into view. */
+.roll { display: inline-block; overflow: hidden; vertical-align: bottom; padding-block: 0.06em; margin-block: -0.06em; }
+.roll > span { display: inline-block; transition: translate 900ms cubic-bezier(0.16, 1, 0.3, 1); }
+.roll.is-armed > span { translate: 0 105%; }
+.roll.is-armed.is-seen > span { translate: 0 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-frame { transform: none; transition: none; will-change: auto; }
+  .lp-frame img { translate: none; scale: 1; transition: none; }
+  .lp-sheen { display: none; }
+  .park-float { animation: none; }
+  .roll > span { transition: none; }
+}

@@ -61,7 +61,7 @@ export default function Hero() {
           <ParkPhoto
             photo="heroMarket"
             sizes="240px"
-            className="park-pop absolute -bottom-6 left-0 aspect-square w-[38%] rounded-full border-8 border-park-mist sm:-left-8 lg:-left-10 lg:bottom-14"
+            className="park-float absolute -bottom-6 left-0 aspect-square w-[38%] rounded-full border-8 border-park-mist sm:-left-8 lg:-left-10 lg:bottom-14"
           />
         </div>
       </div>

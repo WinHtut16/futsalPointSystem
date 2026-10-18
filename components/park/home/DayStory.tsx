@@ -7,7 +7,8 @@ import type { TranslationKey } from '@/lib/i18n'
 import { FUTSAL_RATES, GAME, BILLIARDS, HOURS, billiardsOpening } from '@/lib/park/content'
 import { formatAmount, formatHour } from '@/lib/park/time'
 import type { PhotoKey } from '@/lib/park/photos'
-import ParkPhoto from '../ParkPhoto'
+import LivePhoto, { type PhotoLight } from '../LivePhoto'
+import RollIn from '../RollIn'
 import VenueIcon, { type VenueIconKind } from '../VenueIcon'
 import OpeningBadge from '../OpeningBadge'
 import { TableSvg } from '../venue/BreakTable'
@@ -38,12 +39,15 @@ function Moment({
   photo,
   icon,
   hour,
+  light,
   reverse = false,
   children,
 }: {
   id?: string
   /** Clock hour this moment stands for; DaySky anchors the sun to it. */
   hour: number
+  /** Colour of the light that follows the pointer over the photo. */
+  light: PhotoLight
   icon: VenueIconKind
   time: TranslationKey
   timeClass: string
@@ -69,16 +73,18 @@ function Moment({
       <div className={`flex flex-col gap-5 ${reverse ? 'lg:order-2' : ''}`}>
         <div className="flex items-center gap-4">
           <VenueIcon kind={icon} hover={hover} />
-          <p data-day-hour={hour} className={`park-display text-6xl leading-none md:text-[84px] ${timeClass}`}>{t(time)}</p>
+          <p data-day-hour={hour} className={`park-display text-6xl leading-none md:text-[84px] ${timeClass}`}><RollIn>{t(time)}</RollIn></p>
         </div>
         <h2 className={`park-display max-w-[18ch] text-[34px] leading-[1.1] md:text-[42px] ${titleClass}`}>{t(title)}</h2>
         <p className={`max-w-[44ch] text-[17px] leading-relaxed ${bodyClass}`}>{body}</p>
         {children}
       </div>
-      <ParkPhoto
+      <LivePhoto
         photo={photo}
+        light={light}
         sizes="(min-width: 1024px) 680px, 92vw"
-        className={`aspect-[16/11] rounded-[28px] ${reverse ? 'lg:order-1' : ''}`}
+        wrapClass={reverse ? 'lg:order-1' : ''}
+        className="aspect-[16/11] rounded-[28px]"
       />
     </div>
   )
@@ -111,6 +117,7 @@ export default function DayStory() {
           photo="poolSwim"
           icon="pool"
           hour={8}
+          light="water"
         />
         <div className="h-24 md:h-32" />
         <Moment
@@ -121,6 +128,7 @@ export default function DayStory() {
           photo="poolDining"
           icon="food"
           hour={12.5}
+          light="warm"
           reverse
         />
       </section>
@@ -143,6 +151,7 @@ export default function DayStory() {
           photo="futsal"
           icon="futsal"
           hour={16}
+          light="warm"
         >
           <dl className="max-w-[440px] divide-y divide-venue-futsal/15 text-base">
             {rates.map(([label, price]) => (
@@ -177,7 +186,7 @@ export default function DayStory() {
         <div className="mx-auto flex max-w-[1200px] flex-col gap-12 px-4 md:px-8">
           <div className="flex max-w-[640px] flex-col gap-4">
             <p data-day-hour={19.5} className="park-display text-6xl leading-none text-park-sun md:text-[84px]">
-              {t('park.day.evening.time')}
+              <RollIn>{t('park.day.evening.time')}</RollIn>
             </p>
             <h2 id="park-evening" className="park-display text-[34px] leading-[1.1] md:text-[42px]">
               {t('park.day.evening.title')}
@@ -191,7 +200,7 @@ export default function DayStory() {
             <VenueCard
               href="/games"
               icon="games"
-              media={<ParkPhoto photo="gameRoom" sizes="(min-width: 768px) 560px, 92vw" className="aspect-[16/9] rounded-[18px]" />}
+              media={<LivePhoto photo="gameRoom" light="lights" sizes="(min-width: 768px) 560px, 92vw" className="aspect-[16/9] rounded-[18px]" />}
               title={t('park.day.evening.gamesTitle')}
               body={t('park.day.evening.gamesBody')}
               meta={t('park.day.evening.gamesFrom', { price: mmk(GAME.rates.ps4) })}
@@ -243,7 +252,7 @@ function MarketLane() {
       onPointerLeave={() => setHover(false)}
       className="grid items-center gap-6 rounded-[28px] bg-[#162440] p-5 md:grid-cols-[7fr_5fr] md:gap-10 md:p-6"
     >
-      <ParkPhoto photo="marketLane" sizes="(min-width: 768px) 640px, 92vw" className="aspect-[16/9] rounded-[18px]" />
+      <LivePhoto photo="marketLane" light="lights" sizes="(min-width: 768px) 640px, 92vw" className="aspect-[16/9] rounded-[18px]" />
       <div className="flex flex-col gap-3">
         <h3 className="park-display flex items-center gap-3 text-3xl">
           <VenueIcon kind="market" hover={hover} size={44} />
