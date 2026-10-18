@@ -198,6 +198,8 @@ html[lang='my'] .park-display {
 @keyframes vi-breathe { 0%, 100% { transform: none; } 50% { transform: scale(1.12); } }
 @keyframes vi-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 .sa-sun { transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1), opacity 400ms; }
+/* Scroll-driven (DaySky): keep up with the finger, just take the edge off. */
+.sa-sun.sa-scrub { transition: transform 140ms linear, opacity 400ms; }
 .sa-glow { transform-box: fill-box; transform-origin: center; animation: vi-breathe 2.5s ease-in-out infinite; }
 .sa-night { transition: opacity 400ms; }
 .sa-star { animation: vi-twinkle 3s ease-in-out infinite; }
@@ -493,4 +495,29 @@ li:hover > .arc-box {
   .arc-btn-ghost { transition: none; }
   li:hover > .arc-box { transform: none; }
   .arc-seat[aria-pressed='true'] { transform: none; }
+}
+
+/* DaySky (components/park/home/DaySky.tsx): the pinned sun badge that rides
+   the day as you scroll the landing. Slides in at 8:00, out at the gallery;
+   the clock rolls up to each new section's time. */
+.day-sky {
+  opacity: 0;
+  transform: scale(0.94);
+  transition: opacity 300ms ease-out, transform 400ms cubic-bezier(0.16, 1, 0.3, 1), background-color 500ms, color 500ms;
+}
+.day-sky.is-in {
+  opacity: 1;
+  transform: none;
+}
+@keyframes day-sky-roll {
+  from { opacity: 0; transform: translateY(60%); }
+  to { opacity: 1; transform: none; }
+}
+.day-sky-clock {
+  display: inline-block;
+  animation: day-sky-roll 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .day-sky { transition: opacity 200ms; transform: none; }
+  .day-sky-clock { animation: none; }
 }

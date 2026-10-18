@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n'
@@ -11,6 +11,7 @@ import ParkPhoto from '../ParkPhoto'
 import VenueIcon, { type VenueIconKind } from '../VenueIcon'
 import OpeningBadge from '../OpeningBadge'
 import { TableSvg } from '../venue/BreakTable'
+import DaySky from './DaySky'
 
 // The landing's spine: one real day at the park, morning to night. Each
 // stretch of the day has its own ground colour, and a horizon band blends
@@ -36,10 +37,13 @@ function Moment({
   bodyClass = 'text-park-ink-soft',
   photo,
   icon,
+  hour,
   reverse = false,
   children,
 }: {
   id?: string
+  /** Clock hour this moment stands for; DaySky anchors the sun to it. */
+  hour: number
   icon: VenueIconKind
   time: TranslationKey
   timeClass: string
@@ -65,7 +69,7 @@ function Moment({
       <div className={`flex flex-col gap-5 ${reverse ? 'lg:order-2' : ''}`}>
         <div className="flex items-center gap-4">
           <VenueIcon kind={icon} hover={hover} />
-          <p className={`park-display text-6xl leading-none md:text-[84px] ${timeClass}`}>{t(time)}</p>
+          <p data-day-hour={hour} className={`park-display text-6xl leading-none md:text-[84px] ${timeClass}`}>{t(time)}</p>
         </div>
         <h2 className={`park-display max-w-[18ch] text-[34px] leading-[1.1] md:text-[42px] ${titleClass}`}>{t(title)}</h2>
         <p className={`max-w-[44ch] text-[17px] leading-relaxed ${bodyClass}`}>{body}</p>
@@ -82,6 +86,7 @@ function Moment({
 
 export default function DayStory() {
   const { t, lang } = useLanguage()
+  const story = useRef<HTMLDivElement>(null)
   const futsal = HOURS.futsal
   const mmk = (n: number) => formatAmount(n, lang)
 
@@ -92,7 +97,8 @@ export default function DayStory() {
   ]
 
   return (
-    <div aria-label={t('park.day.label')} role="region">
+    <div ref={story} aria-label={t('park.day.label')} role="region">
+      <DaySky root={story} />
       <Horizon from="--park-mist" to="--park-noon" />
 
       <section className="bg-park-noon pb-24 md:pb-32">
@@ -104,6 +110,7 @@ export default function DayStory() {
           body={t('park.day.morning.body')}
           photo="poolSwim"
           icon="pool"
+          hour={8}
         />
         <div className="h-24 md:h-32" />
         <Moment
@@ -113,6 +120,7 @@ export default function DayStory() {
           body={t('park.day.noon.body')}
           photo="poolDining"
           icon="food"
+          hour={12.5}
           reverse
         />
       </section>
@@ -134,6 +142,7 @@ export default function DayStory() {
           bodyClass="text-[#3a3a24]"
           photo="futsal"
           icon="futsal"
+          hour={16}
         >
           <dl className="max-w-[440px] divide-y divide-venue-futsal/15 text-base">
             {rates.map(([label, price]) => (
@@ -167,7 +176,9 @@ export default function DayStory() {
       <section id="evening" aria-labelledby="park-evening" className="scroll-mt-32 bg-park-dusk pb-24 text-[#eaf0f7] md:pb-28">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-12 px-4 md:px-8">
           <div className="flex max-w-[640px] flex-col gap-4">
-            <p className="park-display text-6xl leading-none text-park-sun md:text-[84px]">{t('park.day.evening.time')}</p>
+            <p data-day-hour={19.5} className="park-display text-6xl leading-none text-park-sun md:text-[84px]">
+              {t('park.day.evening.time')}
+            </p>
             <h2 id="park-evening" className="park-display text-[34px] leading-[1.1] md:text-[42px]">
               {t('park.day.evening.title')}
             </h2>
