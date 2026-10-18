@@ -3,7 +3,9 @@
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { GAME, HOURS, PARK } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
+import type { GameBoard } from '@/lib/park/game-board'
 import GameFloor from './GameFloor'
+import { useGameBoard } from './useGameBoard'
 import ParkPhoto from '../ParkPhoto'
 import { MenuList, PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
 
@@ -22,9 +24,23 @@ const theme: Theme = {
 
 const h2 = 'arc-font arc-sign-soft text-[36px] leading-[1.1] md:text-[46px]'
 
-export default function GamesContent() {
+export default function GamesContent({ initialBoard }: { initialBoard: GameBoard | null }) {
   const { t, lang } = useLanguage()
   const n = (x: number) => formatAmount(x, lang)
+  // Live TVs and rates from the game shop's admin; static content.ts values
+  // stand in whenever the board is unavailable or stale.
+  const { board, now } = useGameBoard(initialBoard)
+  const rates = board?.rates ?? null
+  const price = {
+    ps4: rates?.ps4 ?? GAME.rates.ps4,
+    ps5: rates?.ps5 ?? GAME.rates.ps5,
+    vip: rates?.vip ?? GAME.rates.vip,
+  }
+  const rules = {
+    min: rates?.minMinutes ?? GAME.minimumMinutes,
+    block: rates?.stepMinutes ?? GAME.blockMinutes,
+    grace: rates?.graceMinutes ?? GAME.graceMinutes,
+  }
 
   return (
     <>
@@ -53,7 +69,7 @@ export default function GamesContent() {
               <li className="flex items-center gap-2"><span className="arc-swatch tube-amber h-3.5 w-3.5 rounded" />{t('park.games.vip')}</li>
             </ul>
           </div>
-          <GameFloor />
+          <GameFloor board={board} rates={rates} now={now} />
         </div>
       </section>
 
@@ -70,7 +86,7 @@ export default function GamesContent() {
               {t('park.games.vipTitle')}
             </h2>
             <p className={`max-w-[40ch] text-[17px] leading-relaxed ${theme.muted}`}>{t('park.games.vipBody')}</p>
-            <p className="arc-led text-lg font-semibold">{t('park.venue.perHour', { price: n(GAME.rates.vip) })}</p>
+            <p className="arc-led text-lg font-semibold">{t('park.venue.perHour', { price: n(price.vip) })}</p>
           </div>
         </div>
       </section>
@@ -82,13 +98,13 @@ export default function GamesContent() {
             <PriceRows
               theme={theme}
               rows={[
-                ['park.games.ratePs4', GAME.rates.ps4],
-                ['park.games.ratePs5', GAME.rates.ps5],
-                ['park.games.rateVip', GAME.rates.vip],
+                ['park.games.ratePs4', price.ps4],
+                ['park.games.ratePs5', price.ps5],
+                ['park.games.rateVip', price.vip],
               ]}
             />
             <p className={`text-[15px] leading-relaxed ${theme.muted}`}>
-              {t('park.games.rules', { min: n(GAME.minimumMinutes), block: n(GAME.blockMinutes), grace: n(GAME.graceMinutes) })}
+              {t('park.games.rules', { min: n(rules.min), block: n(rules.block), grace: n(rules.grace) })}
             </p>
           </div>
           <div className="flex flex-col gap-5">

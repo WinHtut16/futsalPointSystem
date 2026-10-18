@@ -49,12 +49,14 @@ export const FUTSAL_RATES = {
 /** Game shop, from MyaThida_Game/supabase/seed.sql. */
 export const GAME = {
   screens: 9,
-  ps4Screens: [1, 2, 3, 4, 5, 6, 7],
-  ps5Screens: [8, 9],
+  // Fallback only: /games reads the live split and rates from the game
+  // admin (lib/park/game-board.server.ts). Matches the admin on 2026-10-18.
+  ps4Screens: [1, 2, 3, 4, 5],
+  ps5Screens: [6, 7, 8, 9],
   rates: { ps4: 3000, ps5: 5000, vip: 7000 },
   minimumMinutes: 30,
-  blockMinutes: 10,
-  graceMinutes: 5,
+  blockMinutes: 30,
+  graceMinutes: 10,
   snacks: [
     { key: 'coke', price: 1000 },
     { key: 'energyDrink', price: 2000 },

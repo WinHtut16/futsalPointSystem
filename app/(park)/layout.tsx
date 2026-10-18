@@ -26,7 +26,8 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image' },
 }
 
-// Public showcase: no session and no Supabase reads. (Still rendered per
+// Public showcase: no session. The only database read is /games' live TV
+// board (server-side, cached; lib/park/game-board.server.ts). (Still rendered per
 // request, because the root layout reads the `lang` cookie.)
 export default function ParkLayout({ children }: { children: React.ReactNode }) {
   return (

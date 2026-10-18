@@ -363,6 +363,46 @@ html[lang='my'] .arc-sign-soft {
   box-shadow: 0 0 8px rgb(var(--tube) / 0.7);
 }
 
+/* Live availability (game.stations). The dot carries colour, the seat's
+   own lit state and a text label carry the meaning. */
+.arc-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+.arc-dot.is-free { background: rgb(96 255 168); box-shadow: 0 0 8px rgb(96 255 168 / 0.9); }
+.arc-dot.is-busy { background: rgb(var(--arc-magenta)); box-shadow: 0 0 8px rgb(var(--arc-magenta) / 0.8); }
+.arc-dot.is-reserved { background: rgb(var(--arc-amber)); box-shadow: 0 0 8px rgb(var(--arc-amber) / 0.8); }
+.arc-dot.is-maintenance { background: rgb(132 134 160); }
+@keyframes arc-live { 50% { opacity: 0.35; } }
+.arc-live { animation: arc-live 2s ease-in-out infinite; }
+
+/* In use: the tube dims, the screen is someone else's. */
+.arc-seat.is-busy {
+  background: rgb(var(--tube) / 0.04);
+  border-color: rgb(var(--tube) / 0.45);
+  box-shadow: none;
+  color: rgb(var(--arc-text) / 0.7);
+  text-shadow: none;
+}
+/* Reserved: held for someone by the counter. */
+.arc-seat.is-reserved {
+  border-style: dashed;
+  box-shadow: 0 0 8px rgb(var(--tube) / 0.2);
+}
+/* Off for repair: the tube is dark. */
+.arc-seat.is-off {
+  background: transparent;
+  border-style: dashed;
+  border-color: rgb(132 134 160 / 0.55);
+  box-shadow: none;
+  color: rgb(160 162 188);
+  text-shadow: none;
+}
+.arc-seat-state { letter-spacing: 0; font-family: var(--font-park-body), var(--font-noto-my), sans-serif; }
+
 /* Closing band as a marquee: a row of bulbs chasing along each edge. */
 .arc-marquee {
   position: relative;
@@ -401,6 +441,7 @@ html[lang='my'] .arc-sign-soft {
 
 @media (prefers-reduced-motion: reduce) {
   .arc-flicker,
+  .arc-live,
   .arc-marquee::before,
   .arc-marquee::after { animation: none; }
   .arc-seat,
