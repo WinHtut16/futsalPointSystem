@@ -1,7 +1,15 @@
 import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
-import { toBoardStation, type BoardRates, type BoardStation, type GameBoard } from './game-board'
+import {
+  SHELF_GENRES,
+  toBoardStation,
+  type BoardRates,
+  type BoardStation,
+  type GameBoard,
+  type ShelfGenre,
+  type ShelfTitle,
+} from './game-board'
 
 // Reads the live game room for the public /games page. Service role, because
 // the game tables are staff-only under RLS; only the columns below ever leave
@@ -56,4 +64,47 @@ export const getGameBoard = unstable_cache(
   },
   ['park-game-board'],
   { revalidate: 15 },
+)
+
+// Games on the shelf, managed on the game admin's Games screen. Visible rows
+// only, in the staff's order. Changes rarely, so cached for a minute. A
+// missing table (migration not run yet) or any error just means no shelf.
+async function readShelf(): Promise<ShelfTitle[]> {
+  const { data, error } = await createServiceClient()
+    .schema('game')
+    .from('titles')
+    .select('id, title, platforms, genre, max_players, cover_url, is_new, is_popular')
+    .eq('visible', true)
+    .order('sort_order')
+    .order('title')
+  if (error || !data) {
+    if (error && error.code !== '42P01' && error.code !== 'PGRST205') {
+      console.error('[park] game shelf: read failed', error.code, error.message)
+    }
+    return []
+  }
+  return data.map((r) => ({
+    id: String(r.id),
+    title: String(r.title),
+    platforms: (r.platforms as string[]).filter((p): p is 'PS4' | 'PS5' => p === 'PS4' || p === 'PS5'),
+    genre: (SHELF_GENRES as readonly string[]).includes(r.genre) ? (r.genre as ShelfGenre) : 'other',
+    maxPlayers: Number(r.max_players) || 1,
+    // Only Cloudinary covers: the park CSP and next/image allow no other host.
+    coverUrl: typeof r.cover_url === 'string' && r.cover_url.startsWith('https://res.cloudinary.com/') ? r.cover_url : null,
+    isNew: Boolean(r.is_new),
+    isPopular: Boolean(r.is_popular),
+  }))
+}
+
+export const getGameShelf = unstable_cache(
+  async () => {
+    try {
+      return await readShelf()
+    } catch (e) {
+      console.error('[park] game shelf: read threw', e instanceof Error ? e.message : e)
+      return []
+    }
+  },
+  ['park-game-shelf'],
+  { revalidate: 60 },
 )

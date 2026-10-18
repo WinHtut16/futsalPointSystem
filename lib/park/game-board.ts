@@ -60,3 +60,24 @@ export function toBoardStation(row: { name: string; tier: string; status: string
           : 'free'
   return { id: n === null ? 'vip' : `tv${n}`, n, tier, status }
 }
+
+/** A game on the shelf (game.titles, visible rows only), for the public page. */
+export type ShelfGenre =
+  | 'action' | 'adventure' | 'fighting' | 'racing' | 'sports' | 'shooter'
+  | 'horror' | 'party' | 'family' | 'rpg' | 'other'
+
+export type ShelfTitle = {
+  id: string
+  title: string
+  platforms: ('PS4' | 'PS5')[]
+  genre: ShelfGenre
+  maxPlayers: number
+  coverUrl: string | null
+  isNew: boolean
+  isPopular: boolean
+}
+
+export const SHELF_GENRES: readonly ShelfGenre[] = [
+  'action', 'adventure', 'fighting', 'racing', 'sports', 'shooter',
+  'horror', 'party', 'family', 'rpg', 'other',
+]

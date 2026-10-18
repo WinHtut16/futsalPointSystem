@@ -3,8 +3,9 @@
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { GAME, HOURS, PARK } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
-import type { GameBoard } from '@/lib/park/game-board'
+import type { GameBoard, ShelfTitle } from '@/lib/park/game-board'
 import GameFloor from './GameFloor'
+import GameShelf from './GameShelf'
 import { useGameBoard } from './useGameBoard'
 import ParkPhoto from '../ParkPhoto'
 import { MenuList, PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
@@ -24,7 +25,7 @@ const theme: Theme = {
 
 const h2 = 'arc-font arc-sign-soft text-[36px] leading-[1.1] md:text-[46px]'
 
-export default function GamesContent({ initialBoard }: { initialBoard: GameBoard | null }) {
+export default function GamesContent({ initialBoard, shelf }: { initialBoard: GameBoard | null; shelf: ShelfTitle[] }) {
   const { t, lang } = useLanguage()
   const n = (x: number) => formatAmount(x, lang)
   // Live TVs and rates from the game shop's admin; static content.ts values
@@ -72,6 +73,8 @@ export default function GamesContent({ initialBoard }: { initialBoard: GameBoard
           <GameFloor board={board} rates={rates} now={now} />
         </div>
       </section>
+
+      {shelf.length > 0 && <GameShelf titles={shelf} />}
 
       <section aria-labelledby="games-vip" className={`${theme.ground} pt-20 md:pt-24`}>
         <div className="mx-auto grid max-w-[1200px] items-end gap-6 px-4 md:px-8 lg:grid-cols-[7fr_5fr] lg:gap-10">

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import GamesContent from '@/components/park/venue/GamesContent'
 import { arcadeFontVar } from '@/lib/park/arcade-font'
-import { getGameBoard } from '@/lib/park/game-board.server'
+import { getGameBoard, getGameShelf } from '@/lib/park/game-board.server'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/games' },
@@ -10,13 +10,14 @@ export const metadata: Metadata = {
 }
 
 export default async function GamesPage() {
-  // Live TVs and rates from the game admin (cached 15 s); null falls back to
-  // the static plan.
-  const board = await getGameBoard()
+  // Live TVs and rates (cached 15 s; null falls back to the static plan) and
+  // the games on the shelf (cached 60 s; empty hides the section), both from
+  // the game admin.
+  const [board, shelf] = await Promise.all([getGameBoard(), getGameShelf()])
   // .arcade: the night-time neon theme, scoped to this page (park.css).
   return (
     <div className={`arcade ${arcadeFontVar}`}>
-      <GamesContent initialBoard={board} />
+      <GamesContent initialBoard={board} shelf={shelf} />
     </div>
   )
 }
