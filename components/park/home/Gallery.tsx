@@ -25,7 +25,6 @@ export type GalleryShot = { photo: PhotoKey; portrait: boolean }
 export const SHOTS: GalleryShot[] = [
   { photo: 'galleryPoolWater', portrait: false },
   { photo: 'galleryPoolLadder', portrait: true },
-  { photo: 'galleryPoolside', portrait: false },
   { photo: 'galleryGreens', portrait: true },
   { photo: 'galleryFutsal', portrait: true },
   { photo: 'galleryEveningWalk', portrait: true },
@@ -87,12 +86,15 @@ export default function Gallery() {
         const h = s.portrait ? u : 0.9 * u
         const col = i % COLS
         const row = Math.floor(i / COLS)
+        // A short last row sits centred rather than hugging the left.
+        const inRow = Math.min(COLS, SHOTS.length - row * COLS)
+        const rowShift = ((COLS - inRow) * cw) / 2
         el.style.width = `${w}px`
         el.style.height = `${h}px`
         el.style.setProperty('--px', `${jitter(i, 1) * 70}px`)
         el.style.setProperty('--py', `${jitter(i, 2) * 40}px`)
         el.style.setProperty('--pr', `${jitter(i, 3) * 22}deg`)
-        el.style.setProperty('--sx', `${(col + 0.5) * cw - W / 2 + jitter(i, 4) * cw * 0.22}px`)
+        el.style.setProperty('--sx', `${(col + 0.5) * cw + rowShift - W / 2 + jitter(i, 4) * cw * 0.22}px`)
         el.style.setProperty('--sy', `${(row + 0.5) * ch - H / 2 + jitter(i, 5) * ch * 0.14}px`)
         el.style.setProperty('--sr', `${jitter(i, 6) * 12}deg`)
       })

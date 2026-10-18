@@ -66,22 +66,23 @@
       "vibrance": 0.12
     },
     {
-      "out": "pool-dining.jpg",
-      "src": "park/IMG_20260823_104001_0_Panorama.jpg",
+      "out": "pool-lunch.jpg",
+      "src": "park/pool_side_restaurant.jpg",
       "focus": [
-        0.29,
-        0.5
+        0.5,
+        0.56
       ],
-      "width": 0.32,
+      "width": 1.0,
       "aspect": [
         16,
         11
       ],
-      "wb": 0.35,
-      "shadows": 0.3,
-      "highlights": 0.12,
-      "contrast": 0.15,
-      "vibrance": 0.12
+      "wb": 0.2,
+      "shadows": 0.25,
+      "highlights": 0.15,
+      "contrast": 0.12,
+      "vibrance": 0.1,
+      "maxLong": 1600
     },
     {
       "out": "futsal-court.jpg",
@@ -366,25 +367,6 @@
       ],
       "wb": 0.2,
       "shadows": 0.2,
-      "highlights": 0.15,
-      "contrast": 0.12,
-      "vibrance": 0.1,
-      "maxLong": 1600
-    },
-    {
-      "out": "gallery-poolside.jpg",
-      "src": "park/pool_side_restaurant.jpg",
-      "focus": [
-        0.5,
-        0.5
-      ],
-      "width": 1.0,
-      "aspect": [
-        4,
-        3
-      ],
-      "wb": 0.2,
-      "shadows": 0.25,
       "highlights": 0.15,
       "contrast": 0.12,
       "vibrance": 0.1,
