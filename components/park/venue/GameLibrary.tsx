@@ -57,7 +57,7 @@ export default function GameLibrary({ titles }: { titles: ShelfTitle[] }) {
       <div className="mx-auto flex max-w-[1200px] flex-col gap-12 px-4 md:px-8">
         <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
           <div className="flex max-w-[52ch] flex-col gap-3">
-            <h2 id="games-library" className={h2}>
+            <h2 id="games-library" className={`${h2} scroll-mt-32`}>
               {t('park.games.shelfTitle')}
             </h2>
             <p className="text-[17px] leading-relaxed text-[rgb(var(--arc-muted))]">{t('park.games.shelfBody')}</p>
@@ -317,7 +317,7 @@ function Teaser() {
     <section aria-labelledby="games-library" className="py-20 md:py-24">
       <div className="mx-auto max-w-[1200px] px-4 md:px-8">
         <div className="gl-teaser relative flex flex-col items-start gap-5 overflow-hidden rounded-[28px] p-8 md:p-12">
-          <h2 id="games-library" className="arc-font arc-sign tube-magenta arc-flicker text-[36px] leading-[1.1] md:text-[46px]">
+          <h2 id="games-library" className="scroll-mt-32 arc-font arc-sign tube-magenta arc-flicker text-[36px] leading-[1.1] md:text-[46px]">
             {t('park.lib.teaserTitle')}
           </h2>
           <p className="max-w-[48ch] text-[17px] leading-relaxed text-[rgb(var(--arc-muted))]">{t('park.lib.teaserBody')}</p>

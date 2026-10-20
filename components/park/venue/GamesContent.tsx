@@ -6,6 +6,7 @@ import { formatAmount } from '@/lib/park/time'
 import type { GameBoard, ShelfTitle } from '@/lib/park/game-board'
 import GameFloor from './GameFloor'
 import GameLibrary from './GameLibrary'
+import { COVER_WALL_MIN, CoverWall, LivePill, LiveStrip } from './GamesHero'
 import { useGameBoard } from './useGameBoard'
 import ParkPhoto from '../ParkPhoto'
 import { MenuList, PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
@@ -43,24 +44,34 @@ export default function GamesContent({ initialBoard, shelf }: { initialBoard: Ga
     grace: rates?.graceMinutes ?? GAME.graceMinutes,
   }
 
+  // The cover wall takes over the hero once the staff's list has enough
+  // covers to fill it; until then the room photo switches on like a screen.
+  const covers = shelf.filter((g) => g.coverUrl)
+
   return (
     <>
-      <VenueHero
-        theme={theme}
-        title="park.games.title"
-        lead="park.games.lead"
-        photo="gameRoom"
-        primary={{ href: '#rates', label: 'park.games.ctaRates' }}
-        secondary={{ href: PARK.viberUrl, label: 'park.games.ctaVip' }}
-        glow="arc-screen"
-        sectionClass="arc-hero"
-        titleClass="arc-font arc-sign tube-cyan arc-flicker"
-      />
+      {covers.length >= COVER_WALL_MIN ? (
+        <CoverWall covers={covers} board={board} />
+      ) : (
+        <VenueHero
+          theme={theme}
+          title="park.games.title"
+          lead="park.games.lead"
+          photo="gameRoom"
+          badge={<LivePill board={board} />}
+          primary={{ href: '#games-library', label: 'park.games.ctaBrowse' }}
+          secondary={{ href: '#games-floor', label: 'park.games.ctaFree' }}
+          glow="arc-screen arc-crt"
+          sectionClass="arc-hero"
+          titleClass="arc-font arc-sign tube-cyan arc-flicker"
+        />
+      )}
+      <LiveStrip board={board} price={price} />
 
       <section aria-labelledby="games-floor" className={`${theme.panel} py-20 md:py-24`}>
         <div className="mx-auto grid max-w-[1200px] items-start gap-10 px-4 md:px-8 lg:grid-cols-[5fr_7fr] lg:gap-14">
           <div className="flex flex-col gap-4">
-            <h2 id="games-floor" className={`${h2} tube-cyan`}>
+            <h2 id="games-floor" className={`${h2} tube-cyan scroll-mt-32`}>
               {t('park.games.floorTitle')}
             </h2>
             <p className={`max-w-[42ch] text-[17px] leading-relaxed ${theme.muted}`}>{t('park.games.floorBody')}</p>
