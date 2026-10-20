@@ -5,7 +5,7 @@ import { GAME, HOURS, PARK } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
 import type { GameBoard, ShelfTitle } from '@/lib/park/game-board'
 import GameFloor from './GameFloor'
-import GameShelf from './GameShelf'
+import GameLibrary from './GameLibrary'
 import { useGameBoard } from './useGameBoard'
 import ParkPhoto from '../ParkPhoto'
 import { MenuList, PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
@@ -74,7 +74,7 @@ export default function GamesContent({ initialBoard, shelf }: { initialBoard: Ga
         </div>
       </section>
 
-      {shelf.length > 0 && <GameShelf titles={shelf} />}
+      <GameLibrary titles={shelf} />
 
       <section aria-labelledby="games-vip" className={`${theme.ground} pt-20 md:pt-24`}>
         <div className="mx-auto grid max-w-[1200px] items-end gap-6 px-4 md:px-8 lg:grid-cols-[7fr_5fr] lg:gap-10">
