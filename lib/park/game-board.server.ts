@@ -67,16 +67,36 @@ export const getGameBoard = unstable_cache(
 )
 
 // Games on the shelf, managed on the game admin's Games screen. Visible rows
-// only, in the staff's order. Changes rarely, so cached for a minute. A
-// missing table (migration not run yet) or any error just means no shelf.
+// only, in the staff's order. Cached for a minute and tagged, so a save on the
+// Games screen expires it at once (app/api/park/revalidate-games). A missing
+// table (migration not run yet) or any error just means an empty shelf.
+const SHELF_BASE = 'id, title, platforms, genre, max_players, cover_url, is_new, is_popular'
+const SHELF_DETAILS = ', description_en, description_my, local_coop, online, featured'
+
+type ShelfRow = {
+  id: string
+  title: string
+  platforms: string[]
+  genre: string
+  max_players: number
+  cover_url: string | null
+  is_new: boolean
+  is_popular: boolean
+  description_en?: string | null
+  description_my?: string | null
+  local_coop?: boolean
+  online?: boolean
+  featured?: boolean
+}
+
 async function readShelf(): Promise<ShelfTitle[]> {
-  const { data, error } = await createServiceClient()
-    .schema('game')
-    .from('titles')
-    .select('id, title, platforms, genre, max_players, cover_url, is_new, is_popular')
-    .eq('visible', true)
-    .order('sort_order')
-    .order('title')
+  const read = (cols: string) =>
+    createServiceClient().schema('game').from('titles').select(cols).eq('visible', true).order('sort_order').order('title')
+  let res = await read(SHELF_BASE + SHELF_DETAILS)
+  // 42703: game-titles-details-migration.sql not run yet; show what we have.
+  if (res.error?.code === '42703') res = await read(SHELF_BASE)
+  const { error } = res
+  const data = res.data as unknown as ShelfRow[] | null
   if (error || !data) {
     if (error && error.code !== '42P01' && error.code !== 'PGRST205') {
       console.error('[park] game shelf: read failed', error.code, error.message)
@@ -93,6 +113,11 @@ async function readShelf(): Promise<ShelfTitle[]> {
     coverUrl: typeof r.cover_url === 'string' && r.cover_url.startsWith('https://res.cloudinary.com/') ? r.cover_url : null,
     isNew: Boolean(r.is_new),
     isPopular: Boolean(r.is_popular),
+    descriptionEn: r.description_en?.trim() || null,
+    descriptionMy: r.description_my?.trim() || null,
+    localCoop: Boolean(r.local_coop),
+    online: Boolean(r.online),
+    featured: Boolean(r.featured),
   }))
 }
 
@@ -106,5 +131,5 @@ export const getGameShelf = unstable_cache(
     }
   },
   ['park-game-shelf'],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ['park-game-shelf'] },
 )

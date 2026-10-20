@@ -75,6 +75,13 @@ export type ShelfTitle = {
   coverUrl: string | null
   isNew: boolean
   isPopular: boolean
+  descriptionEn: string | null
+  descriptionMy: string | null
+  /** Two or more people can play together on one screen. */
+  localCoop: boolean
+  online: boolean
+  /** Leads the Featured spotlight. */
+  featured: boolean
 }
 
 export const SHELF_GENRES: readonly ShelfGenre[] = [
