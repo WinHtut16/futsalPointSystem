@@ -38,6 +38,7 @@ export function parkJsonLd() {
         '@type': 'EntertainmentBusiness',
         name: 'ACJ Gaming',
         url: `${SITE_URL}/games`,
+        logo: `${SITE_URL}/images/acj/acj-lockup-mint.png`,
         openingHoursSpecification: openingHours(HOURS.games),
         priceRange: `${GAME.rates.ps4}-${GAME.rates.vip} MMK per hour`,
       },

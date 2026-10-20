@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n'
 import { FUTSAL_RATES, GAME, BILLIARDS, HOURS, billiardsOpening } from '@/lib/park/content'
@@ -200,7 +201,19 @@ export default function DayStory() {
             <VenueCard
               href="/games"
               icon="games"
-              media={<LivePhoto photo="gameRoom" light="lights" sizes="(min-width: 768px) 560px, 92vw" className="aspect-[16/9] rounded-[18px]" />}
+              media={
+                <div className="relative">
+                  <LivePhoto photo="gameRoom" light="lights" sizes="(min-width: 768px) 560px, 92vw" className="aspect-[16/9] rounded-[18px]" />
+                  {/* The shop's own sign, as on its door. */}
+                  <Image
+                    src="/images/acj/acj-horizontal-white.png"
+                    alt=""
+                    width={1200}
+                    height={363}
+                    className="pointer-events-none absolute bottom-3 left-3 h-auto w-[118px] drop-shadow-[0_2px_10px_rgb(0_0_0/0.7)] sm:w-[140px]"
+                  />
+                </div>
+              }
               title={t('park.day.evening.gamesTitle')}
               body={t('park.day.evening.gamesBody')}
               meta={t('park.day.evening.gamesFrom', { price: mmk(GAME.rates.ps4) })}

@@ -225,6 +225,8 @@ html[lang='my'] .park-display {
   --arc-cyan: 72 228 255;
   --arc-magenta: 255 76 200;
   --arc-amber: var(--venue-game-amber);
+  /* ACJ Gaming's own brand colour, from the client's logo (#00F7A9). */
+  --arc-mint: 0 247 169;
   --arc-text: 238 240 255;
   --arc-muted: 184 190 226;
   position: relative;
@@ -298,6 +300,7 @@ html[lang='my'] .arc-sign-soft {
 .arcade .tube-cyan { --tube: var(--arc-cyan); }
 .arcade .tube-magenta { --tube: var(--arc-magenta); }
 .arcade .tube-amber { --tube: var(--arc-amber); }
+.arcade .tube-mint { --tube: var(--arc-mint); }
 
 /* A screen with its backlight on: a thin lit edge and a soft spill. */
 .arc-screen {
@@ -316,14 +319,14 @@ html[lang='my'] .arc-sign-soft {
 
 /* Buttons */
 .arc-btn-primary {
-  background: rgb(var(--arc-amber));
-  color: #1a1300;
-  box-shadow: 0 0 0 1px rgb(255 230 170 / 0.6) inset, 0 0 26px rgb(var(--arc-amber) / 0.45);
+  background: rgb(var(--arc-mint));
+  color: #04241a;
+  box-shadow: 0 0 0 1px rgb(190 255 230 / 0.6) inset, 0 0 26px rgb(var(--arc-mint) / 0.4);
   transition: box-shadow 200ms ease-out, background-color 200ms ease-out;
 }
 .arc-btn-primary:hover {
-  background: #ffd27a;
-  box-shadow: 0 0 0 1px rgb(255 240 200 / 0.8) inset, 0 0 40px rgb(var(--arc-amber) / 0.65);
+  background: #6dffcc;
+  box-shadow: 0 0 0 1px rgb(220 255 240 / 0.8) inset, 0 0 40px rgb(var(--arc-mint) / 0.6);
 }
 .arc-btn-ghost {
   border: 1.5px solid rgb(var(--arc-cyan) / 0.85);
@@ -651,11 +654,14 @@ html[lang='my'] .arc-sign-soft {
 }
 .glow-on .arc-glow { opacity: 1; }
 
+/* ACJ logo in the /games hero: the brand mint, lit like the signs. */
+.acj-logo { filter: drop-shadow(0 0 10px rgb(var(--arc-mint) / 0.55)) drop-shadow(0 0 28px rgb(var(--arc-mint) / 0.25)); }
+
 /* Closing band as a marquee: a row of bulbs chasing along each edge. */
 .arc-marquee {
   position: relative;
-  background: rgb(var(--arc-amber));
-  color: #1a1300;
+  background: rgb(var(--arc-mint));
+  color: #04241a;
 }
 .arc-marquee::before,
 .arc-marquee::after {

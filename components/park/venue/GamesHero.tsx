@@ -19,6 +19,20 @@ import CountUp from '../CountUp'
 
 export const COVER_WALL_MIN = 12
 
+/** The client's ACJ Gaming lockup in brand mint, lit like the signs (scripts/acj-logos.py). */
+export function AcjLogo({ className = '' }: { className?: string }) {
+  return (
+    <Image
+      src="/images/acj/acj-horizontal-mint.png"
+      alt="ACJ Gaming"
+      width={1200}
+      height={363}
+      priority
+      className={`acj-logo h-auto w-[200px] sm:w-[240px] ${className}`}
+    />
+  )
+}
+
 export function LivePill({ board }: { board: GameBoard | null }) {
   const { t, lang } = useLanguage()
   if (!board || board.stations.length === 0) return null
@@ -150,9 +164,10 @@ export function CoverWall({
       <div className="gh-veil" aria-hidden="true" />
 
       <div className="relative mx-auto flex min-h-[min(88svh,760px)] max-w-[1200px] flex-col items-start justify-center gap-6 px-4 py-20 md:px-8">
+        <AcjLogo />
         <LivePill board={board} />
         <h1
-          className={`arc-font arc-sign tube-cyan arc-flicker ${
+          className={`arc-font arc-sign tube-mint arc-flicker ${
             lang === 'my' ? 'text-[36px] sm:text-5xl' : 'max-w-[14ch] text-[46px] leading-[1.02] sm:text-6xl lg:text-[76px]'
           }`}
         >

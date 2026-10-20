@@ -7,6 +7,7 @@ import { DEMO_SHELF } from '@/lib/park/game-demo'
 export const metadata: Metadata = {
   alternates: { canonical: '/games' },
   title: 'ACJ Gaming',
+  icons: { icon: '/images/acj/acj-icon-192.png', apple: '/images/acj/acj-icon-512.png' },
   description: 'ACJ Gaming at MyaThida Park: PS4 and PS5 on nine screens plus a private VIP room. From 3,000 MMK an hour.',
 }
 

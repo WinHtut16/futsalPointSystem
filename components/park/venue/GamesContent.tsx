@@ -7,7 +7,7 @@ import { formatAmount } from '@/lib/park/time'
 import type { GameBoard, ShelfTitle } from '@/lib/park/game-board'
 import GameFloor from './GameFloor'
 import GameLibrary from './GameLibrary'
-import { COVER_WALL_MIN, CoverWall, LivePill, LiveStrip } from './GamesHero'
+import { AcjLogo, COVER_WALL_MIN, CoverWall, LivePill, LiveStrip } from './GamesHero'
 import { useArcadeMotion } from './useArcadeMotion'
 import { useGameBoard } from './useGameBoard'
 import ParkPhoto from '../ParkPhoto'
@@ -15,7 +15,8 @@ import { MenuList, PriceRows, VenueHero, VenueStrip, type Theme } from './VenueP
 
 // The room at night: neon-tube signs over LED-lit screens (the .arcade and
 // arc-* classes in park.css; the page wrapper in app/(park)/games/page.tsx
-// sets .arcade). Amber stays the shop's own brand colour.
+// sets .arcade). Mint is ACJ Gaming's own brand colour (its logo); amber
+// marks the VIP room and the LED prices.
 const theme: Theme = {
   ground: 'text-[rgb(var(--arc-text))]',
   panel: 'arc-panel',
@@ -64,12 +65,17 @@ export default function GamesContent({ initialBoard, shelf }: { initialBoard: Ga
           title="park.games.title"
           lead="park.games.lead"
           photo="gameRoom"
-          badge={<LivePill board={board} />}
+          badge={
+            <div className="flex flex-col items-start gap-5">
+              <AcjLogo />
+              <LivePill board={board} />
+            </div>
+          }
           primary={{ href: '#games-library', label: 'park.games.ctaBrowse' }}
           secondary={{ href: '#games-floor', label: 'park.games.ctaFree' }}
           glow="arc-screen arc-crt"
           sectionClass="arc-hero"
-          titleClass="arc-font arc-sign tube-cyan arc-flicker"
+          titleClass="arc-font arc-sign tube-mint arc-flicker"
         />
       )}
       <LiveStrip board={board} price={price} />
