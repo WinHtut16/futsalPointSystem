@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { GAME, HOURS, PARK } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
@@ -7,6 +8,7 @@ import type { GameBoard, ShelfTitle } from '@/lib/park/game-board'
 import GameFloor from './GameFloor'
 import GameLibrary from './GameLibrary'
 import { COVER_WALL_MIN, CoverWall, LivePill, LiveStrip } from './GamesHero'
+import { useArcadeMotion } from './useArcadeMotion'
 import { useGameBoard } from './useGameBoard'
 import ParkPhoto from '../ParkPhoto'
 import { MenuList, PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
@@ -47,9 +49,13 @@ export default function GamesContent({ initialBoard, shelf }: { initialBoard: Ga
   // The cover wall takes over the hero once the staff's list has enough
   // covers to fill it; until then the room photo switches on like a screen.
   const covers = shelf.filter((g) => g.coverUrl)
+  const root = useRef<HTMLDivElement>(null)
+  useArcadeMotion(root)
 
   return (
-    <>
+    <div ref={root}>
+      {/* The pointer light (useArcadeMotion), mouse only. */}
+      <div aria-hidden="true" className="arc-glow" />
       {covers.length >= COVER_WALL_MIN ? (
         <CoverWall covers={covers} board={board} />
       ) : (
@@ -134,6 +140,6 @@ export default function GamesContent({ initialBoard, shelf }: { initialBoard: Ga
         hours={HOURS.games}
         also={{ href: '/billiards', label: 'park.games.alsoBilliards' }}
       />
-    </>
+    </div>
   )
 }

@@ -590,6 +590,67 @@ html[lang='my'] .arc-sign-soft {
 }
 .arc-crt { animation: arc-crt 900ms cubic-bezier(0.22, 1, 0.36, 1) 250ms both; }
 
+/* "The room switching on" (components/park/venue/useArcadeMotion.ts). */
+/* Signs: dark until they come into view, then .arc-flicker switches them on. */
+.sw-armed { opacity: 0.16; text-shadow: none !important; }
+
+/* Screens boot: each TV powers on in turn (--i is its place on the plan). */
+.boot-armed .arc-seat { opacity: 0.12; filter: brightness(0.3) saturate(0); }
+@keyframes seat-boot {
+  0% { opacity: 0.12; filter: brightness(0.3) saturate(0); }
+  18% { opacity: 1; filter: brightness(2.4) saturate(0.6); }
+  28% { opacity: 0.35; filter: brightness(0.8); }
+  42% { opacity: 1; filter: brightness(1.5); }
+  100% { opacity: 1; filter: none; }
+}
+.is-booting .arc-seat { animation: seat-boot 720ms steps(6, end) calc(min(var(--i, 0), 12) * 55ms) both; }
+/* Free screens breathe once they are on. */
+.arc-seat .arc-dot.is-free { animation: arc-live 3.2s ease-in-out infinite; }
+
+/* Library rows slide their cards in from the right, one after another. */
+.gl-row.is-armed .gl-row-item { opacity: 0; translate: 48px 0; }
+.gl-row.is-armed.is-seen .gl-row-item {
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity 500ms ease-out, translate 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(min(var(--i, 0), 8) * 60ms);
+}
+
+/* Cover tilt: the box leans toward the pointer and catches the light. */
+.gl-card { perspective: 900px; }
+.gl-card .gl-box { transform: rotateX(var(--gt-rx, 0deg)) rotateY(var(--gt-ry, 0deg)); }
+.gl-card.is-tilting .gl-box { transition: transform 120ms ease-out, box-shadow 220ms ease-out, translate 260ms cubic-bezier(0.22, 1, 0.36, 1); }
+.gl-card:not(.is-tilting) .gl-box { transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease-out, translate 260ms cubic-bezier(0.22, 1, 0.36, 1); }
+.gl-box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at var(--gt-mx, 50%) var(--gt-my, 50%), rgb(255 255 255 / 0.28), transparent 55%);
+  mix-blend-mode: soft-light;
+  transition: opacity 300ms ease-out;
+}
+.gl-card.is-tilting .gl-box::after { opacity: 1; }
+
+/* The pointer light over the dark page (mouse only). */
+.arc-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    440px circle at var(--gx, 50%) var(--gy, 50%),
+    rgb(var(--arc-cyan) / 0.09),
+    rgb(var(--arc-magenta) / 0.05) 45%,
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+  transition: opacity 500ms ease-out;
+}
+.glow-on .arc-glow { opacity: 1; }
+
 /* Closing band as a marquee: a row of bulbs chasing along each edge. */
 .arc-marquee {
   position: relative;
@@ -631,11 +692,14 @@ html[lang='my'] .arc-sign-soft {
   .arc-live,
   .arc-crt,
   .gh-row,
+  .is-booting .arc-seat,
+  .arc-seat .arc-dot.is-free,
   .arc-marquee::before,
   .arc-marquee::after { animation: none; }
   .arc-seat,
   .gl-box,
   .gl-thumb,
+  .gl-card .gl-box,
   .arc-chip,
   .arc-btn-primary,
   .arc-btn-ghost { transition: none; }

@@ -46,12 +46,13 @@ export default function GameFloor({ board, rates, now }: { board: GameBoard | nu
   const consoleName = (s: Seat) => (s.kind === 'ps4' ? t('park.games.ps4') : t('park.games.ps5'))
   const statusText = (st: StationStatus) => t(`park.games.status.${st}` as TranslationKey)
 
-  const seatBtn = (s: Seat, extra = '') => {
+  const seatBtn = (s: Seat, extra = '', order = 0) => {
     const on = picked?.id === s.id
     const name = `${label(s)}, ${consoleName(s)}${s.status ? `, ${statusText(s.status)}` : ''}`
     return (
       <button
         key={s.id}
+        style={{ ['--i' as string]: order }}
         type="button"
         aria-pressed={on}
         aria-label={name}
@@ -88,9 +89,14 @@ export default function GameFloor({ board, rates, now }: { board: GameBoard | nu
           </p>
         </div>
       )}
-      <div role="group" aria-label={t('park.games.floorLabel')} className="arc-floor flex flex-col gap-3 rounded-3xl p-4 sm:p-5">
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">{screens.map((s) => seatBtn(s, 'aspect-[4/3] text-2xl'))}</div>
-        {vip && seatBtn(vip, 'h-24 text-xl')}
+      <div
+        role="group"
+        aria-label={t('park.games.floorLabel')}
+        data-boot
+        className="arc-floor flex flex-col gap-3 rounded-3xl p-4 sm:p-5"
+      >
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">{screens.map((s, i) => seatBtn(s, 'aspect-[4/3] text-2xl', i))}</div>
+        {vip && seatBtn(vip, 'h-24 text-xl', screens.length)}
       </div>
       {board && (
         <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-[rgb(var(--arc-muted))]" aria-hidden="true">

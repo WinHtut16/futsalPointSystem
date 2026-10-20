@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import type { PhotoKey } from '@/lib/park/photos'
 import ParkPhoto from './ParkPhoto'
+import { attachTilt } from './tilt'
 
 // A park photo that comes alive (the `lp-*` classes in park.css):
 //  - Reveal: photos still below the fold wipe open from the bottom, with the
@@ -95,44 +96,14 @@ export default function LivePhoto({
     })
     near.observe(el)
 
-    // Tilt + light: real hover devices only.
-    const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches
-    let frame = 0
-    let last: PointerEvent | null = null
-    const apply = () => {
-      frame = 0
-      if (!last) return
-      const r = el.getBoundingClientRect()
-      const x = (last.clientX - r.left) / r.width
-      const y = (last.clientY - r.top) / r.height
-      el.style.setProperty('--lp-rx', `${((0.5 - y) * 5).toFixed(2)}deg`)
-      el.style.setProperty('--lp-ry', `${((x - 0.5) * 7).toFixed(2)}deg`)
-      el.style.setProperty('--lp-mx', `${(x * 100).toFixed(1)}%`)
-      el.style.setProperty('--lp-my', `${(y * 100).toFixed(1)}%`)
-    }
-    const move = (e: PointerEvent) => {
-      last = e
-      el.classList.add('is-tilting')
-      if (!frame) frame = requestAnimationFrame(apply)
-    }
-    const leave = () => {
-      last = null
-      el.classList.remove('is-tilting')
-      el.style.setProperty('--lp-rx', '0deg')
-      el.style.setProperty('--lp-ry', '0deg')
-    }
-    if (fine) {
-      el.addEventListener('pointermove', move)
-      el.addEventListener('pointerleave', leave)
-    }
+    // Tilt + light: real hover devices only (components/park/tilt.ts).
+    const untilt = attachTilt(el, { prefix: '--lp', rx: 5, ry: 7 })
 
     return () => {
       reveal.disconnect()
       near.disconnect()
       track(el, false)
-      if (frame) cancelAnimationFrame(frame)
-      el.removeEventListener('pointermove', move)
-      el.removeEventListener('pointerleave', leave)
+      untilt()
     }
   }, [])
 

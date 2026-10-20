@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { BoardStation, GameBoard, ShelfTitle } from '@/lib/park/game-board'
 import { formatAmount } from '@/lib/park/time'
+import CountUp from '../CountUp'
 
 // The top of /games.
 //   CoverWall: three rows of the shop's own game covers drift sideways behind
@@ -28,7 +29,9 @@ export function LivePill({ board }: { board: GameBoard | null }) {
       className="gh-pill inline-flex min-h-[40px] items-center gap-2.5 rounded-full px-4 text-[15px] font-semibold"
     >
       <span aria-hidden="true" className="arc-dot is-free arc-live" />
-      {t('park.games.freeNow', { free: formatAmount(free, lang), total: formatAmount(board.stations.length, lang) })}
+      <CountUp value={free}>
+        {(v) => t('park.games.freeNow', { free: formatAmount(v, lang), total: formatAmount(board.stations.length, lang) })}
+      </CountUp>
     </a>
   )
 }
@@ -58,12 +61,16 @@ export function LiveStrip({
               <a href="#games-floor" className={`gh-chip ${tube} flex items-center justify-between gap-4 rounded-2xl px-4 py-3`}>
                 <span className="flex items-baseline gap-3">
                   <span className="arc-num text-lg font-semibold">{label}</span>
-                  <span className="arc-led font-semibold tabular-nums">{t('park.venue.perHour', { price: n(price[key]) })}</span>
+                  <span className="arc-led font-semibold tabular-nums">
+                    <CountUp value={price[key]} duration={1100}>
+                      {(v) => t('park.venue.perHour', { price: n(Math.round(v / 100) * 100) })}
+                    </CountUp>
+                  </span>
                 </span>
                 {st.length > 0 && (
                   <span className="flex items-center gap-2 text-sm text-[rgb(var(--arc-muted))]">
                     <span aria-hidden="true" className={`arc-dot ${free ? 'is-free' : 'is-busy'}`} />
-                    {t('park.games.stripFree', { free: n(free), total: n(st.length) })}
+                    <CountUp value={free}>{(v) => t('park.games.stripFree', { free: n(v), total: n(st.length) })}</CountUp>
                   </span>
                 )}
               </a>

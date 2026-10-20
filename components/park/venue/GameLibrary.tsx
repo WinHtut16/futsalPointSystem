@@ -10,6 +10,7 @@ import type { ShelfTitle } from '@/lib/park/game-board'
 import { buildRows, descriptionFor, filterTitles, pickFeatured, type LibraryFilter } from '@/lib/park/game-library'
 import { formatAmount } from '@/lib/park/time'
 import ViberLink from '../ViberLink'
+import CountUp from '../CountUp'
 import GameCard, { Cover, tubeFor } from './GameCard'
 import GameDetail from './GameDetail'
 
@@ -62,7 +63,9 @@ export default function GameLibrary({ titles }: { titles: ShelfTitle[] }) {
             </h2>
             <p className="text-[17px] leading-relaxed text-[rgb(var(--arc-muted))]">{t('park.games.shelfBody')}</p>
           </div>
-          <p className="arc-led text-lg font-semibold">{t('park.lib.count', { n: n(titles.length) })}</p>
+          <p className="arc-led text-lg font-semibold">
+            <CountUp value={titles.length}>{(v) => t('park.lib.count', { n: n(v) })}</CountUp>
+          </p>
         </header>
 
         {featured.length > 0 && <Featured games={featured} onOpen={openGame} />}
