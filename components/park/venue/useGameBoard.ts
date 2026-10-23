@@ -31,6 +31,9 @@ export function useGameBoard(initial: GameBoard | null): { board: GameBoard | nu
         // Offline or flaky network: keep the last board until it goes stale.
       }
     }
+    // Once straight away: the page may come from the browser's back/forward
+    // cache or a slow first paint, so don't wait a whole poll for fresh states.
+    refresh()
     const timer = setInterval(refresh, BOARD_POLL_MS)
     document.addEventListener('visibilitychange', refresh)
     return () => {

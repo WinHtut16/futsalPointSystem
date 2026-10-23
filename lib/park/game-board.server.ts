@@ -13,8 +13,10 @@ import {
 
 // Reads the live game room for the public /games page. Service role, because
 // the game tables are staff-only under RLS; only the columns below ever leave
-// this function (no session, customer or takings data). Cached for 15 s so a
-// busy page costs the database at most four small reads a minute.
+// this function (no session, customer or takings data). Not cached: two tiny
+// reads per page view or poll. (A Data Cache entry here was served stale after
+// a quiet spell, often older than BOARD_STALE_MS, so the page hid the statuses
+// until its next poll.)
 async function readGameBoard(): Promise<GameBoard | null> {
   const game = createServiceClient().schema('game')
   const [stationsRes, pricingRes] = await Promise.all([
@@ -53,18 +55,14 @@ async function readGameBoard(): Promise<GameBoard | null> {
   return { stations, rates, at: new Date().toISOString() }
 }
 
-export const getGameBoard = unstable_cache(
-  async () => {
-    try {
-      return await readGameBoard()
-    } catch (e) {
-      console.error('[park] game board: read threw', e instanceof Error ? e.message : e)
-      return null
-    }
-  },
-  ['park-game-board'],
-  { revalidate: 15 },
-)
+export async function getGameBoard(): Promise<GameBoard | null> {
+  try {
+    return await readGameBoard()
+  } catch (e) {
+    console.error('[park] game board: read threw', e instanceof Error ? e.message : e)
+    return null
+  }
+}
 
 // Games on the shelf, managed on the game admin's Games screen. Visible rows
 // only, in the staff's order. Cached for a minute and tagged, so a save on the

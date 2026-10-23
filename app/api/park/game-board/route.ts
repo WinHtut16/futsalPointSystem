@@ -13,6 +13,7 @@ export async function GET() {
     return NextResponse.json({ error: 'unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } })
   }
   return NextResponse.json(board, {
-    headers: { 'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=45' },
+    // Never served from a cache: a stale copy would hide the statuses.
+    headers: { 'Cache-Control': 'no-store' },
   })
 }
