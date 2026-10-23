@@ -57,7 +57,7 @@ function Ball({ n, x, y, sunk, clip }: { n: number; x: number; y: number; sunk?:
 export function TableSvg({
   broken = false,
   label,
-  className = 'w-full max-w-[640px]',
+  className = 'w-full min-w-0 max-w-[640px]',
 }: {
   broken?: boolean
   label?: string

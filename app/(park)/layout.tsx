@@ -4,6 +4,7 @@ import { parkFontVars } from '@/lib/park/fonts'
 import ParkNav from '@/components/park/ParkNav'
 import ParkFooter from '@/components/park/ParkFooter'
 import SkipLink from '@/components/park/SkipLink'
+import AnimationGuard from '@/components/park/AnimationGuard'
 import { SITE_URL } from '@/lib/park/site'
 
 const DESCRIPTION =
@@ -38,6 +39,7 @@ export default function ParkLayout({ children }: { children: React.ReactNode }) 
         {children}
       </main>
       <ParkFooter />
+      <AnimationGuard />
     </div>
   )
 }

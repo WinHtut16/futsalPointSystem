@@ -67,7 +67,7 @@ function Moment({
       id={id}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
-      className={`mx-auto grid max-w-[1200px] scroll-mt-32 items-center gap-8 px-4 md:px-8 lg:gap-14 ${
+      className={`mx-auto grid max-w-[1200px] grid-cols-1 scroll-mt-32 items-center gap-8 px-4 md:px-8 lg:gap-14 ${
         reverse ? 'lg:grid-cols-[7fr_5fr]' : 'lg:grid-cols-[5fr_7fr]'
       }`}
     >
@@ -197,7 +197,7 @@ export default function DayStory() {
 
           <MarketLane />
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <VenueCard
               href="/games"
               icon="games"
@@ -227,7 +227,7 @@ export default function DayStory() {
               // No photos until the room opens: the drawn table stands in.
               media={
                 <div className="flex aspect-[16/9] items-center justify-center rounded-[18px] bg-[#1f1214] p-6">
-                  <TableSvg className="w-full max-w-[420px]" />
+                  <TableSvg className="block h-auto w-full min-w-0 max-w-[420px]" />
                 </div>
               }
               title={t('park.day.evening.billiardsTitle')}
@@ -263,7 +263,7 @@ function MarketLane() {
     <article
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
-      className="grid items-center gap-6 rounded-[28px] bg-[#162440] p-5 md:grid-cols-[7fr_5fr] md:gap-10 md:p-6"
+      className="grid grid-cols-1 items-center gap-6 rounded-[28px] bg-[#162440] p-5 md:grid-cols-[7fr_5fr] md:gap-10 md:p-6"
     >
       <LivePhoto photo="marketLane" light="lights" sizes="(min-width: 768px) 640px, 92vw" className="aspect-[16/9] rounded-[18px]" />
       <div className="flex flex-col gap-3">
@@ -307,7 +307,7 @@ function VenueCard({
       onPointerLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
-      className={`group flex flex-col gap-4 rounded-[28px] p-5 transition-colors ${card}`}
+      className={`group flex min-w-0 flex-col gap-4 rounded-[28px] p-5 transition-colors ${card}`}
     >
       {media}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">

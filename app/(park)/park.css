@@ -32,6 +32,22 @@
   background: rgb(var(--park-mist));
 }
 
+/* Nothing on the park site may widen the page sideways. iPhone Safari sizes
+   some SVGs by their natural width where Chrome lets them shrink, which once
+   made the home page drag left and right. `clip` (not `hidden`) so sticky
+   headers and the gallery scene keep working. */
+.park { overflow-x: clip; }
+
+/* Animations frozen by the phone (components/park/AnimationGuard.tsx): show
+   every effect in its final state instead of its first frame. */
+.park-still,
+.park-still *,
+.park-still *::before,
+.park-still *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 html[lang='my'] .park {
   line-height: var(--leading-my);
 }
