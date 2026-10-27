@@ -34,6 +34,7 @@ export function VenueHero({
   primary,
   secondary,
   glow,
+  extra,
   sectionClass = '',
   titleClass = 'park-rise park-display',
 }: {
@@ -48,6 +49,8 @@ export function VenueHero({
   primary: { href: string; label: TranslationKey }
   secondary: { href: string; label: TranslationKey }
   glow: string // shadow class: the room's light spilling around the photo
+  /** Shown between the lead and the buttons, e.g. a price card. */
+  extra?: React.ReactNode
   /** Extra classes on the hero band (e.g. an ambient light wash). */
   sectionClass?: string
   /** Face and entrance for the title; defaults to the park display serif. */
@@ -74,6 +77,11 @@ export function VenueHero({
           <p className={`park-rise max-w-[36ch] text-lg leading-relaxed ${theme.muted}`} style={{ animationDelay: '240ms' }}>
             {t(lead)}
           </p>
+          {extra && (
+            <div className="park-rise" style={{ animationDelay: '310ms' }}>
+              {extra}
+            </div>
+          )}
           <div className="park-rise flex flex-wrap gap-3" style={{ animationDelay: '380ms' }}>
             <HeroLink href={primary.href} className={`${btnBase} ${theme.primaryBtn}`}>
               {t(primary.label)}

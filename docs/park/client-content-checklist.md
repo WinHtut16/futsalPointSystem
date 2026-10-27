@@ -7,7 +7,8 @@ Anything shown as `[brackets]` in the mockups is waiting on one of these.
 - [x] Opening hours (2026-10-27): park 6–19, pool 9–17:30 closed Mondays, game shop 9–20, billiards 9–20, market lane always open
 - [x] Restaurant (Family Garden Food House) hours (2026-10-27): 6 AM to 10 PM
 - [x] Pool (2026-10-27): adult 10,000 / child 7,000 MMK per entry, 77′ × 34′, 1 ft to 4 ft (1.2 m) deep, CCTV, 6 pool rules
-- [ ] Pool: child age cutoff (client 2026-10-27: no free entry for small children, cutoff unknown), full-day ticket or per visit, confirm shallow end ~1 ft, lifeguard hours, locker or towel rental
+- [x] Pool ticket is per visit (2026-10-27): leaving the pool needs a new ticket to re-enter. No child age cutoff on the site (client did not give one)
+- [ ] Pool: confirm shallow end ~1 ft, lifeguard hours, locker or towel rental
 - [x] Restaurant (2026-10-27): name Family Garden Food House, menu as a Google Drive file + QR card
 - [ ] Restaurant: cuisine, signature dishes, group or event bookings
 - [x] Billiards name (2026-10-27): CueX Billiard and Snooker Club

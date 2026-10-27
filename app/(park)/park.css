@@ -913,6 +913,36 @@ html[lang='my'] .arc-sign-soft {
   background-color: #f5f5f3;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='144' height='144'%3E%3Cg fill='%231a1d1f'%3E%3Crect x='0' y='0' width='11' height='11' opacity='0.045'/%3E%3Crect x='40' y='8' width='11' height='11' opacity='0.03'/%3E%3Crect x='84' y='20' width='11' height='11' opacity='0.05'/%3E%3Crect x='20' y='44' width='11' height='11' opacity='0.035'/%3E%3Crect x='64' y='56' width='11' height='11' opacity='0.045'/%3E%3Crect x='108' y='72' width='11' height='11' opacity='0.03'/%3E%3Crect x='8' y='92' width='11' height='11' opacity='0.04'/%3E%3Crect x='48' y='104' width='11' height='11' opacity='0.03'/%3E%3Crect x='92' y='116' width='11' height='11' opacity='0.045'/%3E%3Crect x='116' y='4' width='11' height='11' opacity='0.025'/%3E%3Crect x='28' y='128' width='11' height='11' opacity='0.035'/%3E%3Crect x='72' y='136' width='11' height='11' opacity='0.04'/%3E%3C/g%3E%3C/svg%3E");
 }
+/* Hero ticket: white stub with a dashed tear line and two half-circle
+   notches cut at its ends (radial masks, so the deck shows through). */
+.pool-ticket {
+  position: relative;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgb(26 29 31 / 0.06), 0 16px 34px -20px rgb(26 29 31 / 0.4);
+}
+.pool-ticket-stub {
+  position: relative;
+  border-top: 2px dashed #d6d6d1;
+}
+.pool-ticket-stub::before,
+.pool-ticket-stub::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #f5f5f3;
+}
+.pool-ticket-stub::before { left: -9px; }
+.pool-ticket-stub::after { right: -9px; }
+
+/* The second hero photo sits tilted like a print laid on the first. */
+.pool-print { rotate: -4deg; transition: rotate 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+.pool-print:hover { rotate: -1deg; }
+
 @media (prefers-reduced-motion: reduce) {
   .pool-wave, .pool-live { animation: none; }
+  .pool-print { transition: none; }
 }

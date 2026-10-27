@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { Cctv, MoveVertical, Ruler, UtensilsCrossed } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { FOOD_HOUSE, HOURS, POOL } from '@/lib/park/content'
-import { closedDaysLabel, formatAmount, hoursRange } from '@/lib/park/time'
+import { formatAmount, hoursRange } from '@/lib/park/time'
 import ParkPhoto from '../ParkPhoto'
-import ViberLink from '../ViberLink'
 import PoolDepth from './pool/PoolDepth'
 import PoolRules from './pool/PoolRules'
+import PoolHeroPhotos from './pool/PoolHeroPhotos'
 import PoolStatus from './pool/PoolStatus'
-import { PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
+import PoolTicket from './pool/PoolTicket'
+import { VenueHero, VenueStrip, type Theme } from './VenueParts'
 
 // Colours taken from the pool itself (sampled from the client's photos):
 // the white mosaic deck as the ground, the terracotta entry steps as the
@@ -31,7 +32,6 @@ export default function PoolContent() {
   const { t, lang } = useLanguage()
   const n = (v: number) => formatAmount(v, lang)
   const hours = HOURS.pool
-  const closed = hours && closedDaysLabel(hours, t)
 
   const facts = [
     {
@@ -62,53 +62,17 @@ export default function PoolContent() {
         theme={theme}
         title="park.pool.title"
         lead="park.pool.lead"
-        photo="poolLength"
+        media={<PoolHeroPhotos />}
         badge={<PoolStatus />}
+        extra={<PoolTicket />}
         primary={{ href: '#rules', label: 'park.pool.ctaRules' }}
         secondary={{ href: '#food', label: 'park.pool.ctaFood' }}
-        glow="shadow-[0_30px_80px_rgb(26_29_31/0.18)]"
+        glow=""
       />
-
-      <section aria-labelledby="pool-entry" className="bg-white py-20 md:py-24">
-        <div className="mx-auto grid max-w-[1200px] gap-14 px-4 md:px-8 lg:grid-cols-[7fr_5fr] lg:gap-20">
-          <div>
-            <h2 id="pool-entry" className={heading}>
-              {t('park.pool.entryTitle')}
-            </h2>
-            <div className="mt-6 max-w-[520px]">
-              <PriceRows
-                theme={theme}
-                unit="park.pool.perEntry"
-                rows={[
-                  ['park.pool.adult', POOL.prices.adult],
-                  ['park.pool.child', POOL.prices.child],
-                ]}
-              />
-            </div>
-            <p className="mt-4 max-w-[52ch] text-[#3b4045]">
-              <ViberLink className="underline decoration-[#dcdcd8] underline-offset-4 hover:text-[#a8453a]">
-                {t('park.pool.entryNote')}
-              </ViberLink>
-            </p>
-          </div>
-
-          {hours && (
-            <div className="flex flex-col gap-2 border-t border-[#dcdcd8] pt-8 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
-              <h2 className="font-semibold text-[#3b4045]">{t('park.pool.hoursTitle')}</h2>
-              <p className={`park-display text-3xl leading-tight md:text-[38px] ${INK}`}>{hoursRange(hours, t, lang)}</p>
-              {closed && (
-                <p className="inline-flex w-fit items-center gap-2 rounded-full bg-[#a8453a]/10 px-3 py-1 font-semibold text-[#8a362c]">
-                  {closed}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
 
       <section aria-labelledby="pool-depth" className={`${theme.panel} py-20 md:py-24`}>
         <div className="mx-auto max-w-[1200px] px-4 md:px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-[5fr_6fr] lg:gap-14">
+          <div className="grid items-center gap-12 lg:grid-cols-[5fr_6fr] lg:gap-16">
             <div className="flex flex-col gap-5">
               <h2 id="pool-depth" className="park-display max-w-[18ch] text-[34px] leading-[1.1] md:text-[42px]">
                 {t('park.pool.depthTitle')}
@@ -124,9 +88,8 @@ export default function PoolContent() {
                 ))}
               </dl>
             </div>
-            <ParkPhoto photo="poolShallow" sizes="(min-width: 1024px) 620px, 92vw" className="aspect-[4/3] rounded-[28px]" />
+            <PoolDepth className="mx-auto block max-w-[560px]" />
           </div>
-          <PoolDepth className="mx-auto mt-16 block max-w-[820px]" />
         </div>
       </section>
 
