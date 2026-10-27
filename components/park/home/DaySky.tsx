@@ -116,7 +116,7 @@ export default function DaySky({ root }: { root: RefObject<HTMLElement | null> }
   return (
     <div
       aria-hidden="true"
-      className={`day-sky pointer-events-none fixed right-3 top-[128px] z-20 flex items-center gap-2.5 rounded-2xl px-3 py-2 shadow-[0_8px_30px_rgb(11_30_45/0.18)] backdrop-blur-sm md:gap-3 md:px-4 md:py-3 lg:bottom-6 lg:right-6 lg:top-auto ${tone(
+      className={`day-sky pointer-events-none fixed right-3 top-[76px] z-20 flex items-center gap-2.5 rounded-2xl px-3 py-2 shadow-[0_8px_30px_rgb(11_30_45/0.18)] backdrop-blur-sm md:gap-3 md:px-4 md:py-3 lg:bottom-6 lg:right-6 lg:top-auto ${tone(
         state.hour,
       )} ${state.inView ? 'is-in' : ''}`}
     >

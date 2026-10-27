@@ -4,20 +4,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import type { TranslationKey } from '@/lib/i18n'
+import { DARK_PATHS, PARK_NAV, isCurrent } from '@/lib/park/nav'
 import ParkLangToggle from './ParkLangToggle'
 
-const links: { href: string; key: TranslationKey; match?: string }[] = [
-  { href: '/pool', key: 'park.nav.pool', match: '/pool' },
-  { href: '/futsal', key: 'park.nav.futsal', match: '/futsal' },
-  { href: '/games', key: 'park.nav.games', match: '/games' },
-  { href: '/billiards', key: 'park.nav.billiards', match: '/billiards' },
-  { href: '/#visit', key: 'park.nav.visit' },
-]
-
-// Venue pages are set at night; the nav follows their ground.
-const DARK_PATHS = ['/games', '/billiards']
-
+// Desktop: logo, the places as text links, language and Book futsal.
+// Below lg the places move to the bottom tab bar (ParkTabBar).
 export default function ParkNav() {
   const { t } = useLanguage()
   const pathname = usePathname()
@@ -29,16 +20,16 @@ export default function ParkNav() {
   const linkIdle = dark ? 'text-white/80 hover:text-white' : 'text-park-ink-soft hover:text-park-jungle'
   const linkOn = dark ? 'text-white' : 'text-park-jungle'
 
-  const navLinks = links.map(({ href, key, match }) => {
-    const current = match ? pathname.startsWith(match) : false
+  const navLinks = PARK_NAV.map((item) => {
+    const current = isCurrent(pathname, item)
     return (
       <Link
-        key={href}
-        href={href}
+        key={item.href}
+        href={item.href}
         aria-current={current ? 'page' : undefined}
         className={`inline-flex min-h-[44px] items-center whitespace-nowrap font-medium transition-colors ${current ? `${linkOn} underline decoration-2 underline-offset-8` : linkIdle}`}
       >
-        {t(key)}
+        {t(item.key)}
       </Link>
     )
   })
@@ -74,14 +65,6 @@ export default function ParkNav() {
           </Link>
         </div>
       </div>
-
-      {/* Phone and tablet: the same links as a swipeable row, no hidden menu. */}
-      <nav
-        aria-label={t('park.nav.label')}
-        className="park-scroll-x mx-auto flex max-w-[1200px] gap-6 overflow-x-auto px-4 pb-2 text-[15px] md:px-8 lg:hidden"
-      >
-        {navLinks}
-      </nav>
     </header>
   )
 }

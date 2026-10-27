@@ -26,6 +26,7 @@ export default function ParkFooter() {
           <Link href="/futsal" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.futsal')}</Link>
           <Link href="/games" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.games')}</Link>
           <Link href="/billiards" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.billiards')}</Link>
+          <Link href="/#visit" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.visit')}</Link>
         </nav>
 
         <div className="flex flex-col">
