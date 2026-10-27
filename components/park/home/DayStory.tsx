@@ -14,6 +14,7 @@ import VenueIcon, { type VenueIconKind } from '../VenueIcon'
 import OpeningBadge from '../OpeningBadge'
 import { TableSvg } from '../venue/BreakTable'
 import DaySky from './DaySky'
+import FoodMenu from './FoodMenu'
 
 // The landing's spine: one real day at the park, morning to night. Each
 // stretch of the day has its own ground colour, and a horizon band blends
@@ -158,7 +159,9 @@ export default function DayStory() {
           hour={12.5}
           light="warm"
           reverse
-        />
+        >
+          <FoodMenu />
+        </Moment>
       </section>
 
       <Horizon from="--park-noon" to="--park-afternoon" />

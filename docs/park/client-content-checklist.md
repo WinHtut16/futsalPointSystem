@@ -8,7 +8,8 @@ Anything shown as `[brackets]` in the mockups is waiting on one of these.
 - [ ] Restaurant (Family Garden Food House) opening hours
 - [x] Pool (2026-10-27): adult 10,000 / child 7,000 MMK per entry, 77′ × 34′, 1 ft to 4 ft (1.2 m) deep, CCTV, 6 pool rules
 - [ ] Pool: child age cutoff, full-day ticket or per visit, confirm shallow end ~1 ft, lifeguard hours, locker or towel rental
-- [ ] Restaurant: name, cuisine, 3 to 6 signature dishes with prices, whether it takes group or event bookings
+- [x] Restaurant (2026-10-27): name Family Garden Food House, menu as a Google Drive file + QR card
+- [ ] Restaurant: cuisine, signature dishes, group or event bookings
 - [ ] Billiards: real hourly rate per table (the system seed of 5,000 MMK/hr is a placeholder)
 - [ ] Game shop: confirm PS4 3,000 / PS5 5,000 / VIP 7,000 MMK/hr and the snack list
 - [ ] Contact: phone number, Viber number (futsal uses +95 9797 272000; same for the park?), Facebook page link

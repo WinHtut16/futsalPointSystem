@@ -11,6 +11,7 @@ import ViberLink from '../ViberLink'
 const ROWS: [VenueKey, TranslationKey][] = [
   ['park', 'park.visit.park'],
   ['pool', 'park.visit.pool'],
+  ['food', 'park.visit.food'],
   ['market', 'park.visit.market'],
   ['futsal', 'park.visit.futsal'],
   ['games', 'park.visit.games'],

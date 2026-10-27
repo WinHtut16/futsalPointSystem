@@ -5,7 +5,7 @@
 // docs/park/client-content-checklist.md). Components must hide a row whose
 // value is null rather than print a placeholder.
 
-export type VenueKey = 'park' | 'pool' | 'futsal' | 'games' | 'billiards' | 'market'
+export type VenueKey = 'park' | 'pool' | 'food' | 'futsal' | 'games' | 'billiards' | 'market'
 
 /** Opening hours in Myanmar time as 24h numbers; halves are allowed (17.5 = 5:30 PM).
  *  `closedDays` lists weekdays the venue is shut (0 = Sunday, 1 = Monday ...).
@@ -35,11 +35,20 @@ export const PARK = {
 export const HOURS: Record<VenueKey, Hours | null> = {
   park: { open: 6, close: 19 },
   pool: { open: 9, close: 17.5, closedDays: [1] },
+  food: null,
   // lib/booking.ts dayHours: 16 slots, 06:00 to 21:00, last slot ends 22:00.
   futsal: { open: 6, close: 22 },
   games: { open: 9, close: 20 },
   billiards: { open: 9, close: 20 },
   market: { open: 0, close: 24 },
+}
+
+/** The poolside restaurant. The menu is a Google Drive file the client
+ *  maintains; menuQr is their printed table card, which encodes the same file. */
+export const FOOD_HOUSE = {
+  name: 'Family Garden Food House',
+  menuUrl: 'https://drive.google.com/file/d/19oPE_fRo0yF5M64cig6Rl1-tMymLNP5d/view',
+  menuQr: '/images/park/family-garden-menu-qr.png',
 }
 
 /** Mini Water Boom, from the client 2026-10-27. Entry is per person, not hourly.
