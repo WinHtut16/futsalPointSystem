@@ -56,7 +56,7 @@ export function parkJsonLd() {
         : [
             {
               '@type': 'EntertainmentBusiness',
-              name: 'MyaThida Billiards',
+              name: 'CueX Billiard and Snooker Club',
               url: `${SITE_URL}/billiards`,
               openingHoursSpecification: openingHours(HOURS.billiards),
             },
@@ -68,7 +68,13 @@ export function parkJsonLd() {
         openingHoursSpecification: openingHours(HOURS.pool),
         priceRange: `${POOL.prices.child}-${POOL.prices.adult} MMK per entry`,
       },
-      { '@type': 'Restaurant', name: FOOD_HOUSE.name, url: `${SITE_URL}/#food`, hasMenu: FOOD_HOUSE.menuUrl },
+      {
+        '@type': 'Restaurant',
+        name: FOOD_HOUSE.name,
+        url: `${SITE_URL}/#food`,
+        hasMenu: FOOD_HOUSE.menuUrl,
+        openingHoursSpecification: openingHours(HOURS.food),
+      },
       { '@type': 'FoodEstablishment', name: 'MyaThida Market Lane', openingHoursSpecification: openingHours(HOURS.market) },
     ],
   }

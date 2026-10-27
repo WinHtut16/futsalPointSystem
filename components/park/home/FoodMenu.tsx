@@ -3,13 +3,14 @@
 import Image from 'next/image'
 import { ExternalLink } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { FOOD_HOUSE } from '@/lib/park/content'
+import { FOOD_HOUSE, HOURS } from '@/lib/park/content'
+import { hoursRange } from '@/lib/park/time'
 
 // Family Garden's menu: the client's printed QR card (the same one on the
 // tables) beside a button that opens the menu file directly, since a QR on
 // the screen you are holding can't be scanned.
 export default function FoodMenu() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   return (
     <div className="flex max-w-[520px] items-center gap-4 sm:gap-6 rounded-[22px] bg-white/70 p-3 pr-5 shadow-[0_1px_0_rgb(176_96_0/0.12)]">
       <a
@@ -32,6 +33,11 @@ export default function FoodMenu() {
       {/* The decorative link above is hidden from assistive tech; the image's
           meaning is carried by this text and the button. */}
       <div className="flex min-w-0 flex-col gap-3">
+        {HOURS.food && (
+          <p className="font-semibold text-[#3a3a24]">
+            {t('park.venue.openDaily', { range: hoursRange(HOURS.food, t, lang) })}
+          </p>
+        )}
         <p className="text-[15px] leading-snug text-[#3a3a24]">
           <span className="sr-only">{t('park.food.qrAlt')}. </span>
           {t('park.food.menuNote')}

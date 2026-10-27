@@ -28,7 +28,12 @@ export default function BilliardsContent() {
         theme={theme}
         title="park.billiards.title"
         lead={billiardsOpening() ? 'park.billiards.openingBody' : 'park.billiards.lead'}
-        badge={<OpeningBadge />}
+        badge={
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-semibold text-venue-brass">{t('park.billiards.club')}</span>
+            <OpeningBadge />
+          </div>
+        }
         media={
           // Mid-game in the hero; the racked table waits further down with its Break button.
           <div className="flex aspect-[5/4] items-center justify-center rounded-[28px] bg-[#2a1719] p-8">

@@ -35,7 +35,7 @@ export const PARK = {
 export const HOURS: Record<VenueKey, Hours | null> = {
   park: { open: 6, close: 19 },
   pool: { open: 9, close: 17.5, closedDays: [1] },
-  food: null,
+  food: { open: 6, close: 22 },
   // lib/booking.ts dayHours: 16 slots, 06:00 to 21:00, last slot ends 22:00.
   futsal: { open: 6, close: 22 },
   games: { open: 9, close: 20 },
