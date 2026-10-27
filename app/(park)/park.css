@@ -942,7 +942,61 @@ html[lang='my'] .arc-sign-soft {
 .pool-print { rotate: -4deg; transition: rotate 500ms cubic-bezier(0.22, 1, 0.36, 1); }
 .pool-print:hover { rotate: -1deg; }
 
+/* Reveal (components/park/Reveal.tsx): armed content waits just below its
+   place and rises in once seen; staggered lists follow child by child. */
+.rv.is-armed,
+.rv-stagger.is-armed > * {
+  opacity: 0;
+  translate: 0 28px;
+}
+.rv.is-armed.is-seen,
+.rv-stagger.is-armed.is-seen > * {
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), translate 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rv-stagger.is-seen > :nth-child(2) { transition-delay: 80ms; }
+.rv-stagger.is-seen > :nth-child(3) { transition-delay: 160ms; }
+.rv-stagger.is-seen > :nth-child(4) { transition-delay: 240ms; }
+.rv-stagger.is-seen > :nth-child(5) { transition-delay: 320ms; }
+.rv-stagger.is-seen > :nth-child(6) { transition-delay: 400ms; }
+.rv-stagger.is-seen > :nth-child(n + 7) { transition-delay: 480ms; }
+
+/* Hero ticket prints in from its top edge, just after the title. */
+@keyframes pool-print-in {
+  from { clip-path: inset(0 0 100% 0 round 18px); translate: 0 -10px; }
+  to { clip-path: inset(0 0 0 0 round 18px); translate: 0 0; }
+}
+.pool-ticket { animation: pool-print-in 900ms cubic-bezier(0.22, 1, 0.36, 1) 420ms both; }
+
+/* Depth drawing: water fills from the floor to the rim once it is seen,
+   then the deck numbers appear; swimmers bob on the surface. */
+.pool-fill { transition: translate 1600ms cubic-bezier(0.22, 1, 0.36, 1); }
+.pool-depth.is-armed .pool-fill { translate: 0 96px; }
+.pool-depth.is-armed.is-seen .pool-fill { translate: 0 0; }
+.pool-depth.is-armed .pool-mark { opacity: 0; }
+.pool-depth.is-armed.is-seen .pool-mark { opacity: 1; transition: opacity 600ms ease-out 1100ms; }
+@keyframes pool-bob { 50% { translate: 0 3px; } }
+.pool-bob { animation: pool-bob 3.2s ease-in-out infinite; }
+.pool-bob-2 { animation-delay: -1.6s; }
+
+/* Rule signs swing on their top screws under the pointer, like a plate
+   knocked on the fence, and lift off the deck. */
+@keyframes pool-swing {
+  0% { rotate: 0deg; }
+  20% { rotate: -3deg; }
+  45% { rotate: 2deg; }
+  70% { rotate: -1deg; }
+  100% { rotate: 0deg; }
+}
+.pool-sign { transform-origin: 50% 0; transition: translate 300ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms; }
+@media (hover: hover) and (pointer: fine) {
+  .pool-sign:hover { animation: pool-swing 900ms cubic-bezier(0.36, 0, 0.3, 1); translate: 0 -4px; box-shadow: 0 2px 0 rgb(15 77 60 / 0.08), 0 26px 40px -22px rgb(15 77 60 / 0.55); }
+}
+.pool-sign:focus-within { translate: 0 -4px; }
+
 @media (prefers-reduced-motion: reduce) {
-  .pool-wave, .pool-live { animation: none; }
+  .pool-wave, .pool-live, .pool-bob, .pool-ticket { animation: none; }
   .pool-print { transition: none; }
+  .pool-sign:hover { animation: none; }
 }

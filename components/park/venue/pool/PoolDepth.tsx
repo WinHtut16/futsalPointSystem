@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { POOL } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
+import { armReveal } from '../../Reveal'
 
 // Side view of the pool drawn to scale in depth: the floor slopes from the
 // shallow end to the deep end, with a child and an adult standing in it so a
@@ -20,13 +22,13 @@ const deepY = RIM + POOL.depthFt.deep * FT
 const floorAt = (x: number) => shallowY + ((x - LEFT) / (RIGHT - LEFT)) * (deepY - shallowY)
 
 // A swimmer pictogram standing on the floor at `x`, `heightFt` tall.
-function Swimmer({ x, heightFt, scale }: { x: number; heightFt: number; scale: number }) {
+function Swimmer({ x, heightFt, scale, className }: { x: number; heightFt: number; scale: number; className: string }) {
   const foot = floorAt(x)
   const top = foot - heightFt * FT
   const head = 11 * scale
   const bodyW = 20 * scale
   return (
-    <g fill="#ffffff">
+    <g fill="#ffffff" className={className}>
       <circle cx={x} cy={top + head} r={head} />
       <rect x={x - bodyW / 2} y={top + head * 2 + 2} width={bodyW} height={foot - (top + head * 2 + 2)} rx={bodyW / 2} />
     </g>
@@ -42,11 +44,15 @@ const wave = (() => {
 
 export default function PoolDepth({ className = '' }: { className?: string }) {
   const { t, lang } = useLanguage()
+  const ref = useRef<SVGSVGElement>(null)
+  // Water fills the basin the first time the drawing scrolls into view.
+  useEffect(() => (ref.current ? armReveal(ref.current, 0.35) : undefined), [])
   const n = (v: number) => formatAmount(v, lang)
   const basin = `M${LEFT} ${RIM} V${shallowY} L${RIGHT} ${deepY} V${RIM} Z`
 
   return (
     <svg
+      ref={ref}
       viewBox={`0 0 ${W} 300`}
       role="img"
       aria-label={t('park.pool.diagramLabel', {
@@ -54,7 +60,7 @@ export default function PoolDepth({ className = '' }: { className?: string }) {
         deep: n(POOL.depthFt.deep),
         length: n(POOL.sizeFt.length),
       })}
-      className={`h-auto w-full ${className}`}
+      className={`pool-depth h-auto w-full ${className}`}
     >
       <defs>
         <linearGradient id="pool-depth-water" x1="0" x2="1" y1="0" y2="0">
@@ -68,12 +74,14 @@ export default function PoolDepth({ className = '' }: { className?: string }) {
       </defs>
 
       {/* Swimmers first, so the water drawn over them tints what is submerged. */}
-      <Swimmer x={170} heightFt={3.2} scale={1.1} />
-      <Swimmer x={455} heightFt={5.6} scale={1.3} />
+      <Swimmer x={170} heightFt={3.2} scale={1.1} className="pool-bob" />
+      <Swimmer x={455} heightFt={5.6} scale={1.3} className="pool-bob pool-bob-2" />
 
       <g clipPath="url(#pool-depth-basin)">
+        <g className="pool-fill">
         <g className="pool-wave">
           <path d={wave} fill="url(#pool-depth-water)" opacity="0.78" />
+        </g>
         </g>
       </g>
 
@@ -82,7 +90,7 @@ export default function PoolDepth({ className = '' }: { className?: string }) {
       <path d={`M0 ${RIM} H${LEFT} M${RIGHT} ${RIM} H${W}`} stroke="#f5f5f3" strokeWidth="5" strokeLinecap="round" />
 
       {/* Depth markings painted on the deck. */}
-      <g fill="#ffcb47" fontSize="26" fontWeight="700">
+      <g className="pool-mark" fill="#ffcb47" fontSize="26" fontWeight="700">
         <text x={LEFT + 8} y={RIM - 14}>{t('park.pool.ft', { n: n(POOL.depthFt.shallow) })}</text>
         <text x={RIGHT - 8} y={RIM - 14} textAnchor="end">{t('park.pool.ft', { n: n(POOL.depthFt.deep) })}</text>
       </g>

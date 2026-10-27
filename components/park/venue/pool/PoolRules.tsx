@@ -3,6 +3,7 @@
 import { GlassWater, PawPrint, Shirt, ShoppingBag, ShowerHead, Thermometer, type LucideIcon } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { POOL_RULES, type PoolRule, type PoolRuleIcon } from '@/lib/park/pool-rules'
+import Reveal from '../../Reveal'
 
 // The pool's six signs, drawn the way they hang on the fence: a white plate
 // with a coloured frame, the English title in the top band, a pictogram, the
@@ -47,7 +48,11 @@ function Sign({ rule }: { rule: PoolRule }) {
   const { lang } = useLanguage()
   const k = KIND[rule.kind]
   return (
-    <li className="pool-sign relative rounded-[14px] bg-white p-2.5 shadow-[0_1px_0_rgb(15_77_60/0.1),0_14px_30px_-18px_rgb(15_77_60/0.45)]">
+    <li className="h-full">
+      {/* The plate swings on hover (park.css .pool-sign); the li only reveals. */}
+      <div
+        className="pool-sign relative h-full rounded-[14px] bg-white p-2.5 shadow-[0_1px_0_rgb(15_77_60/0.1),0_14px_30px_-18px_rgb(15_77_60/0.45)]"
+      >
       {/* Mounting screws. */}
       {['left-1 top-1', 'right-1 top-1', 'bottom-1 left-1', 'bottom-1 right-1'].map((pos) => (
         <span key={pos} aria-hidden="true" className={`absolute ${pos} h-1.5 w-1.5 rounded-full bg-[#c9d3d0]`} />
@@ -69,16 +74,17 @@ function Sign({ rule }: { rule: PoolRule }) {
           {rule.en}
         </p>
       </article>
+      </div>
     </li>
   )
 }
 
 export default function PoolRules() {
   return (
-    <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <Reveal as="ul" stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {POOL_RULES.map((rule) => (
         <Sign key={rule.key} rule={rule} />
       ))}
-    </ul>
+    </Reveal>
   )
 }
