@@ -5,10 +5,12 @@
 // docs/park/client-content-checklist.md). Components must hide a row whose
 // value is null rather than print a placeholder.
 
-export type VenueKey = 'pool' | 'futsal' | 'games' | 'billiards' | 'market'
+export type VenueKey = 'park' | 'pool' | 'futsal' | 'games' | 'billiards' | 'market'
 
-/** Opening hours as 24h integers in Myanmar time, e.g. { open: 6, close: 22 }. */
-export type Hours = { open: number; close: number }
+/** Opening hours in Myanmar time as 24h numbers; halves are allowed (17.5 = 5:30 PM).
+ *  `closedDays` lists weekdays the venue is shut (0 = Sunday, 1 = Monday ...).
+ *  { open: 0, close: 24 } means always open. */
+export type Hours = { open: number; close: number; closedDays?: readonly number[] }
 
 // Contact details are the futsal site's (components/booking/SiteFooter.tsx);
 // the park and the court share one front desk.
@@ -29,13 +31,15 @@ export const PARK = {
   viberUrl: 'viber://chat?number=%2B959797272000',
 }
 
+// Client-confirmed hours, 2026-10-27.
 export const HOURS: Record<VenueKey, Hours | null> = {
-  pool: null,
+  park: { open: 6, close: 19 },
+  pool: { open: 9, close: 17.5, closedDays: [1] },
   // lib/booking.ts dayHours: 16 slots, 06:00 to 21:00, last slot ends 22:00.
   futsal: { open: 6, close: 22 },
-  games: null,
-  billiards: null,
-  market: null,
+  games: { open: 9, close: 20 },
+  billiards: { open: 9, close: 20 },
+  market: { open: 0, close: 24 },
 }
 
 /** Futsal court rates per hour (MMK). Mirrors lib/booking.ts priceForHour. */

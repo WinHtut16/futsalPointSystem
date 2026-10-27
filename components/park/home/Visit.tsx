@@ -4,11 +4,12 @@ import { Bus, MapPin, MessageCircle, Navigation, Phone } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n'
 import { HOURS, PARK, type VenueKey } from '@/lib/park/content'
-import { formatHour } from '@/lib/park/time'
+import { closedDaysLabel, hoursRange } from '@/lib/park/time'
 import ParkPhoto from '../ParkPhoto'
 import ViberLink from '../ViberLink'
 
 const ROWS: [VenueKey, TranslationKey][] = [
+  ['park', 'park.visit.park'],
   ['pool', 'park.visit.pool'],
   ['market', 'park.visit.market'],
   ['futsal', 'park.visit.futsal'],
@@ -46,12 +47,16 @@ export default function Visit() {
             <dl className="divide-y divide-park-line">
               {ROWS.map(([venue, label]) => {
                 const h = HOURS[venue]
+                const closed = h && closedDaysLabel(h, t)
                 return (
                   <div key={venue} className="flex items-baseline justify-between gap-4 py-3">
                     <dt>{t(label)}</dt>
-                    <dd className={h ? 'font-semibold' : 'text-park-ink-soft'}>
+                    <dd className={h ? 'text-right font-semibold' : 'text-park-ink-soft'}>
                       {h ? (
-                        t('park.visit.range', { open: formatHour(h.open, lang), close: formatHour(h.close, lang) })
+                        <>
+                          {hoursRange(h, t, lang)}
+                          {closed && <span className="block text-sm font-normal text-park-ink-soft">{closed}</span>}
+                        </>
                       ) : (
                         <ViberLink className="underline decoration-park-line underline-offset-4 hover:text-park-jungle">
                           {t('park.visit.askUs')}

@@ -5,11 +5,18 @@ import { SITE_URL } from './site'
 // lib/park/content.ts so it never states a fact the page doesn't; fields the
 // client hasn't supplied are simply left out.
 
-const pad = (h: number) => `${String(h % 24).padStart(2, '0')}:00`
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+// 17.5 -> "17:30"; a 24:00 close is written 23:59 as schema.org expects.
+const pad = (h: number) => {
+  const mins = Math.min(Math.round(h * 60), 24 * 60 - 1)
+  return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`
+}
+// Indexed like Date.getDay(): 0 = Sunday.
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 function openingHours(h: Hours | null) {
-  return h ? [{ '@type': 'OpeningHoursSpecification', dayOfWeek: DAYS, opens: pad(h.open), closes: pad(h.close) }] : undefined
+  if (!h) return undefined
+  const dayOfWeek = DAYS.filter((_, i) => !h.closedDays?.includes(i))
+  return [{ '@type': 'OpeningHoursSpecification', dayOfWeek, opens: pad(h.open), closes: pad(h.close) }]
 }
 
 export function parkJsonLd() {
@@ -19,6 +26,7 @@ export function parkJsonLd() {
     name: 'MyaThida Park',
     alternateName: 'မြသီတာ ပန်းခြံ',
     url: SITE_URL,
+    openingHoursSpecification: openingHours(HOURS.park),
     logo: `${SITE_URL}/logo_black.jpg`,
     description:
       'A family park in Yangon with a covered pool, poolside dining, a night market lane, a futsal court, ACJ Gaming and billiards.',

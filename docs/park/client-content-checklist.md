@@ -4,14 +4,16 @@ Anything shown as `[brackets]` in the mockups is waiting on one of these.
 
 ## Facts
 - [ ] Park address (street, township, town) and Google Maps pin link
-- [ ] Opening hours for each place: park gate, pool, restaurant, game shop, billiards (and any weekly closed day)
-- [ ] Pool: entry price for adults and children, pool size or depth, lifeguard hours, locker or towel rental
+- [x] Opening hours (2026-10-27): park 6–19, pool 9–17:30 closed Mondays, game shop 9–20, billiards 9–20, market lane always open
+- [ ] Restaurant (Family Garden Food House) opening hours
+- [x] Pool (2026-10-27): adult 10,000 / child 7,000 MMK per entry, 77′ × 34′, 1 ft to 4 ft (1.2 m) deep, CCTV, 6 pool rules
+- [ ] Pool: child age cutoff, full-day ticket or per visit, confirm shallow end ~1 ft, lifeguard hours, locker or towel rental
 - [ ] Restaurant: name, cuisine, 3 to 6 signature dishes with prices, whether it takes group or event bookings
 - [ ] Billiards: real hourly rate per table (the system seed of 5,000 MMK/hr is a placeholder)
 - [ ] Game shop: confirm PS4 3,000 / PS5 5,000 / VIP 7,000 MMK/hr and the snack list
 - [ ] Contact: phone number, Viber number (futsal uses +95 9797 272000; same for the park?), Facebook page link
 - [ ] Short park story: year opened, size, what families love about it (2 or 3 sentences, in Burmese if possible)
-- [ ] Parking, wheelchair access, and any rules (outside food, swimwear, children supervision)
+- [ ] Parking, wheelchair access, children supervision rule (pool rules received 2026-10-27)
 
 ## Copy to confirm
 - [ ] Burmese text across all park pages, read by a native speaker (lib/i18n/namespaces/park.ts)

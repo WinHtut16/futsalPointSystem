@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n'
 import type { Hours, MenuItemKey } from '@/lib/park/content'
-import { formatAmount, formatHour } from '@/lib/park/time'
+import { closedDaysLabel, formatAmount, hoursRange } from '@/lib/park/time'
 import type { PhotoKey } from '@/lib/park/photos'
 import ParkPhoto from '../ParkPhoto'
 import ViberLink from '../ViberLink'
@@ -157,10 +157,9 @@ export function VenueStrip({
   also: { href: string; label: TranslationKey }
 }) {
   const { t, lang } = useLanguage()
+  const closed = hours && closedDaysLabel(hours, t)
   const heading = hours
-    ? t('park.venue.openDaily', {
-        range: t('park.visit.range', { open: formatHour(hours.open, lang), close: formatHour(hours.close, lang) }),
-      })
+    ? t(closed ? 'park.venue.open' : 'park.venue.openDaily', { range: hoursRange(hours, t, lang) })
     : t('park.venue.askHours')
 
   return (
@@ -168,7 +167,10 @@ export function VenueStrip({
       <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-6 px-4 py-14 md:px-8">
         <div>
           <h2 className="park-display text-3xl md:text-[34px]">{heading}</h2>
-          <p className="mt-2">{t('park.venue.inside')}</p>
+          <p className="mt-2">
+            {closed && <span className="font-semibold">{closed}. </span>}
+            {t('park.venue.inside')}
+          </p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link href={also.href} className={`${btnBase} bg-black/85 text-white hover:bg-black`}>

@@ -1,5 +1,5 @@
 import { toMyDigits } from '@/lib/utils'
-import type { Language } from '@/lib/i18n'
+import type { Language, TranslationKey } from '@/lib/i18n'
 import type { Hours } from './content'
 
 // Myanmar is UTC+6:30 all year (no DST).
@@ -11,19 +11,58 @@ export function myanmarHourNow(now: Date = new Date()): number {
   return minutes / 60
 }
 
-export function isOpenAt(hours: Hours, hour: number): boolean {
+/** Current weekday in Myanmar, 0 = Sunday ... 6 = Saturday. */
+export function myanmarDayNow(now: Date = new Date()): number {
+  return new Date(now.getTime() + MYANMAR_OFFSET_MIN * 60_000).getUTCDay()
+}
+
+export function isAlwaysOpen(hours: Hours): boolean {
+  return hours.open <= 0 && hours.close >= 24 && !hours.closedDays?.length
+}
+
+/** Pass `day` to also honour closed weekdays; without it only the time is checked. */
+export function isOpenAt(hours: Hours, hour: number, day?: number): boolean {
+  if (day !== undefined && hours.closedDays?.includes(day)) return false
   return hour >= hours.open && hour < hours.close
 }
 
-/** "10 PM" / "ည ၁၀ နာရီ". Whole hours only; the park keeps hourly schedules. */
+/** "10 PM", "5:30 PM" / "ည ၁၀ နာရီ", "ညနေ ၅ နာရီခွဲ". */
 export function formatHour(hour: number, lang: Language): string {
-  const h = ((hour % 24) + 24) % 24
+  const h = Math.floor(((hour % 24) + 24) % 24)
+  const min = Math.round((hour - Math.floor(hour)) * 60)
   const h12 = h % 12 === 0 ? 12 : h % 12
   if (lang === 'my') {
     const period = h < 12 ? 'နံနက်' : h < 16 ? 'နေ့လယ်' : h < 19 ? 'ညနေ' : 'ည'
-    return `${period} ${toMyDigits(h12)} နာရီ`
+    if (min === 0) return `${period} ${toMyDigits(h12)} နာရီ`
+    if (min === 30) return `${period} ${toMyDigits(h12)} နာရီခွဲ`
+    return `${period} ${toMyDigits(h12)}:${String(min).padStart(2, '0').replace(/\d/g, (d) => toMyDigits(+d))}`
   }
-  return `${h12} ${h < 12 ? 'AM' : 'PM'}`
+  return `${h12}${min ? `:${String(min).padStart(2, '0')}` : ''} ${h < 12 ? 'AM' : 'PM'}`
+}
+
+type T = (key: TranslationKey, vars?: Record<string, string | number>) => string
+
+const WEEKDAY_KEYS: TranslationKey[] = [
+  'park.weekday.0',
+  'park.weekday.1',
+  'park.weekday.2',
+  'park.weekday.3',
+  'park.weekday.4',
+  'park.weekday.5',
+  'park.weekday.6',
+]
+
+/** "9 AM to 5:30 PM", "Always open". Closed days are left to closedDaysLabel. */
+export function hoursRange(hours: Hours, t: T, lang: Language): string {
+  if (hours.open <= 0 && hours.close >= 24) return t('park.hours.always')
+  return t('park.visit.range', { open: formatHour(hours.open, lang), close: formatHour(hours.close, lang) })
+}
+
+/** "Closed Mondays", or null when the venue opens every day. */
+export function closedDaysLabel(hours: Hours, t: T): string | null {
+  if (!hours.closedDays?.length) return null
+  const days = hours.closedDays.map((d) => t(WEEKDAY_KEYS[d])).join(', ')
+  return t('park.hours.closed', { days })
 }
 
 /** Thousands-grouped number in the reader's digits: 25,000 / ၂၅,၀၀၀. */
