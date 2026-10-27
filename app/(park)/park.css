@@ -27,6 +27,11 @@
   --venue-game: 47 95 208;
   --venue-game-amber: 242 184 75;
 
+  /* One family: headings are Archivo wide + heavy (see .park-display).
+     Burmese headings use the root's Noto Sans Myanmar in bold. */
+  --font-park-display: var(--font-park-body);
+  --font-park-display-my: var(--font-noto-my);
+
   font-family: var(--font-park-body), var(--font-noto-my), system-ui, sans-serif;
   color: rgb(var(--park-ink));
   background: rgb(var(--park-mist));
@@ -53,13 +58,15 @@ html[lang='my'] .park {
 }
 
 .park-display {
-  font-family: var(--font-park-display), var(--font-park-display-my), Georgia, serif;
-  font-weight: 400;
+  font-family: var(--font-park-display), var(--font-park-display-my), system-ui, sans-serif;
+  font-stretch: 112%;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 
 html[lang='my'] .park-display {
-  font-family: var(--font-park-display-my), var(--font-park-display), serif;
+  font-family: var(--font-park-display-my), var(--font-park-display), sans-serif;
+  font-stretch: 100%;
   font-weight: 700;
   letter-spacing: 0;
   /* Burmese stacked vowels clip at the tight Latin display leading. */

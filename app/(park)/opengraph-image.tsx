@@ -9,12 +9,13 @@ export const contentType = 'image/png'
 const TITLE = 'MyaThida Park'
 const LINE = 'Pool, night market, futsal, games and billiards. Stay the whole day.'
 
-// Young Serif, subset to just the glyphs on the card. Fetched server-side at
-// render time; if Google Fonts is unreachable the title falls back to serif.
+// Archivo (wide, heavy, as on the site), subset to just the glyphs on the card.
+// Fetched server-side at render time; if Google Fonts is unreachable the title
+// falls back to sans-serif.
 async function loadTitleFont(): Promise<ArrayBuffer | null> {
   try {
     const css = await (
-      await fetch(`https://fonts.googleapis.com/css2?family=Young+Serif&text=${encodeURIComponent(TITLE + LINE)}`)
+      await fetch(`https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112.5,800&text=${encodeURIComponent(TITLE + LINE)}`)
     ).text()
     const url = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1]
     return url ? await (await fetch(url)).arrayBuffer() : null
@@ -43,7 +44,7 @@ export default async function OpengraphImage() {
           background: '#0f4d3c',
           color: '#eef6f0',
           position: 'relative',
-          fontFamily: font ? 'Young Serif' : 'serif',
+          fontFamily: font ? 'Archivo' : 'sans-serif',
         }}
       >
         <svg width="1200" height="630" viewBox="0 0 1200 630" style={{ position: 'absolute', inset: 0 }}>
@@ -62,11 +63,11 @@ export default async function OpengraphImage() {
           <path d={`M 0 ${cy + 110} Q 150 ${cy + 90} 300 ${cy + 110} T 600 ${cy + 110} T 900 ${cy + 110} T 1200 ${cy + 110}`} fill="none" stroke="#7fd3d9" strokeWidth="6" />
         </svg>
         <div style={{ display: 'flex', flexDirection: 'column', padding: '84px 80px', gap: 24, position: 'relative' }}>
-          <div style={{ fontSize: 112, lineHeight: 1, letterSpacing: -2 }}>{TITLE}</div>
+          <div style={{ fontSize: 112, lineHeight: 1, letterSpacing: -1 }}>{TITLE}</div>
           <div style={{ fontSize: 40, color: '#cfe3d8', maxWidth: 620, lineHeight: 1.3 }}>{LINE}</div>
         </div>
       </div>
     ),
-    { ...size, fonts: font ? [{ name: 'Young Serif', data: font, weight: 400, style: 'normal' }] : undefined },
+    { ...size, fonts: font ? [{ name: 'Archivo', data: font, weight: 800, style: 'normal' }] : undefined },
   )
 }
