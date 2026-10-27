@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import './park.css'
-import { parkFontVars } from '@/lib/park/fonts'
 import ParkNav from '@/components/park/ParkNav'
 import ParkFooter from '@/components/park/ParkFooter'
 import ParkTabBar from '@/components/park/ParkTabBar'
@@ -34,7 +33,7 @@ export const metadata: Metadata = {
 export default function ParkLayout({ children }: { children: React.ReactNode }) {
   return (
     // Bottom padding below lg keeps the footer clear of the fixed tab bar.
-    <div className={`park ${parkFontVars} flex min-h-screen flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0`}>
+    <div className={`park flex min-h-screen flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0`}>
       <SkipLink />
       <ParkNav />
       <main id="main" tabIndex={-1} className="flex-1 outline-none">

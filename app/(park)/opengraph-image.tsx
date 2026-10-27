@@ -9,13 +9,13 @@ export const contentType = 'image/png'
 const TITLE = 'MyaThida Park'
 const LINE = 'Pool, night market, futsal, games and billiards. Stay the whole day.'
 
-// Archivo (wide, heavy, as on the site), subset to just the glyphs on the card.
+// Sora bold (the site's heading face), subset to just the glyphs on the card.
 // Fetched server-side at render time; if Google Fonts is unreachable the title
 // falls back to sans-serif.
 async function loadTitleFont(): Promise<ArrayBuffer | null> {
   try {
     const css = await (
-      await fetch(`https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112.5,800&text=${encodeURIComponent(TITLE + LINE)}`)
+      await fetch(`https://fonts.googleapis.com/css2?family=Sora:wght@700&text=${encodeURIComponent(TITLE + LINE)}`)
     ).text()
     const url = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1]
     return url ? await (await fetch(url)).arrayBuffer() : null
@@ -44,7 +44,7 @@ export default async function OpengraphImage() {
           background: '#0f4d3c',
           color: '#eef6f0',
           position: 'relative',
-          fontFamily: font ? 'Archivo' : 'sans-serif',
+          fontFamily: font ? 'Sora' : 'sans-serif',
         }}
       >
         <svg width="1200" height="630" viewBox="0 0 1200 630" style={{ position: 'absolute', inset: 0 }}>
@@ -68,6 +68,6 @@ export default async function OpengraphImage() {
         </div>
       </div>
     ),
-    { ...size, fonts: font ? [{ name: 'Archivo', data: font, weight: 800, style: 'normal' }] : undefined },
+    { ...size, fonts: font ? [{ name: 'Sora', data: font, weight: 700, style: 'normal' }] : undefined },
   )
 }

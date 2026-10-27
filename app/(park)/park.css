@@ -27,9 +27,11 @@
   --venue-game: 47 95 208;
   --venue-game-amber: 242 184 75;
 
-  /* One family: headings are Archivo wide + heavy (see .park-display).
-     Burmese headings use the root's Noto Sans Myanmar in bold. */
-  --font-park-display: var(--font-park-body);
+  /* The futsal booking site's pair, already loaded by the root layout, so
+     the park downloads no fonts of its own: Sora for headings, Manrope for
+     body. Burmese headings use the root's Noto Sans Myanmar in bold. */
+  --font-park-display: var(--font-sora);
+  --font-park-body: var(--font-manrope);
   --font-park-display-my: var(--font-noto-my);
 
   font-family: var(--font-park-body), var(--font-noto-my), system-ui, sans-serif;
@@ -59,14 +61,12 @@ html[lang='my'] .park {
 
 .park-display {
   font-family: var(--font-park-display), var(--font-park-display-my), system-ui, sans-serif;
-  font-stretch: 112%;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 html[lang='my'] .park-display {
   font-family: var(--font-park-display-my), var(--font-park-display), sans-serif;
-  font-stretch: 100%;
   font-weight: 700;
   letter-spacing: 0;
   /* Burmese stacked vowels clip at the tight Latin display leading. */
