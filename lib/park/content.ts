@@ -15,8 +15,11 @@ export type Hours = { open: number; close: number; closedDays?: readonly number[
 // Contact details are the futsal site's (components/booking/SiteFooter.tsx);
 // the park and the court share one front desk.
 export const PARK = {
-  address: 'Bahan, Yangon' as string | null,
-  addressMy: 'ဗဟန်း၊ ရန်ကုန်' as string | null,
+  // From the client's map pin (2026-10-28), plus code R7H9+VPH.
+  address: 'Kyun Shwe Wah Road, Yuzana Garden City, Dagon Seikkan Township, Yangon' as string | null,
+  // Burmese spelling of the street and estate not confirmed yet: null shows
+  // the English address to Burmese readers too.
+  addressMy: null as string | null,
   mapsUrl: 'https://maps.google.com/?q=Mya+Thida+Futsal+Field' as string | null,
   // Google Maps embed (Share > Embed a map). CSP frame-src allows www.google.com.
   mapsEmbedUrl:

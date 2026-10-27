@@ -39,7 +39,6 @@ export default function PoolTicket() {
           {closed && (
             <span className="rounded-full bg-[#a8453a]/10 px-2.5 py-0.5 text-sm font-semibold text-[#8a362c]">{closed}</span>
           )}
-          <p className="w-full text-sm leading-snug text-[#3b4045]">{t('park.pool.reEntry')}</p>
         </div>
       )}
     </div>

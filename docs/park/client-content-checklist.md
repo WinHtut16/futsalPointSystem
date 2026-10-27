@@ -3,7 +3,8 @@
 Anything shown as `[brackets]` in the mockups is waiting on one of these.
 
 ## Facts
-- [ ] Park address (street, township, town) and Google Maps pin link
+- [x] Park address (2026-10-28): Kyun Shwe Wah Road, Yuzana Garden City, Dagon Seikkan Township, Yangon (R7H9+VPH). Not Bahan.
+- [ ] Burmese spelling of the street and estate name (site shows the English address to Burmese readers until then)
 - [x] Opening hours (2026-10-27): park 6–19, pool 9–17:30 closed Mondays, game shop 9–20, billiards 9–20, market lane always open
 - [x] Restaurant (Family Garden Food House) hours (2026-10-27): 6 AM to 10 PM
 - [x] Pool (2026-10-27): adult 10,000 / child 7,000 MMK per entry, 77′ × 34′, 1 ft to 4 ft (1.2 m) deep, CCTV, 6 pool rules
