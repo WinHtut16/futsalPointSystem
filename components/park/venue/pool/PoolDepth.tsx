@@ -26,7 +26,7 @@ function Swimmer({ x, heightFt, scale }: { x: number; heightFt: number; scale: n
   const head = 11 * scale
   const bodyW = 20 * scale
   return (
-    <g fill="#f6fbfb">
+    <g fill="#ffffff">
       <circle cx={x} cy={top + head} r={head} />
       <rect x={x - bodyW / 2} y={top + head * 2 + 2} width={bodyW} height={foot - (top + head * 2 + 2)} rx={bodyW / 2} />
     </g>
@@ -58,9 +58,9 @@ export default function PoolDepth({ className = '' }: { className?: string }) {
     >
       <defs>
         <linearGradient id="pool-depth-water" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor="#7fd3d9" />
-          <stop offset="0.55" stopColor="#2bb3c0" />
-          <stop offset="1" stopColor="#13798a" />
+          <stop offset="0" stopColor="#7d9fd4" />
+          <stop offset="0.55" stopColor="#4a70b0" />
+          <stop offset="1" stopColor="#2b4c86" />
         </linearGradient>
         <clipPath id="pool-depth-basin">
           <path d={basin} />
@@ -78,8 +78,8 @@ export default function PoolDepth({ className = '' }: { className?: string }) {
       </g>
 
       {/* Tiled basin and deck. */}
-      <path d={`M${LEFT} ${RIM} V${shallowY} L${RIGHT} ${deepY} V${RIM}`} fill="none" stroke="#e6f4f5" strokeWidth="5" strokeLinejoin="round" />
-      <path d={`M0 ${RIM} H${LEFT} M${RIGHT} ${RIM} H${W}`} stroke="#e6f4f5" strokeWidth="5" strokeLinecap="round" />
+      <path d={`M${LEFT} ${RIM} V${shallowY} L${RIGHT} ${deepY} V${RIM}`} fill="none" stroke="#f5f5f3" strokeWidth="5" strokeLinejoin="round" />
+      <path d={`M0 ${RIM} H${LEFT} M${RIGHT} ${RIM} H${W}`} stroke="#f5f5f3" strokeWidth="5" strokeLinecap="round" />
 
       {/* Depth markings painted on the deck. */}
       <g fill="#ffcb47" fontSize="26" fontWeight="700">
@@ -88,15 +88,15 @@ export default function PoolDepth({ className = '' }: { className?: string }) {
       </g>
 
       {/* Ends and length. */}
-      <g fill="#bfe4e8" fontSize="22">
+      <g fill="#c9d6ea" fontSize="22">
         <text x={LEFT} y={deepY + 38}>{t('park.pool.shallowEnd')}</text>
         <text x={RIGHT} y={deepY + 38} textAnchor="end">{t('park.pool.deepEnd')}</text>
       </g>
-      <g stroke="#bfe4e8" strokeWidth="1.5">
+      <g stroke="#c9d6ea" strokeWidth="1.5">
         <path d={`M${LEFT} 284 H${W / 2 - 56} M${W / 2 + 56} 284 H${RIGHT}`} />
         <path d={`M${LEFT} 276 V292 M${RIGHT} 276 V292`} />
       </g>
-      <text x={W / 2} y={292} textAnchor="middle" fill="#f6fbfb" fontSize="22" fontWeight="700">
+      <text x={W / 2} y={292} textAnchor="middle" fill="#ffffff" fontSize="22" fontWeight="700">
         {t('park.pool.ft', { n: n(POOL.sizeFt.length) })}
       </text>
     </svg>

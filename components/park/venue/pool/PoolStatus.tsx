@@ -35,7 +35,7 @@ export default function PoolStatus() {
   return (
     <span
       aria-live="polite"
-      className={`inline-flex min-h-[36px] items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-park-ink transition-opacity ${
+      className={`inline-flex min-h-[36px] items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-[#1a1d1f] ring-1 ring-black/10 transition-opacity ${
         status === null ? 'opacity-0' : 'opacity-100'
       }`}
     >

@@ -902,17 +902,16 @@ html[lang='my'] .arc-sign-soft {
   .gv[open], .gv-photo { animation: none; }
 }
 
-/* Pool page. The water surface in the depth diagram drifts one wave length
-   and loops; the rules section sits on a faint deck-tile grid. */
+/* Pool page. Colours come from the pool itself: the white mosaic deck with
+   its scattered dark tiles, the terracotta entry steps, the navy liner. The
+   water surface in the depth diagram drifts one wave length and loops. */
 @keyframes pool-wave { to { transform: translateX(-40px); } }
 .pool-wave { animation: pool-wave 5s linear infinite; }
 @keyframes pool-live { 50% { opacity: 0.35; } }
 .pool-live { animation: pool-live 2s ease-in-out infinite; }
 .pool-tiles {
-  background-image:
-    linear-gradient(rgb(var(--park-jungle) / 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(var(--park-jungle) / 0.05) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background-color: #f5f5f3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='144' height='144'%3E%3Cg fill='%231a1d1f'%3E%3Crect x='0' y='0' width='11' height='11' opacity='0.045'/%3E%3Crect x='40' y='8' width='11' height='11' opacity='0.03'/%3E%3Crect x='84' y='20' width='11' height='11' opacity='0.05'/%3E%3Crect x='20' y='44' width='11' height='11' opacity='0.035'/%3E%3Crect x='64' y='56' width='11' height='11' opacity='0.045'/%3E%3Crect x='108' y='72' width='11' height='11' opacity='0.03'/%3E%3Crect x='8' y='92' width='11' height='11' opacity='0.04'/%3E%3Crect x='48' y='104' width='11' height='11' opacity='0.03'/%3E%3Crect x='92' y='116' width='11' height='11' opacity='0.045'/%3E%3Crect x='116' y='4' width='11' height='11' opacity='0.025'/%3E%3Crect x='28' y='128' width='11' height='11' opacity='0.035'/%3E%3Crect x='72' y='136' width='11' height='11' opacity='0.04'/%3E%3C/g%3E%3C/svg%3E");
 }
 @media (prefers-reduced-motion: reduce) {
   .pool-wave, .pool-live { animation: none; }

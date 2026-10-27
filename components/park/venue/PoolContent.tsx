@@ -1,26 +1,31 @@
 'use client'
 
-import { Cctv, MoveVertical, Ruler } from 'lucide-react'
+import Link from 'next/link'
+import { Cctv, MoveVertical, Ruler, UtensilsCrossed } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { HOURS, POOL } from '@/lib/park/content'
+import { FOOD_HOUSE, HOURS, POOL } from '@/lib/park/content'
 import { closedDaysLabel, formatAmount, hoursRange } from '@/lib/park/time'
+import ParkPhoto from '../ParkPhoto'
 import ViberLink from '../ViberLink'
 import PoolDepth from './pool/PoolDepth'
 import PoolRules from './pool/PoolRules'
 import PoolStatus from './pool/PoolStatus'
 import { PriceRows, VenueHero, VenueStrip, type Theme } from './VenueParts'
 
-// Daylight and water: the hero is the pool's own teal, the depth section
-// drops into deep water, and the rules sit on the tiled deck.
+// Colours taken from the pool itself (sampled from the client's photos):
+// the white mosaic deck as the ground, the terracotta entry steps as the
+// accent, and the navy pool liner for the depth section.
+const INK = 'text-[#1a1d1f]'
 const theme: Theme = {
-  ground: 'bg-park-pool text-park-ink',
-  panel: 'bg-[#0c3b45] text-white',
-  muted: 'text-park-ink',
-  accent: 'text-park-jungle',
-  rule: 'divide-park-line border-park-line',
-  primaryBtn: 'bg-park-ink text-white hover:bg-park-jungle-deep',
-  secondaryBtn: 'border-[1.5px] border-park-ink text-park-ink hover:bg-white/25',
+  ground: `pool-tiles ${INK}`,
+  panel: 'bg-[#16305c] text-white',
+  muted: 'text-[#3b4045]',
+  accent: 'text-[#a8453a]',
+  rule: 'divide-[#dcdcd8] border-[#dcdcd8]',
+  primaryBtn: 'bg-[#a8453a] text-white hover:bg-[#8a362c]',
+  secondaryBtn: 'border-[1.5px] border-[#1a1d1f] text-[#1a1d1f] hover:bg-black/5',
 }
+const heading = `park-display text-[34px] leading-[1.1] md:text-[42px] ${INK}`
 
 export default function PoolContent() {
   const { t, lang } = useLanguage()
@@ -57,17 +62,17 @@ export default function PoolContent() {
         theme={theme}
         title="park.pool.title"
         lead="park.pool.lead"
-        photo="poolSwim"
+        photo="poolLength"
         badge={<PoolStatus />}
         primary={{ href: '#rules', label: 'park.pool.ctaRules' }}
-        secondary={{ href: '/#food', label: 'park.pool.ctaFood' }}
-        glow="shadow-[0_30px_90px_rgb(11_58_70/0.35)]"
+        secondary={{ href: '#food', label: 'park.pool.ctaFood' }}
+        glow="shadow-[0_30px_80px_rgb(26_29_31/0.18)]"
       />
 
-      <section aria-labelledby="pool-entry" className="bg-park-mist py-20 md:py-24">
+      <section aria-labelledby="pool-entry" className="bg-white py-20 md:py-24">
         <div className="mx-auto grid max-w-[1200px] gap-14 px-4 md:px-8 lg:grid-cols-[7fr_5fr] lg:gap-20">
           <div>
-            <h2 id="pool-entry" className="park-display text-[34px] leading-[1.1] text-park-jungle md:text-[42px]">
+            <h2 id="pool-entry" className={heading}>
               {t('park.pool.entryTitle')}
             </h2>
             <div className="mt-6 max-w-[520px]">
@@ -80,19 +85,19 @@ export default function PoolContent() {
                 ]}
               />
             </div>
-            <p className="mt-4 max-w-[52ch] text-park-ink-soft">
-              <ViberLink className="underline decoration-park-line underline-offset-4 hover:text-park-jungle">
+            <p className="mt-4 max-w-[52ch] text-[#3b4045]">
+              <ViberLink className="underline decoration-[#dcdcd8] underline-offset-4 hover:text-[#a8453a]">
                 {t('park.pool.entryNote')}
               </ViberLink>
             </p>
           </div>
 
           {hours && (
-            <div className="flex flex-col gap-2 border-t border-park-line pt-8 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
-              <h2 className="font-semibold text-park-jungle">{t('park.pool.hoursTitle')}</h2>
-              <p className="park-display text-3xl leading-tight text-park-ink md:text-[38px]">{hoursRange(hours, t, lang)}</p>
+            <div className="flex flex-col gap-2 border-t border-[#dcdcd8] pt-8 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
+              <h2 className="font-semibold text-[#3b4045]">{t('park.pool.hoursTitle')}</h2>
+              <p className={`park-display text-3xl leading-tight md:text-[38px] ${INK}`}>{hoursRange(hours, t, lang)}</p>
               {closed && (
-                <p className="inline-flex w-fit items-center gap-2 rounded-full bg-[#b42318]/10 px-3 py-1 font-semibold text-[#9a1d14]">
+                <p className="inline-flex w-fit items-center gap-2 rounded-full bg-[#a8453a]/10 px-3 py-1 font-semibold text-[#8a362c]">
                   {closed}
                 </p>
               )}
@@ -102,42 +107,72 @@ export default function PoolContent() {
       </section>
 
       <section aria-labelledby="pool-depth" className={`${theme.panel} py-20 md:py-24`}>
-        <div className="mx-auto grid max-w-[1200px] items-center gap-12 px-4 md:px-8 lg:grid-cols-[5fr_7fr] lg:gap-14">
-          <div className="flex flex-col gap-5">
-            <h2 id="pool-depth" className="park-display max-w-[18ch] text-[34px] leading-[1.1] md:text-[42px]">
-              {t('park.pool.depthTitle')}
-            </h2>
-            <p className="max-w-[44ch] text-[17px] leading-relaxed text-[#cfeaee]">{t('park.pool.depthBody')}</p>
-            <dl className="mt-2 divide-y divide-white/15 border-y border-white/15">
-              {facts.map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-start gap-4 py-3.5">
-                  <Icon size={22} aria-hidden="true" className="mt-0.5 shrink-0 text-park-sun" />
-                  <dt className="w-24 shrink-0 font-semibold">{label}</dt>
-                  <dd className="text-[#cfeaee]">{value}</dd>
-                </div>
-              ))}
-            </dl>
+        <div className="mx-auto max-w-[1200px] px-4 md:px-8">
+          <div className="grid items-center gap-12 lg:grid-cols-[5fr_6fr] lg:gap-14">
+            <div className="flex flex-col gap-5">
+              <h2 id="pool-depth" className="park-display max-w-[18ch] text-[34px] leading-[1.1] md:text-[42px]">
+                {t('park.pool.depthTitle')}
+              </h2>
+              <p className="max-w-[44ch] text-[17px] leading-relaxed text-[#d4def0]">{t('park.pool.depthBody')}</p>
+              <dl className="mt-2 divide-y divide-white/15 border-y border-white/15">
+                {facts.map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex items-start gap-4 py-3.5">
+                    <Icon size={22} aria-hidden="true" className="mt-0.5 shrink-0 text-park-sun" />
+                    <dt className="w-24 shrink-0 font-semibold">{label}</dt>
+                    <dd className="text-[#d4def0]">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <ParkPhoto photo="poolShallow" sizes="(min-width: 1024px) 620px, 92vw" className="aspect-[4/3] rounded-[28px]" />
           </div>
-          <PoolDepth />
+          <PoolDepth className="mx-auto mt-16 block max-w-[820px]" />
         </div>
       </section>
 
-      <section id="rules" aria-labelledby="pool-rules" className="pool-tiles scroll-mt-32 bg-park-mist py-20 md:py-24">
+      <section id="rules" aria-labelledby="pool-rules" className="pool-tiles scroll-mt-24 py-20 md:py-24">
         <div className="mx-auto max-w-[1200px] px-4 md:px-8">
-          <h2 id="pool-rules" className="park-display text-[34px] leading-[1.1] text-park-jungle md:text-[42px]">
+          <h2 id="pool-rules" className={heading}>
             {t('park.pool.rulesTitle')}
           </h2>
-          <p className="mt-3 max-w-[52ch] text-[17px] text-park-ink-soft">{t('park.pool.rulesLead')}</p>
+          <p className="mt-3 max-w-[52ch] text-[17px] text-[#3b4045]">{t('park.pool.rulesLead')}</p>
           <div className="mt-10">
             <PoolRules />
           </div>
         </div>
       </section>
 
+      <section id="food" aria-labelledby="pool-food" className="scroll-mt-24 bg-white py-20 md:py-24">
+        <div className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 md:px-8 lg:grid-cols-[7fr_5fr] lg:gap-14">
+          <ParkPhoto photo="poolFood" sizes="(min-width: 1024px) 680px, 92vw" className="aspect-[4/3] rounded-[28px]" />
+          <div className="flex flex-col gap-5">
+            <p className="flex items-center gap-2 font-semibold text-[#a8453a]">
+              <UtensilsCrossed size={18} aria-hidden="true" />
+              {FOOD_HOUSE.name}
+            </p>
+            <h2 id="pool-food" className={heading}>
+              {t('park.pool.foodTitle')}
+            </h2>
+            <p className="max-w-[44ch] text-[17px] leading-relaxed text-[#3b4045]">{t('park.pool.foodBody')}</p>
+            {HOURS.food && (
+              <p className={`font-semibold ${INK}`}>
+                {t('park.venue.openDaily', { range: hoursRange(HOURS.food, t, lang) })}
+              </p>
+            )}
+            <Link
+              href="/#food"
+              className="inline-flex min-h-[48px] w-fit items-center rounded-full bg-[#a8453a] px-6 font-semibold text-white transition-colors hover:bg-[#8a362c]"
+            >
+              {t('park.pool.foodCta')}
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <VenueStrip
-        band="bg-park-pool text-park-ink"
+        band="bg-[#a8453a] text-white"
         hours={hours}
-        also={{ href: '/#food', label: 'park.pool.alsoFood' }}
+        also={{ href: '/futsal', label: 'park.pool.alsoFutsal' }}
       />
     </>
   )
