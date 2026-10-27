@@ -10,6 +10,7 @@ import {
   isOpenAt,
   myanmarDayNow,
   myanmarHourNow,
+  venueStatus,
 } from '@/lib/park/time'
 
 const tFor =
@@ -74,5 +75,17 @@ describe('labels', () => {
     expect(closedDaysLabel(HOURS.pool!, tEn)).toBe('Closed Mondays')
     expect(closedDaysLabel(HOURS.pool!, tMy)).toBe('တနင်္လာနေ့ ပိတ်သည်')
     expect(closedDaysLabel(HOURS.games!, tEn)).toBeNull()
+  })
+})
+
+describe('venueStatus', () => {
+  const pool = HOURS.pool!
+  it('walks through a pool day', () => {
+    expect(venueStatus(pool, 8, 2)).toEqual({ state: 'later', opens: 9 })
+    expect(venueStatus(pool, 12, 2)).toEqual({ state: 'open', until: 17.5 })
+    expect(venueStatus(pool, 18, 2)).toEqual({ state: 'closedNow' })
+  })
+  it('reports Monday as a closed day with Tuesday reopening', () => {
+    expect(venueStatus(pool, 12, 1)).toEqual({ state: 'closedDay', reopens: 9 })
   })
 })

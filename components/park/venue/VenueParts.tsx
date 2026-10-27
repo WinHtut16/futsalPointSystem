@@ -109,7 +109,16 @@ function HeroLink({ href, className, children }: { href: string; className: stri
   )
 }
 
-export function PriceRows({ theme, rows }: { theme: Theme; rows: [TranslationKey, number][] }) {
+export function PriceRows({
+  theme,
+  rows,
+  unit = 'park.venue.perHour',
+}: {
+  theme: Theme
+  rows: [TranslationKey, number][]
+  /** Price label with a {price} slot; hourly unless a venue charges per entry. */
+  unit?: TranslationKey
+}) {
   const { t, lang } = useLanguage()
   return (
     <dl className={`divide-y text-[17px] ${theme.rule}`}>
@@ -117,7 +126,7 @@ export function PriceRows({ theme, rows }: { theme: Theme; rows: [TranslationKey
         <div key={label} className="flex items-baseline justify-between gap-4 py-3.5">
           <dt>{t(label)}</dt>
           <dd className={`whitespace-nowrap font-bold ${theme.accent}`}>
-            {t('park.venue.perHour', { price: formatAmount(price, lang) })}
+            {t(unit, { price: formatAmount(price, lang) })}
           </dd>
         </div>
       ))}

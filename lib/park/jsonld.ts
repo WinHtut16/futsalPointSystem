@@ -1,4 +1,4 @@
-import { HOURS, PARK, FUTSAL_RATES, GAME, billiardsOpening, type Hours } from './content'
+import { HOURS, PARK, POOL, FUTSAL_RATES, GAME, billiardsOpening, type Hours } from './content'
 import { SITE_URL } from './site'
 
 // schema.org description of the park for search engines. Built from
@@ -61,7 +61,13 @@ export function parkJsonLd() {
               openingHoursSpecification: openingHours(HOURS.billiards),
             },
           ]),
-      { '@type': 'PublicSwimmingPool', name: 'Mini Water Boom', openingHoursSpecification: openingHours(HOURS.pool) },
+      {
+        '@type': 'PublicSwimmingPool',
+        name: 'Mini Water Boom',
+        url: `${SITE_URL}/pool`,
+        openingHoursSpecification: openingHours(HOURS.pool),
+        priceRange: `${POOL.prices.child}-${POOL.prices.adult} MMK per entry`,
+      },
       { '@type': 'FoodEstablishment', name: 'MyaThida Market Lane', openingHoursSpecification: openingHours(HOURS.market) },
     ],
   }

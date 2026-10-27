@@ -8,7 +8,7 @@ import type { TranslationKey } from '@/lib/i18n'
 import ParkLangToggle from './ParkLangToggle'
 
 const links: { href: string; key: TranslationKey; match?: string }[] = [
-  { href: '/#pool', key: 'park.nav.poolFood' },
+  { href: '/pool', key: 'park.nav.pool', match: '/pool' },
   { href: '/futsal', key: 'park.nav.futsal', match: '/futsal' },
   { href: '/games', key: 'park.nav.games', match: '/games' },
   { href: '/billiards', key: 'park.nav.billiards', match: '/billiards' },

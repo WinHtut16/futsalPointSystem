@@ -894,3 +894,19 @@ html[lang='my'] .arc-sign-soft {
   .gp-print-grid, .gp-print-grid:hover { transition: none; scale: 1; }
   .gv[open], .gv-photo { animation: none; }
 }
+
+/* Pool page. The water surface in the depth diagram drifts one wave length
+   and loops; the rules section sits on a faint deck-tile grid. */
+@keyframes pool-wave { to { transform: translateX(-40px); } }
+.pool-wave { animation: pool-wave 5s linear infinite; }
+@keyframes pool-live { 50% { opacity: 0.35; } }
+.pool-live { animation: pool-live 2s ease-in-out infinite; }
+.pool-tiles {
+  background-image:
+    linear-gradient(rgb(var(--park-jungle) / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--park-jungle) / 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pool-wave, .pool-live { animation: none; }
+}

@@ -22,7 +22,7 @@ export default function ParkFooter() {
           <h2 id="park-footer-places" className="mb-1 font-semibold text-white">
             {t('park.footer.places')}
           </h2>
-          <Link href="/#pool" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.poolFood')}</Link>
+          <Link href="/pool" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.pool')}</Link>
           <Link href="/futsal" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.futsal')}</Link>
           <Link href="/games" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.games')}</Link>
           <Link href="/billiards" className="inline-flex min-h-[44px] items-center hover:text-white">{t('park.nav.billiards')}</Link>

@@ -85,3 +85,21 @@ export function formatMonth(year: number, month: number, lang: Language): string
     timeZone: 'UTC',
   })
 }
+
+export type VenueStatus =
+  | { state: 'open'; until: number }
+  | { state: 'later'; opens: number }
+  | { state: 'closedNow' }
+  | { state: 'closedDay'; reopens: number }
+
+/** Where a venue stands right now. `closedDay` is a weekly closed day with
+ *  the venue open again tomorrow; otherwise a closed venue is `closedNow`. */
+export function venueStatus(hours: Hours, hour: number, day: number): VenueStatus {
+  const tomorrowClosed = hours.closedDays?.includes((day + 1) % 7) ?? false
+  if (hours.closedDays?.includes(day)) {
+    return tomorrowClosed ? { state: 'closedNow' } : { state: 'closedDay', reopens: hours.open }
+  }
+  if (isOpenAt(hours, hour)) return { state: 'open', until: hours.close }
+  if (hour < hours.open) return { state: 'later', opens: hours.open }
+  return { state: 'closedNow' }
+}

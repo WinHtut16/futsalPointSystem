@@ -5,8 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n'
-import { FUTSAL_RATES, GAME, BILLIARDS, HOURS, billiardsOpening } from '@/lib/park/content'
-import { formatAmount, formatHour } from '@/lib/park/time'
+import { FUTSAL_RATES, GAME, BILLIARDS, HOURS, POOL, billiardsOpening } from '@/lib/park/content'
+import { closedDaysLabel, formatAmount, formatHour, hoursRange } from '@/lib/park/time'
 import type { PhotoKey } from '@/lib/park/photos'
 import LivePhoto, { type PhotoLight } from '../LivePhoto'
 import RollIn from '../RollIn'
@@ -119,9 +119,36 @@ export default function DayStory() {
           icon="pool"
           hour={8}
           light="water"
-        />
+        >
+          <dl className="max-w-[440px] divide-y divide-park-pool/25 text-base">
+            <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-park-ink-soft">{t('park.day.morning.entry')}</dt>
+              <dd className="text-right font-bold text-[#0c5c68]">
+                {t('park.day.morning.prices', { adult: mmk(POOL.prices.adult), child: mmk(POOL.prices.child) })}
+              </dd>
+            </div>
+            {HOURS.pool && (
+              <div className="flex items-baseline justify-between gap-4 py-2.5">
+                <dt className="text-park-ink-soft">{t('park.day.morning.hours')}</dt>
+                <dd className="text-right font-bold text-[#0c5c68]">
+                  {hoursRange(HOURS.pool, t, lang)}
+                  <span className="block text-sm font-normal text-park-ink-soft">{closedDaysLabel(HOURS.pool, t)}</span>
+                </dd>
+              </div>
+            )}
+          </dl>
+          <div className="pt-1">
+            <Link
+              href="/pool"
+              className="inline-flex min-h-[48px] items-center rounded-full bg-[#0c5c68] px-6 font-semibold text-white transition-colors hover:bg-[#0c3b45]"
+            >
+              {t('park.day.morning.more')}
+            </Link>
+          </div>
+        </Moment>
         <div className="h-24 md:h-32" />
         <Moment
+          id="food"
           time="park.day.noon.time"
           timeClass="text-[#b06000]"
           title="park.day.noon.title"

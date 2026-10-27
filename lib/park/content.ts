@@ -42,6 +42,17 @@ export const HOURS: Record<VenueKey, Hours | null> = {
   market: { open: 0, close: 24 },
 }
 
+/** Mini Water Boom, from the client 2026-10-27. Entry is per person, not hourly.
+ *  The shallow-end depth is the client's estimate. */
+export const POOL = {
+  prices: { adult: 10000, child: 7000 },
+  depthFt: { shallow: 1, deep: 4 },
+  deepM: 1.2,
+  sizeFt: { length: 77, width: 34 },
+  sizeM: { length: 23.5, width: 10.4 },
+  cctv: true,
+}
+
 /** Futsal court rates per hour (MMK). Mirrors lib/booking.ts priceForHour. */
 export const FUTSAL_RATES = {
   weekdayMorning: 20000,
