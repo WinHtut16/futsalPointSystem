@@ -29,7 +29,7 @@ export function parkJsonLd() {
     openingHoursSpecification: openingHours(HOURS.park),
     logo: `${SITE_URL}/logo_black.jpg`,
     description:
-      'A family park in Yangon with a covered pool, poolside dining, a night market lane, a futsal court, ACJ Gaming and billiards.',
+      'A family park in Yangon with a covered pool, poolside dining, a walking street, a futsal court, ACJ Gaming and billiards.',
     ...(PARK.address ? { address: { '@type': 'PostalAddress', streetAddress: PARK.address, addressCountry: 'MM' } } : {}),
     ...(PARK.phone ? { telephone: PARK.phone } : {}),
     ...(PARK.mapsUrl ? { hasMap: PARK.mapsUrl } : {}),
@@ -75,7 +75,7 @@ export function parkJsonLd() {
         hasMenu: FOOD_HOUSE.menuUrl,
         openingHoursSpecification: openingHours(HOURS.food),
       },
-      { '@type': 'FoodEstablishment', name: 'MyaThida Market Lane', openingHoursSpecification: openingHours(HOURS.market) },
+      { '@type': 'FoodEstablishment', name: 'MyaThida Walking Street', openingHoursSpecification: openingHours(HOURS.market) },
     ],
   }
 }

@@ -8,7 +8,7 @@ import AnimationGuard from '@/components/park/AnimationGuard'
 import { SITE_URL } from '@/lib/park/site'
 
 const DESCRIPTION =
-  'A family park in Yangon with a covered pool, poolside dining, a night market lane, a futsal court, ACJ Gaming and billiards.'
+  'A family park in Yangon with a covered pool, poolside dining, a walking street, a futsal court, ACJ Gaming and billiards.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

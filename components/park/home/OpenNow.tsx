@@ -8,7 +8,7 @@ import SunArc from './SunArc'
 
 // Sun (or moon) on a horizon arc for the current Myanmar time, plus what is
 // open: the park grounds by day, then the futsal court after the park closes.
-// The market lane never closes, so it is left out of the status.
+// Walking Street never closes, so it is left out of the status.
 
 export default function OpenNow() {
   const { t, lang } = useLanguage()

@@ -70,7 +70,7 @@ originals in `D:\Myathida\client_photos` (kept outside the repo).
 
 **Still missing:**
 - Billiards photos, after the room opens. Add slots to `lib/park/photos.ts` and swap the drawn table out in `components/park/venue/BilliardsContent.tsx` and `DayStory.tsx`.
-- Food close-ups for the market lane and the poolside tables.
+- Food close-ups for Walking Street and the poolside tables.
 
 ## 5. Animations
 

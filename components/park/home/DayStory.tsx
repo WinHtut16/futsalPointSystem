@@ -225,7 +225,7 @@ export default function DayStory() {
             <p className="text-[17px] leading-relaxed text-[#c3cfe0]">{t('park.day.evening.body')}</p>
           </div>
 
-          <MarketLane />
+          <WalkingStreet />
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <VenueCard
@@ -284,9 +284,9 @@ export default function DayStory() {
   )
 }
 
-// The market lane has no page of its own, so it is a feature row rather
+// Walking Street has no page of its own, so it is a feature row rather
 // than a link card: photo and text side by side, set apart from the two rooms.
-function MarketLane() {
+function WalkingStreet() {
   const { t } = useLanguage()
   const [hover, setHover] = useState(false)
   return (

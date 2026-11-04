@@ -12,7 +12,7 @@ can break.
 | Futsal | `futsal` | 16:00 futsal | Ball turns slowly | Ball bounces and squashes, shadow shrinks |
 | Games | `games` | ACJ Gaming card | Face buttons light one after another | Pad rocks, D-pad presses |
 | Billiards | `billiards` | Billiards card | Cue lines up | Cue strikes, cue ball rolls into the 8 ball |
-| Market | `market` | Market lane block | String lights glow in turn | Awning flaps, the pot puffs steam |
+| Market | `market` | Walking Street block | String lights glow in turn | Awning flaps, the pot puffs steam |
 
 **Where the motion lives:** the `vi-*` (venue icon) and `sa-*` (sun arc)
 classes at the end of `app/(park)/park.css`. Timings and distances are plain
