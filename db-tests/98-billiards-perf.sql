@@ -43,8 +43,10 @@ select chk('every billiards WITH CHECK policy wraps is_active_admin()/is_superad
       and with_check !~* 'select'),
   0);
 
+-- pricing_tiers' two policies come from billiards-gaming-parity-migration.sql,
+-- which loads after the perf wrap; they are not part of what it touched.
 select chk('control: the wrap did not silently drop any billiards policy (still 19)',
-  (select count(*)::int from pg_policies where schemaname = 'billiards'),
+  (select count(*)::int from pg_policies where schemaname = 'billiards' and tablename <> 'pricing_tiers'),
   19);
 
 -- ── 2. sessions_summary: isolated fixture, far-future dates so no other
