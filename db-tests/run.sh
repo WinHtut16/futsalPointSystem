@@ -46,6 +46,9 @@ done
 
 echo "== shared identity =="
 run "$FUTSAL/app-access-migration.sql" || exit 1
+run "$FUTSAL/handle-new-user-fallback-restore.sql" || exit 1
+run "$FUTSAL/points-delta-sign-constraint.sql" || exit 1
+run "$FUTSAL/multi-business-points-migration.sql" || exit 1
 
 echo "== the other two businesses =="
 run "$BILL/billiards-schema-migration.sql"      || exit 1
@@ -106,7 +109,7 @@ echo "== assertions =="
 for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql 95-billiards-permissions.sql \
          96-audit-operations.sql 97-game-live-sessions.sql 98-billiards-perf.sql 99-game-perf.sql \
          100-game-correct-session.sql 101-billiards-correct-session.sql \
-         102-billiards-parity.sql; do
+         102-billiards-parity.sql 103-multi-business-points.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
