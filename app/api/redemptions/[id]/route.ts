@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
+import { FUTSAL } from '@/lib/points'
 import { IdParamSchema, RedemptionActionSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function PATCH(
@@ -61,6 +62,18 @@ export async function PATCH(
       if (action !== 'approve' && action !== 'reject')
         return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
 
+      // This route resolves FUTSAL requests only. A game or billiards request
+      // is resolved through /api/loyalty/<app>/redemptions/[id], which checks
+      // that business's grant; here it is simply not found. (No row at all is
+      // left to approve_redemption, which reports request_not_found itself.)
+      const { data: owner } = await supabase
+        .from('redemption_requests')
+        .select('app')
+        .eq('id', id)
+        .maybeSingle()
+      if (owner && owner.app !== FUTSAL)
+        return NextResponse.json({ error: 'Request not found.' }, { status: 404 })
+
       if (action === 'approve') {
         const { error: rpcError } = await supabase.rpc('approve_redemption', {
           p_request_id: id,
@@ -96,6 +109,7 @@ export async function PATCH(
           notes: notes ?? null,
         })
         .eq('id', id)
+        .eq('app', FUTSAL)
         .eq('status', 'pending')
         .select('id')
 

@@ -5,13 +5,15 @@ import RewardForm from '@/components/admin/RewardForm'
 import Link from 'next/link'
 import T from '@/components/ui/T'
 import type { Reward } from '@/types'
+import { FUTSAL } from '@/lib/points'
 
 export default async function EditRewardPage({ params }: { params: Promise<{ id: string }> }) {
   const [profile, { id }] = await Promise.all([getCurrentUser(), params])
   if (!(await isFutsalSuperAdmin())) redirect('/admin/rewards')
 
   const supabase = await createClient()
-  const { data: reward } = await supabase.from('rewards').select('*').eq('id', id).single()
+  // Futsal rewards only; game/billiards are edited under /admin/loyalty/<app>.
+  const { data: reward } = await supabase.from('rewards').select('*').eq('id', id).eq('app', FUTSAL).maybeSingle()
   if (!reward) redirect('/admin/rewards')
 
   return (

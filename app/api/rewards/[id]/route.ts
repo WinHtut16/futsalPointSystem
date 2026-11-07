@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser, requireAnyAdmin, requireSuperAdmin, isFutsalSuperAdmin } from '@/lib/auth'
+import { FUTSAL } from '@/lib/points'
 import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -68,6 +69,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .from('rewards')
       .update(updates)
       .eq('id', id)
+      // Futsal's rewards only: game/billiards rewards go through
+      // /api/loyalty/<app>, guarded by that business's grant.
+      .eq('app', FUTSAL)
       .select()
       .single()
 
@@ -103,6 +107,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
         updated_by: admin.id,
       })
       .eq('id', id)
+      .eq('app', FUTSAL)
     if (error) return serverError(error.message)
     revalidateTag('rewards', 'default')
     return NextResponse.json({ success: true })

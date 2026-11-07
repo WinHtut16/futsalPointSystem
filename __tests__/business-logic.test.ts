@@ -572,7 +572,7 @@ describe('PATCH /api/redemptions/[id] — reject', () => {
   it('(1) returns 200 and does NOT call RPC for a pending request', async () => {
     asAdmin()
     // UPDATE returning 1 row → success
-    mockQuery({ data: [{ id: REQUEST_ID }] })
+    mockQuery({ data: { app: 'futsal' } }, { data: [{ id: REQUEST_ID }] })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
@@ -585,7 +585,7 @@ describe('PATCH /api/redemptions/[id] — reject', () => {
   it('(2) returns 409 when request not found or already actioned', async () => {
     asAdmin()
     // UPDATE returns 0 rows: request does not exist or status != pending
-    mockQuery({ data: [] })
+    mockQuery({ data: { app: 'futsal' } }, { data: [] })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
@@ -598,7 +598,7 @@ describe('PATCH /api/redemptions/[id] — reject', () => {
   it('(3) returns 409 when request is already actioned (status guard prevents double-reject)', async () => {
     asAdmin()
     // Same as (2): UPDATE eq('status','pending') finds 0 rows for approved/rejected request
-    mockQuery({ data: [] })
+    mockQuery({ data: { app: 'futsal' } }, { data: [] })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(jsonReq(url, 'PATCH', body), routeParams(REQUEST_ID))
@@ -609,7 +609,7 @@ describe('PATCH /api/redemptions/[id] — reject', () => {
 
   it('(4) optional notes are accepted', async () => {
     asAdmin()
-    mockQuery({ data: [{ id: REQUEST_ID }] })
+    mockQuery({ data: { app: 'futsal' } }, { data: [{ id: REQUEST_ID }] })
 
     const { PATCH } = await import('@/app/api/redemptions/[id]/route')
     const res = await PATCH(
@@ -618,6 +618,17 @@ describe('PATCH /api/redemptions/[id] — reject', () => {
     )
 
     expect(res.status).toBe(200)
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+
+  it('(5) a game or billiards request is not found through the futsal route', async () => {
+    asAdmin()
+    mockQuery({ data: { app: 'game' } })
+
+    const { PATCH } = await import('@/app/api/redemptions/[id]/route')
+    const res = await PATCH(jsonReq(url, 'PATCH', { action: 'reject' }), routeParams(REQUEST_ID))
+
+    expect(res.status).toBe(404)
     expect(mockRpc).not.toHaveBeenCalled()
   })
 })

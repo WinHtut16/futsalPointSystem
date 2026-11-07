@@ -13,6 +13,10 @@ interface RewardAdminRowProps {
   reward: Reward
   canToggle: boolean
   canManage: boolean
+  /** Futsal by default; game/billiards use /api/loyalty/<app>/rewards. */
+  apiBase?: string
+  /** Where "edit" goes. */
+  editHref?: string
 }
 
 function Spinner() {
@@ -24,7 +28,13 @@ function Spinner() {
   )
 }
 
-export default function RewardAdminRow({ reward, canToggle, canManage }: RewardAdminRowProps) {
+export default function RewardAdminRow({
+  reward,
+  canToggle,
+  canManage,
+  apiBase = '/api/rewards',
+  editHref,
+}: RewardAdminRowProps) {
   const router = useRouter()
   const { t, lang } = useLanguage()
   const displayName = getLocalizedText(reward.name, reward.name_my, lang)
@@ -34,7 +44,7 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
 
   async function toggleActive() {
     setToggling(true)
-    await fetch(`/api/rewards/${reward.id}`, {
+    await fetch(`${apiBase}/${reward.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_active: !reward.is_active }),
@@ -45,7 +55,7 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
 
   async function handleDelete() {
     setDeleting(true)
-    const res = await fetch(`/api/rewards/${reward.id}`, { method: 'DELETE' })
+    const res = await fetch(`${apiBase}/${reward.id}`, { method: 'DELETE' })
     setDeleting(false)
     setShowDeleteConfirm(false)
     if (!res.ok) return
@@ -114,7 +124,7 @@ export default function RewardAdminRow({ reward, canToggle, canManage }: RewardA
           )}
           {canManage && (
             <button
-              onClick={() => router.push(`/admin/rewards/${reward.id}/edit`)}
+              onClick={() => router.push(editHref ?? `/admin/rewards/${reward.id}/edit`)}
               disabled={toggling || deleting}
               title={t('admin.editReward')}
               className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"

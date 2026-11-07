@@ -24,9 +24,12 @@ function refCode(id: string) {
 export default function RedemptionRequestCard({
   request,
   onResolved,
+  actionBase = '/api/redemptions',
 }: {
   request: RedemptionRequest
   onResolved: (id: string) => void
+  /** PATCH <actionBase>/<id>; game/billiards use /api/loyalty/<app>/redemptions. */
+  actionBase?: string
 }) {
   const [loading, setLoading] = useState<'approve' | 'reject' | null>(null)
   const [error, setError] = useState('')
@@ -40,7 +43,7 @@ export default function RedemptionRequestCard({
   async function handleAction(action: 'approve' | 'reject') {
     setLoading(action)
     setError('')
-    const res = await fetch(`/api/redemptions/${request.id}`, {
+    const res = await fetch(`${actionBase}/${request.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action }),

@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, Lock, Volleyball, CircleDot, Gamepad2, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Lock, Volleyball, CircleDot, Gamepad2, Star, type LucideIcon } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { getMyApps } from '@/lib/apps.server'
 import { APPS, type AppGrant, type AppName } from '@/lib/apps'
+import { isLoyaltyApp, loyaltyPath } from '@/lib/loyalty'
 import LanguageToggle from '@/components/ui/LanguageToggle'
 import LogoutButton from '@/components/admin/LogoutButton'
 import T from '@/components/ui/T'
@@ -158,17 +159,39 @@ function AppGrid({ apps }: { apps: AppGrant[] }) {
         // These two tiles are what produced the 404 pair in the console:
         //   /admin/billiards -> 307 -> /admin/billiards/dashboard?_rsc=... -> 404
         //   /admin/game      -> 307 -> /admin/game/floor?_rsc=...          -> 404
-        return meta.live ? (
+        const tile = meta.live ? (
           meta.crossZone ? (
-            <a key={app} href={meta.href} className={tileClass} style={tileStyle}>
+            <a href={meta.href} className={tileClass} style={tileStyle}>
               {inner}
             </a>
           ) : (
-            <Link key={app} href={meta.href} prefetch={false} className={tileClass} style={tileStyle}>
+            <Link href={meta.href} prefetch={false} className={tileClass} style={tileStyle}>
               {inner}
             </Link>
           )
-        ) : (
+        ) : null
+
+        // Game and billiards manage their points & rewards here in the hub
+        // (/admin/loyalty/<app>); futsal's live inside its own panel. A
+        // separate link, not nested in the tile: an <a> cannot contain an <a>.
+        if (tile && isLoyaltyApp(app)) {
+          return (
+            <div key={app} className="flex flex-col gap-1.5">
+              {tile}
+              <Link
+                href={loyaltyPath(app)}
+                prefetch={false}
+                className="inline-flex items-center gap-1.5 self-start rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white hover:bg-white/25"
+              >
+                <Star size={12} strokeWidth={2.25} aria-hidden="true" />
+                <T k="loyalty.portalLink" />
+              </Link>
+            </div>
+          )
+        }
+        if (tile) return <div key={app}>{tile}</div>
+
+        return (
           <div
             key={app}
             aria-disabled="true"
