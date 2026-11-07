@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getCurrentUser, requireRole } from '@/lib/auth'
+import { getCurrentUser, isFutsalAdmin, requireRole } from '@/lib/auth'
 import { RedeemSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function GET() {
@@ -11,6 +11,10 @@ export async function GET() {
     const supabase = await createServiceClient()
 
     if (user.role === 'admin' || user.role === 'superadmin') {
+      // Staff of another business only: not a futsal customer either.
+      if (!(await isFutsalAdmin(user))) {
+        return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+      }
       const { data, error } = await supabase
         .from('redemption_requests')
         .select('*, reward:rewards(name, points_cost), customer:profiles!customer_id(username, phone, total_points)')

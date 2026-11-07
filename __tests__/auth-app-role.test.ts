@@ -32,7 +32,7 @@ vi.mock('@/lib/supabase/server', () => ({
   createServiceClient: vi.fn(),
 }))
 
-import { requireSuperAdmin, isFutsalSuperAdmin } from '@/lib/auth'
+import { requireSuperAdmin, isFutsalSuperAdmin, requireFutsalAdmin, isFutsalAdmin } from '@/lib/auth'
 import { getMyApps, getAppRole } from '@/lib/apps.server'
 import { landingFor, APPS } from '@/lib/apps'
 
@@ -46,71 +46,122 @@ function signedInAs(role: string) {
   })
 }
 
-describe('isFutsalSuperAdmin', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    profileChain.select.mockReturnValue(profileChain)
-    profileChain.eq.mockReturnValue(profileChain)
-    signedInAs('admin')
+// Rule (client decision): superadmin is GLOBAL only (profiles.role). A
+// per-business 'superadmin' grant must not raise anyone's rank, and an admin
+// acts only in businesses they hold a grant for.
+
+function resetChain() {
+  vi.clearAllMocks()
+  profileChain.select.mockReturnValue(profileChain)
+  profileChain.eq.mockReturnValue(profileChain)
+}
+
+describe('isFutsalSuperAdmin (global superadmin)', () => {
+  beforeEach(resetChain)
+
+  it('true for a global superadmin', async () => {
+    signedInAs('superadmin')
+    await expect(isFutsalSuperAdmin()).resolves.toBe(true)
   })
 
-  it('true when app_role reports superadmin for futsal', async () => {
+  it('false for an admin even if app_role reports superadmin (legacy per-app row)', async () => {
+    signedInAs('admin')
     mockRpc.mockResolvedValue({ data: 'superadmin', error: null })
-    await expect(isFutsalSuperAdmin()).resolves.toBe(true)
-    expect(mockRpc).toHaveBeenCalledWith('app_role', { p_app: 'futsal' })
+    await expect(isFutsalSuperAdmin()).resolves.toBe(false)
   })
 
   it('false for a plain admin', async () => {
-    mockRpc.mockResolvedValue({ data: 'admin', error: null })
+    signedInAs('admin')
     await expect(isFutsalSuperAdmin()).resolves.toBe(false)
   })
 
-  it('false when the account has no futsal access at all', async () => {
-    mockRpc.mockResolvedValue({ data: null, error: null })
-    await expect(isFutsalSuperAdmin()).resolves.toBe(false)
-  })
-
-  it('DENIES when the lookup errors - never admits on failure', async () => {
-    mockRpc.mockResolvedValue({ data: null, error: { message: 'boom' } })
-    await expect(isFutsalSuperAdmin()).resolves.toBe(false)
-  })
-
-  it('ignores a nonsense value rather than trusting it', async () => {
-    mockRpc.mockResolvedValue({ data: 'owner', error: null })
+  it('false with no session', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
     await expect(isFutsalSuperAdmin()).resolves.toBe(false)
   })
 })
 
 describe('requireSuperAdmin', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    profileChain.select.mockReturnValue(profileChain)
-    profileChain.eq.mockReturnValue(profileChain)
-  })
+  beforeEach(resetChain)
 
   it('throws UNAUTHENTICATED with no session', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } })
     await expect(requireSuperAdmin()).rejects.toThrow('UNAUTHENTICATED')
   })
 
-  it('throws FORBIDDEN for an admin with no futsal rank', async () => {
+  it('throws FORBIDDEN for a plain admin', async () => {
     signedInAs('admin')
     mockRpc.mockResolvedValue({ data: 'admin', error: null })
     await expect(requireSuperAdmin()).rejects.toThrow('FORBIDDEN')
   })
 
-  it('admits a superadmin OF FUTSAL who is not a global superadmin', async () => {
-    // The whole point of the per-business model: rank is held per business.
+  it('throws FORBIDDEN for a per-business superadmin who is not global', async () => {
     signedInAs('admin')
     mockRpc.mockResolvedValue({ data: 'superadmin', error: null })
-    const profile = await requireSuperAdmin()
-    expect(profile.id).toBe(USER.id)
+    await expect(requireSuperAdmin()).rejects.toThrow('FORBIDDEN')
   })
 
-  it('still admits a global superadmin (app_role reports superadmin for them)', async () => {
+  it('admits a global superadmin', async () => {
     signedInAs('superadmin')
-    mockRpc.mockResolvedValue({ data: 'superadmin', error: null })
     await expect(requireSuperAdmin()).resolves.toMatchObject({ role: 'superadmin' })
+  })
+})
+
+describe('requireFutsalAdmin', () => {
+  beforeEach(resetChain)
+
+  it('throws UNAUTHENTICATED with no session', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    await expect(requireFutsalAdmin()).rejects.toThrow('UNAUTHENTICATED')
+  })
+
+  it('admits a global superadmin without consulting app_access', async () => {
+    signedInAs('superadmin')
+    await expect(requireFutsalAdmin()).resolves.toMatchObject({ role: 'superadmin' })
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+
+  it('admits an admin holding a futsal grant', async () => {
+    signedInAs('admin')
+    mockRpc.mockResolvedValue({ data: 'admin', error: null })
+    await expect(requireFutsalAdmin()).resolves.toMatchObject({ role: 'admin' })
+    expect(mockRpc).toHaveBeenCalledWith('app_role', { p_app: 'futsal' })
+  })
+
+  it('FORBIDS a game-only / billiards-only admin (no futsal grant)', async () => {
+    signedInAs('admin')
+    mockRpc.mockResolvedValue({ data: null, error: null })
+    await expect(requireFutsalAdmin()).rejects.toThrow('FORBIDDEN')
+  })
+
+  it('DENIES when the lookup errors - never admits on failure', async () => {
+    signedInAs('admin')
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'boom' } })
+    await expect(requireFutsalAdmin()).rejects.toThrow('FORBIDDEN')
+  })
+
+  it('FORBIDS a customer', async () => {
+    signedInAs('customer')
+    mockRpc.mockResolvedValue({ data: 'admin', error: null })
+    await expect(requireFutsalAdmin()).rejects.toThrow('FORBIDDEN')
+  })
+})
+
+describe('isFutsalAdmin', () => {
+  beforeEach(resetChain)
+
+  it('false for null', async () => {
+    await expect(isFutsalAdmin(null)).resolves.toBe(false)
+  })
+
+  it('false for an admin without a futsal grant', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null })
+    await expect(isFutsalAdmin({ role: 'admin' } as never)).resolves.toBe(false)
+  })
+
+  it('true for an admin with a futsal grant', async () => {
+    mockRpc.mockResolvedValue({ data: 'admin', error: null })
+    await expect(isFutsalAdmin({ role: 'admin' } as never)).resolves.toBe(true)
   })
 })
 

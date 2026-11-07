@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient, broadcastSlotChange } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, isFutsalAdmin } from '@/lib/auth'
 import { BookingActionSchema, IdParamSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 import { canCancel } from '@/lib/booking'
 
@@ -25,7 +25,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   if (!booking) return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })
 
-  const isAdmin = user.role === 'admin' || user.role === 'superadmin'
+  // Futsal staff only. An admin of another business is treated like any
+  // non-owner: it cannot cancel someone else's booking or run admin actions.
+  const isAdmin = await isFutsalAdmin(user)
 
   if (action === 'cancel') {
     // Customer may cancel their own booking; admins may cancel any.

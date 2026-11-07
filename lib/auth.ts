@@ -30,24 +30,55 @@ export async function requireAnyAdmin(): Promise<Profile> {
 }
 
 /**
- * Superadmin *of futsal*, not superadmin globally.
+ * Futsal admin: may act in the futsal business.
  *
- * Behaviourally identical today: app_role('futsal') returns 'superadmin' for
- * anyone holding the global profiles.role = 'superadmin'. What it adds is the
- * ability to hold rank in one business without holding it in all of them -
- * a billiards manager should not inherit the power to purge futsal bookings.
+ * profiles.role alone is not enough. A game-only or billiards-only staff
+ * account also has profiles.role = 'admin', and without this check it could
+ * call futsal APIs directly even though the (admin) layout keeps it off the
+ * futsal screens.
  *
- * Every superadmin-gated futsal screen and API route goes through this or
- * isFutsalSuperAdmin() below, so there is one place to change if that rule
- * ever moves.
+ * Rule (client decision): a global superadmin (profiles.role = 'superadmin')
+ * passes everywhere; an admin must also hold a futsal grant in app_access.
+ * getAppRole() returns null on a failed lookup, which denies.
+ *
+ * isFutsalAdmin() is the boolean form, for routes that serve both customers
+ * and admins and branch on which one is calling.
  */
-export const isFutsalSuperAdmin = cache(async (): Promise<boolean> => {
-  return (await getAppRole('futsal')) === 'superadmin'
+export async function isFutsalAdmin(profile: Profile | null): Promise<boolean> {
+  if (!profile) return false
+  if (profile.role === 'superadmin') return true
+  if (profile.role !== 'admin') return false
+  return (await getAppRole('futsal')) !== null
+}
+
+export async function requireFutsalAdmin(): Promise<Profile> {
+  const profile = await getCurrentUser()
+  if (!profile) throw new Error('UNAUTHENTICATED')
+  if (!(await isFutsalAdmin(profile))) throw new Error('FORBIDDEN')
+  return profile
+}
+
+/**
+ * Global superadmin: profiles.role = 'superadmin'.
+ *
+ * Every superadmin owns all three businesses (the developer and the owners).
+ * There is no per-business superadmin, so a 'superadmin' row in app_access
+ * does not count here - see retire-per-app-superadmin-migration.sql.
+ */
+export const isSuperAdmin = cache(async (): Promise<boolean> => {
+  const profile = await getCurrentUser()
+  return profile?.role === 'superadmin'
 })
+
+/**
+ * Kept as an alias so existing callers read naturally in futsal screens.
+ * Same meaning as isSuperAdmin(): the global owner role.
+ */
+export const isFutsalSuperAdmin = isSuperAdmin
 
 export async function requireSuperAdmin(): Promise<Profile> {
   const profile = await getCurrentUser()
   if (!profile) throw new Error('UNAUTHENTICATED')
-  if (!(await isFutsalSuperAdmin())) throw new Error('FORBIDDEN')
+  if (profile.role !== 'superadmin') throw new Error('FORBIDDEN')
   return profile
 }

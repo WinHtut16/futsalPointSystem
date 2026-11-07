@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getCurrentUser, requireAnyAdmin, requireSuperAdmin, isFutsalSuperAdmin } from '@/lib/auth'
+import { getCurrentUser, requireFutsalAdmin, requireSuperAdmin, isFutsalSuperAdmin } from '@/lib/auth'
 import { IdParamSchema, RewardToggleSchema, RewardUpdateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -34,7 +34,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Fail-fast: reject unauthenticated / non-admin callers before touching the body
-    const admin = await requireAnyAdmin()
+    const admin = await requireFutsalAdmin()
 
     const idParsed = IdParamSchema.safeParse(await params)
     if (!idParsed.success) return badRequest(idParsed.error)

@@ -46,6 +46,12 @@ vi.mock('@/lib/auth', () => ({
     if (!authState.user || authState.user.role !== 'superadmin') throw new Error('Unauthorized')
     return authState.user
   }),
+  requireFutsalAdmin: vi.fn(async () => {
+    if (!authState.user || !['admin', 'superadmin'].includes(authState.user.role))
+      throw new Error('Unauthorized')
+    return authState.user
+  }),
+  isFutsalAdmin: vi.fn(async (p: { role: string } | null) => !!p && (p.role === 'admin' || p.role === 'superadmin')),
 }))
 
 // ---------------------------------------------------------------------------

@@ -11,7 +11,7 @@ npm run dev           # Start dev server at localhost:3000
 npm run build         # Production build
 npm run start         # Start production server
 npm run lint          # Run ESLint
-npm test              # Vitest unit tests (268 tests, no DB required)
+npm test              # Vitest unit tests (384 tests, no DB required)
 npm run test:e2e      # Playwright E2E tests (requires .env.e2e + running server)
 npm run test:e2e:ui   # Playwright with interactive UI
 npm run test:e2e:debug  # Playwright with step-by-step debugger
@@ -150,10 +150,13 @@ Three roles stored in `profiles.role`: `customer`, `admin`, `superadmin`.
 | `admin` | Add points, adjust points (correction/audit), manage customers (incl. delete), view all rewards, toggle rewards active/inactive, CMS (create/edit/delete posts + image uploads) |
 | `superadmin` | All admin capabilities + rewards CRUD + staff admin CRUD + forgot-password via email + full analytics dashboard |
 
+**Business access rule (client decision):** an `admin` may act only in the businesses they hold an `app_access` grant for (one or several). Every `superadmin` (`profiles.role = 'superadmin'` — the developer and the owners) is a **global** owner of all three businesses. There is no per-business superadmin: an `app_access` row only ever means `admin` (`retire-per-app-superadmin-migration.sql` enforces this in SQL, demotes legacy rows, and makes `app_role()` / `can_manage_app()` global-only).
+
 Server-side guards in `lib/auth.ts`:
 - `requireRole(role)` — exact role match
-- `requireAnyAdmin()` — `admin` or `superadmin`
-- `requireSuperAdmin()` — `superadmin` only
+- `requireFutsalAdmin()` — **use for every futsal admin API.** Global superadmin, or `admin` holding a futsal grant (`getAppRole('futsal')` not null). Null/failed lookup denies. `isFutsalAdmin(profile)` is the boolean form for routes that serve customers and admins (`bookings/[id]`, `redemptions`).
+- `requireAnyAdmin()` — `admin` or `superadmin` by `profiles.role` only. **Not an authorization check for futsal data**: a game-only or billiards-only admin also passes it. Only used by futsal pages already gated by the `(admin)` layout and by cross-business routes (audit export).
+- `requireSuperAdmin()` / `isSuperAdmin()` (alias `isFutsalSuperAdmin()`) — global `profiles.role = 'superadmin'` only; a per-app `superadmin` row does not count.
 
 ### Customer Password Reset Flow
 
@@ -204,7 +207,7 @@ All tables have Row-Level Security enforced. Key patterns:
 
 | File | Purpose |
 |------|---------|
-| `lib/auth.ts` | `getCurrentUser()`, `requireRole()`, `requireAnyAdmin()`, `requireSuperAdmin()` — server-side auth helpers |
+| `lib/auth.ts` | `getCurrentUser()`, `requireRole()`, `requireFutsalAdmin()` / `isFutsalAdmin()`, `requireAnyAdmin()`, `requireSuperAdmin()` / `isSuperAdmin()` — server-side auth helpers (see Roles) |
 | `lib/schemas.ts` | Zod schemas + `badRequest()` / `parseJson()` / `serverError(detail?)` helpers used by every API route. `serverError` logs `detail` server-side and returns generic `{ error: 'An unexpected error occurred' }` (with `detail` also returned in non-production for debugging). Always use `serverError(error.message)` for 500 responses — never expose `error.message` directly to clients. |
 | `lib/points.ts` | `calculatePoints()` — 10 points per hour |
 | `lib/utils.ts` | `formatDate(dateStr, lang?)` — date-only display in Myanmar/Yangon timezone (e.g. `"24 May 2025"`; pass `lang='my'` for Myanmar script month names); `formatDateTime(dateStr, lang?)` — date + time with AM/PM in Myanmar timezone. Both use `timeZone: 'Asia/Yangon'` (UTC+6:30). Always use these helpers for any date/time display — never format raw timestamps without them. `toMyDigits(n: number): string` — converts ASCII digits to Myanmar digits (e.g. `7` → `၇`); used for Myanmar-locale date display. `MY_MONTHS` — record of English month name → Myanmar name (exported for direct lookup). `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email. `safeRedirect(next, fallback)` — validates `?next=` params before use; rejects absolute URLs, protocol-relative (`//`), backslash, and newline injection; returns `fallback` (default `'/'`) if invalid. Use in every place that redirects based on a user-supplied param. |
@@ -287,6 +290,8 @@ Tables enabled: `bookings` (`booking-system-migration.sql`), `profiles` + `redem
 
 ### API Surface
 
+In this table `admin/superadmin` on a futsal route means **futsal** admin (`requireFutsalAdmin()`): a global superadmin, or an admin with a futsal grant.
+
 | Route | Role | Action |
 |-------|------|--------|
 | `POST /api/auth/register` | public | Create customer account |
@@ -355,6 +360,7 @@ Tables enabled: `bookings` (`booking-system-migration.sql`), `profiles` + `redem
 ### Security
 
 **Applied fixes:**
+- Futsal admin APIs use `requireFutsalAdmin()` instead of `requireAnyAdmin()` — a staff account holding only a game or billiards grant (still `profiles.role = 'admin'`) gets 403 from futsal endpoints even when calling them directly (curl/devtools). Grant management (`/api/admin/access`) is global-superadmin only and grants the `admin` rank only. Covered by `__tests__/api-futsal-app-access.test.ts` (runs the real `lib/auth`).
 - `profiles_update` RLS policy scoped to `is_admin()` only — customers cannot escalate their own role or inflate points via the anon key (`supabase-rls-security-fix.sql`)
 - `transactions_insert` RLS policy scoped to `is_admin()` only — customers cannot self-insert point transactions (`supabase-rls-security-fix.sql`)
 - `redemption_requests` unique partial index `(customer_id, reward_id) WHERE status = 'pending'` — prevents duplicate pending requests (race guard) (`supabase-rls-security-fix.sql`)

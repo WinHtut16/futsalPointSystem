@@ -37,6 +37,12 @@ vi.mock('@/lib/auth', () => ({
     if (state.user.role !== 'superadmin') throw new Error('FORBIDDEN')
     return state.user
   }),
+  requireFutsalAdmin: vi.fn(async () => {
+    if (!state.user) throw new Error('UNAUTHENTICATED')
+    if (!['admin', 'superadmin'].includes(state.user.role)) throw new Error('FORBIDDEN')
+    return state.user
+  }),
+  isFutsalAdmin: vi.fn(async (p: { role: string } | null) => !!p && (p.role === 'admin' || p.role === 'superadmin')),
 }))
 
 vi.mock('@/lib/supabase/server', () => {

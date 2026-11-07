@@ -23,6 +23,8 @@ vi.mock('@/lib/auth', () => ({
   requireAnyAdmin: vi.fn(async () => ({ id: 'super-1', role: 'superadmin' })),
   getCurrentUser: vi.fn(async () => ({ id: 'super-1', role: 'superadmin' })),
   isFutsalSuperAdmin: vi.fn(async () => true),
+  requireFutsalAdmin: vi.fn(async () => ({ id: 'super-1', role: 'superadmin' })),
+  isFutsalAdmin: vi.fn(async (p: { role: string } | null) => !!p && (p.role === 'admin' || p.role === 'superadmin')),
 }))
 
 const deleteUser = vi.fn()

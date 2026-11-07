@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireFutsalAdmin } from '@/lib/auth'
 import {
   IdParamSchema,
   CustomerPasswordResetSchema,
@@ -12,7 +12,7 @@ import {
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAnyAdmin()
+    await requireFutsalAdmin()
 
     const idParsed = IdParamSchema.safeParse(await params)
     if (!idParsed.success) return badRequest(idParsed.error)
@@ -35,7 +35,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAnyAdmin()
+    await requireFutsalAdmin()
 
     const idParsed = IdParamSchema.safeParse(await params)
     if (!idParsed.success) return badRequest(idParsed.error)
@@ -85,7 +85,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAnyAdmin()
+    await requireFutsalAdmin()
 
     const idParsed = IdParamSchema.safeParse(await params)
     if (!idParsed.success) return badRequest(idParsed.error)
