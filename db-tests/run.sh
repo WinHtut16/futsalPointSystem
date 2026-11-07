@@ -103,13 +103,14 @@ run "$BILL/billiards-stock-alignment-migration.sql" || exit 1
 # Rate card, frozen prices, open/record/cancel, food edits, table chip.
 # Needs both files above (bill_minutes, stock_movements.note).
 run "$BILL/billiards-gaming-parity-migration.sql" || exit 1
+run "$BILL/billiards-points-migration.sql" || exit 1
 
 echo
 echo "== assertions =="
 for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-superadmin.sql 95-billiards-permissions.sql \
          96-audit-operations.sql 97-game-live-sessions.sql 98-billiards-perf.sql 99-game-perf.sql \
          100-game-correct-session.sql 101-billiards-correct-session.sql \
-         102-billiards-parity.sql 103-multi-business-points.sql 104-session-points.sql; do
+         102-billiards-parity.sql 103-multi-business-points.sql 104-session-points.sql 106-billiards-points.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
