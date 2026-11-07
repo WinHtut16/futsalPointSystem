@@ -14,11 +14,13 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('c0d00000-0000-0000-0000-000000000002','gp_staff@akoatp-staff.com', '{"username":"gp_staff"}'),
   ('c0d00000-0000-0000-0000-000000000011','09777300011@akoatp.com', '{"phone":"09777300011","username":"gamer_a"}'),
   ('c0d00000-0000-0000-0000-000000000012','09777300012@akoatp.com', '{"phone":"09777300012","username":"gamer_b"}');
-update public.profiles set role = 'admin' where id in
-  ('c0d00000-0000-0000-0000-000000000001','c0d00000-0000-0000-0000-000000000002');
+-- Owners are GLOBAL superadmins (profiles.role) - there is no per-business
+-- superadmin (client rule, retire-per-app-superadmin-migration.sql).
+update public.profiles set role = 'superadmin' where id = 'c0d00000-0000-0000-0000-000000000001';
+update public.profiles set role = 'admin' where id = 'c0d00000-0000-0000-0000-000000000002';
 
 select public.test_act_as('11111111-1111-1111-1111-111111111111');
-select public.grant_app_access('c0d00000-0000-0000-0000-000000000001','game','superadmin','gp_super');
+select public.grant_app_access('c0d00000-0000-0000-0000-000000000001','game','admin','gp_super');
 select public.grant_app_access('c0d00000-0000-0000-0000-000000000002','game','admin','gp_staff');
 
 insert into game.stations (id, name, tier, sort_order) values

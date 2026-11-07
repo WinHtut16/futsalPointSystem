@@ -156,7 +156,7 @@ select chk('game staff find a registered customer',
   test_value('33333333-3333-3333-3333-333333333333', 'authenticated',
     $$(select username from public.find_customer_by_phone('09777200001'))$$), 'sess_a');
 select chk('+959 / spaces / dashes are accepted',
-  test_value('22222222-2222-2222-2222-222222222222', 'authenticated',
+  test_value('33333333-3333-3333-3333-333333333333', 'authenticated',
     $$(select username from public.find_customer_by_phone('+95 9777-200 001'))$$), 'sess_a');
 select chk('an unregistered phone finds nobody',
   test_value('33333333-3333-3333-3333-333333333333', 'authenticated',
@@ -174,14 +174,14 @@ select chk('garbage phone refused',
     $$public.find_customer_by_phone('12345')$$), 'Enter a valid Myanmar phone number (e.g. 09XXXXXXXXX).');
 
 -- ── Who may change a rule ───────────────────────────────────────────────────
-select chk('billiards superadmin sets the billiards rule',
-  test_call('22222222-2222-2222-2222-222222222222', 'authenticated',
+select chk('the global owner sets the billiards rule',
+  test_call('11111111-1111-1111-1111-111111111111', 'authenticated',
     $$public.set_point_rule('billiards', 60, 5, true)$$), 'NO ERROR');
 select chk('...and it is saved',
   (select points_per_block = 5 and is_active from public.point_rules where app = 'billiards'), true);
 select chk('...and audited under billiards',
   (select count(*)::int from public.audit_log where app = 'billiards' and action = 'points.rule_changed'), 1);
-select chk('billiards superadmin cannot set the game rule',
+select chk('billiards staff cannot set the game rule',
   test_call('22222222-2222-2222-2222-222222222222', 'authenticated',
     $$public.set_point_rule('game', 60, 50, true)$$), 'Only the owner of this business can change its points rule.');
 select chk('game admin (not superadmin) cannot set the game rule',

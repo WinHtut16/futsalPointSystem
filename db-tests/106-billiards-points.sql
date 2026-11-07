@@ -14,11 +14,12 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('d0e00000-0000-0000-0000-000000000002','bp_staff@akoatp-staff.com', '{"username":"bp_staff"}'),
   ('d0e00000-0000-0000-0000-000000000011','09777400011@akoatp.com', '{"phone":"09777400011","username":"cue_a"}'),
   ('d0e00000-0000-0000-0000-000000000012','09777400012@akoatp.com', '{"phone":"09777400012","username":"cue_b"}');
-update public.profiles set role = 'admin' where id in
-  ('d0e00000-0000-0000-0000-000000000001','d0e00000-0000-0000-0000-000000000002');
+-- Owners are GLOBAL superadmins (profiles.role) - see 105.
+update public.profiles set role = 'superadmin' where id = 'd0e00000-0000-0000-0000-000000000001';
+update public.profiles set role = 'admin' where id = 'd0e00000-0000-0000-0000-000000000002';
 
 select public.test_act_as('11111111-1111-1111-1111-111111111111');
-select public.grant_app_access('d0e00000-0000-0000-0000-000000000001','billiards','superadmin','bp_super');
+select public.grant_app_access('d0e00000-0000-0000-0000-000000000001','billiards','admin','bp_super');
 select public.grant_app_access('d0e00000-0000-0000-0000-000000000002','billiards','admin','bp_staff');
 
 insert into billiards.pool_tables (id, name) values
