@@ -113,6 +113,20 @@ for f in 90-access.sql 91-catalogue.sql 92-integrity.sql 93-crosstenant.sql 94-s
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
+# Stage 2: today's live game schema (station state, pricing tiers, snack
+# edits) and game points. Loaded only now because 97/99/100 above assert
+# behaviour these files supersede (the old occupancy toggle, flat hourly rate).
+echo
+echo "== stage 2: live game schema + points =="
+for f in game-station-state-migration.sql game-pricing-tiers-migration.sql \
+         game-pricing-tiers-overflow-migration.sql game-cinema-tier-migration.sql \
+         game-edit-session-snacks-migration.sql game-points-migration.sql; do
+  run "$GAME/$f" || exit 1
+done
+for f in 105-game-points.sql; do
+  psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
+done
+
 echo
 psql -d "$DB" -tA -F' | ' -c \
   "select case when ok then 'PASS' else 'FAIL' end, label, case when ok then '' else detail end
