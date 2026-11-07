@@ -3,7 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { buildBookingFeedItem, buildTxnFeedItem, mergeFeed, type FeedBookingRow, type FeedTxnRow } from '@/lib/account-feed'
 import { serverError } from '@/lib/schemas'
-import { FUTSAL } from '@/lib/points'
+import { parseBusiness } from '@/lib/points'
 
 const LIMIT = 20
 const MYANMAR_OFFSET_MS = (6 * 60 + 30) * 60 * 1000
@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const filter = (searchParams.get('filter') ?? 'all') as 'all' | 'bookings' | 'points'
   const before = searchParams.get('before') ?? null  // ISO string cursor; null = first page
+  // Points rows of the business being viewed; bookings are futsal's either way.
+  const app = parseBusiness(searchParams.get('app'))
 
   const supabase = await createClient()
   const svc = await createServiceClient()
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('point_transactions')
       .select('id, created_at, points_delta, transaction_type, hours_played, note, reward:rewards(name)')
-      .eq('app', FUTSAL)
+      .eq('app', app)
       .eq('customer_id', user.id)
       .order('created_at', { ascending: false })
       .limit(LIMIT + 1)
@@ -94,7 +96,7 @@ export async function GET(request: NextRequest) {
       let q = supabase
         .from('point_transactions')
         .select('id, created_at, points_delta, transaction_type, hours_played, note, reward:rewards(name)')
-        .eq('app', FUTSAL)
+        .eq('app', app)
         .eq('customer_id', user.id)
         .order('created_at', { ascending: false })
         .limit(LIMIT + 1)

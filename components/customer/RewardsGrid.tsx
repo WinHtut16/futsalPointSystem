@@ -9,15 +9,18 @@ import type { Reward } from '@/types'
 import RewardCard from './RewardCard'
 import RedeemFlowModal from './RedeemFlowModal'
 import { FUTSAL } from '@/lib/points'
+import type { AppName } from '@/lib/apps'
 
 interface RewardsGridProps {
   rewards: Reward[]
   userId: string
   userPoints: number
   initialPendingMap: Record<string, string>
+  /** Business whose rewards these are; the pending poll is filtered by it. */
+  app?: AppName
 }
 
-export default function RewardsGrid({ rewards, userId, userPoints, initialPendingMap }: RewardsGridProps) {
+export default function RewardsGrid({ rewards, userId, userPoints, initialPendingMap, app = FUTSAL }: RewardsGridProps) {
   const { t } = useLanguage()
   const [pendingMap, setPendingMap] = useState<Record<string, string>>(initialPendingMap)
   const [flowOpen, setFlowOpen] = useState(false)
@@ -28,7 +31,7 @@ export default function RewardsGrid({ rewards, userId, userPoints, initialPendin
     const { data } = await supabase
       .from('redemption_requests')
       .select('id, reward_id')
-      .eq('app', FUTSAL)
+      .eq('app', app)
       .eq('customer_id', userId)
       .eq('status', 'pending')
     if (data) {
@@ -36,7 +39,7 @@ export default function RewardsGrid({ rewards, userId, userPoints, initialPendin
       data.forEach((r: { id: string; reward_id: string }) => { map[r.reward_id] = r.id })
       setPendingMap(map)
     }
-  }, [userId])
+  }, [userId, app])
 
   const handleRedeem = useCallback((reward: Reward) => {
     setFlowRewardId(reward.id)

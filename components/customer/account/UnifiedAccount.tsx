@@ -12,6 +12,8 @@ import BookingHistoryCard from '@/components/booking/BookingHistoryCard'
 import type { DashboardBooking } from '@/components/booking/BookingsDashboard'
 import RewardsGrid from '@/components/customer/RewardsGrid'
 import { useRealtimePoints } from '@/hooks/useRealtimePoints'
+import BusinessSwitcher from './BusinessSwitcher'
+import type { AppName } from '@/lib/apps'
 
 type Tab = 'upcoming' | 'history' | 'points'
 type Filter = 'all' | 'bookings' | 'points'
@@ -31,6 +33,8 @@ interface UnifiedAccountProps {
   initialFeeds: { all: FeedItem[]; bookings: FeedItem[]; points: FeedItem[] }
   initialHasMore: { all: boolean; bookings: boolean; points: boolean }
   initialTab?: 'upcoming' | 'history' | 'points'
+  /** Business whose balance, rewards and points history are shown. Bookings are futsal's. */
+  biz: AppName
 }
 
 const BOOKING_REFRESH_MS = 30_000
@@ -38,7 +42,7 @@ const BOOKING_REFRESH_MS = 30_000
 export default function UnifiedAccount(props: UnifiedAccountProps) {
   const { t, lang } = useLanguage()
   const router = useRouter()
-  const livePoints = useRealtimePoints(props.userId, props.initialPoints)
+  const livePoints = useRealtimePoints(props.userId, props.initialPoints, props.biz)
   const my = lang === 'my' ? 'my' : ''
   const [tab, setTab] = useState<Tab>(props.initialTab ?? 'upcoming')
   const [filter, setFilter] = useState<Filter>('all')
@@ -87,7 +91,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
     if (loading || !hasMore[filter]) return
     setLoading(true)
     const cursor = cursors[filter]
-    const url = `/api/account/history?filter=${filter}${cursor ? `&before=${encodeURIComponent(cursor)}` : ''}`
+    const url = `/api/account/history?filter=${filter}&app=${props.biz}${cursor ? `&before=${encodeURIComponent(cursor)}` : ''}`
     try {
       const res = await fetch(url)
       if (!res.ok) return
@@ -104,7 +108,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
     } finally {
       setLoading(false)
     }
-  }, [filter, hasMore, loading, cursors])
+  }, [filter, hasMore, loading, cursors, props.biz])
 
   const currentFeed = feeds[filter]
 
@@ -119,6 +123,8 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
         joinedISO={props.joinedISO}
         phone={props.phone}
       />
+
+      <BusinessSwitcher active={props.biz} tab={tab} />
 
       {/* segmented tab bar */}
       <div className="mt-4 border-b border-line px-4">
@@ -186,6 +192,7 @@ export default function UnifiedAccount(props: UnifiedAccountProps) {
                 userId={props.userId}
                 userPoints={livePoints}
                 initialPendingMap={props.initialPendingMap}
+                app={props.biz}
               />
             </div>
           </div>

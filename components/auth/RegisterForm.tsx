@@ -10,12 +10,17 @@ import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
 import { calcStrength } from '@/components/ui/PasswordStrengthMeter'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { parseBusiness } from '@/lib/points'
 import { fetchWithTimeout, isTimeoutOrNetworkError, REGISTER_POST_TIMEOUT_MS } from '@/lib/fetchWithTimeout'
 
 
 export default function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  // /register?from=game|billiards (the QR code at that counter): land on
+  // that business's points after signing up. Same account everywhere.
+  const fromBiz = parseBusiness(searchParams.get('from'))
+  const afterSignUp = fromBiz === 'futsal' ? '/account' : `/account?tab=points&biz=${fromBiz}`
   const { t } = useLanguage()
   const [phone, setPhone] = useState('')
   const [username, setUsername] = useState('')
@@ -105,7 +110,7 @@ export default function RegisterForm() {
     // cookies to the response we just read. The browser is already logged in —
     // no second round trip to *.supabase.co, which is the whole point.
     if (json.session) {
-      router.push(safeRedirect(searchParams.get('next'), '/account'))
+      router.push(safeRedirect(searchParams.get('next'), afterSignUp))
       router.refresh()
       return
     }
@@ -130,7 +135,7 @@ export default function RegisterForm() {
       return
     }
 
-    router.push(safeRedirect(searchParams.get('next'), '/account'))
+    router.push(safeRedirect(searchParams.get('next'), afterSignUp))
     router.refresh()
   }
 

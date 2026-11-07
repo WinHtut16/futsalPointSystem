@@ -53,7 +53,9 @@ export async function POST(request: NextRequest) {
     const { data: reward } = await supabase
       .from('rewards')
       .select('*')
-      .eq('app', FUTSAL)
+      // Any business: a customer redeems game and billiards rewards here too.
+      // The request takes the reward's business in the database, and the
+      // balance below is that business's.
       .eq('id', reward_id)
       .single()
 
@@ -75,7 +77,6 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await supabase
       .from('redemption_requests')
       .select('id')
-      .eq('app', FUTSAL)
       .eq('customer_id', customer.id)
       .eq('reward_id', reward_id)
       .eq('status', 'pending')

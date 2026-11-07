@@ -10,7 +10,7 @@ import UnifiedAccount from '@/components/customer/account/UnifiedAccount'
 import type { DashboardBooking } from '@/components/booking/BookingsDashboard'
 import type { BookingStatus } from '@/components/booking/BookingHistoryCard'
 import type { FeedItem } from '@/components/customer/account/UnifiedTimeline'
-import { FUTSAL } from '@/lib/points'
+import { FUTSAL, getWalletBalance, parseBusiness } from '@/lib/points'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,7 +41,7 @@ type ValidTab = (typeof VALID_TABS)[number]
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; biz?: string }>
 }) {
   const profile = await getCurrentUser()
   if (!profile) redirect('/login?next=/account')
@@ -50,6 +50,8 @@ export default async function AccountPage({
   const initialTab: ValidTab = (VALID_TABS as readonly string[]).includes(sp.tab ?? '')
     ? (sp.tab as ValidTab)
     : 'upcoming'
+  // Which business's points: ?biz=futsal|game|billiards (futsal by default).
+  const biz = parseBusiness(sp.biz)
 
   const supabase = await createClient()
   const svc = createServiceClient()
@@ -60,12 +62,12 @@ export default async function AccountPage({
   // Stats: all txns (lightweight — just points_delta) for earned/redeemed totals.
   // Upcoming: only future pending/confirmed bookings (no limit needed — small set).
   // Feed: first 21 from each source for the paginated history feed.
-  const [statsRes, upcomingRes, histBookingsRes, histTxnsRes, rewards, pendingRequests] =
+  const [statsRes, upcomingRes, histBookingsRes, histTxnsRes, rewards, pendingRequests, balance] =
     await Promise.all([
       supabase
         .from('point_transactions')
         .select('points_delta, transaction_type')
-        .eq('app', FUTSAL)
+        .eq('app', biz)
         .eq('customer_id', profile.id),
 
       svc
@@ -88,19 +90,22 @@ export default async function AccountPage({
       supabase
         .from('point_transactions')
         .select('id, created_at, points_delta, transaction_type, hours_played, note, reward:rewards(name)')
-        .eq('app', FUTSAL)
+        .eq('app', biz)
         .eq('customer_id', profile.id)
         .order('created_at', { ascending: false })
         .limit(FEED_LIMIT + 1),
 
-      getActiveRewards(),
+      getActiveRewards(biz),
 
       supabase
         .from('redemption_requests')
         .select('id, reward_id')
-        .eq('app', FUTSAL)
+        .eq('app', biz)
         .eq('customer_id', profile.id)
         .eq('status', 'pending'),
+
+      // Futsal: the long-standing mirror. Others: their wallet (none yet = 0).
+      biz === FUTSAL ? Promise.resolve(profile.total_points) : getWalletBalance(supabase, profile.id, biz),
     ])
 
   // Stats
@@ -181,9 +186,13 @@ export default async function AccountPage({
     <div className="flex flex-col">
       <div className="mx-auto w-full max-w-2xl flex-1 pb-24 md:pb-8">
         <UnifiedAccount
+          // Remount on switching business so the live balance starts from
+          // the server's figure for the new one.
+          key={biz}
+          biz={biz}
           name={profile.username ?? 'Member'}
           userId={profile.id}
-          initialPoints={profile.total_points}
+          initialPoints={balance}
           earned={earned}
           redeemed={redeemed}
           joinedISO={profile.created_at}

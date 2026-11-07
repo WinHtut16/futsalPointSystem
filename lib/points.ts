@@ -44,3 +44,15 @@ export async function getWalletBalance(
     .maybeSingle()
   return (profile?.total_points as number | undefined) ?? 0
 }
+
+/**
+ * The businesses a customer can switch between on /account, in display
+ * order. One account and phone number everywhere; a separate balance and
+ * rewards list per business.
+ */
+export const CUSTOMER_BUSINESSES: readonly AppName[] = ['futsal', 'game', 'billiards']
+
+/** ?biz= / ?app= value to a business, defaulting to futsal for anything unknown. */
+export function parseBusiness(value: string | null | undefined): AppName {
+  return (CUSTOMER_BUSINESSES as readonly string[]).includes(value ?? '') ? (value as AppName) : FUTSAL
+}

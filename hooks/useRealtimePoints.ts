@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { FUTSAL } from '@/lib/points'
+import type { AppName } from '@/lib/apps'
 
 const POLL_INTERVAL_MS = 20_000
 
@@ -22,7 +24,7 @@ const POLL_INTERVAL_MS = 20_000
  * RealtimePointsBadge and read as a behaviour change in the diff, when nothing
  * a customer can see has changed.
  */
-export function useRealtimePoints(userId: string, initialPoints: number): number {
+export function useRealtimePoints(userId: string, initialPoints: number, app: AppName = FUTSAL): number {
   const [points, setPoints] = useState(initialPoints)
 
   useEffect(() => {
@@ -31,6 +33,18 @@ export function useRealtimePoints(userId: string, initialPoints: number): number
     let timer: ReturnType<typeof setInterval> | undefined
 
     async function refresh() {
+      // Futsal keeps reading its long-standing mirror; the other businesses
+      // read their wallet row (none yet = 0 points there).
+      if (app !== FUTSAL) {
+        const { data, error } = await supabase
+          .from('point_wallets')
+          .select('balance')
+          .eq('user_id', userId)
+          .eq('app', app)
+          .maybeSingle()
+        if (!cancelled && !error) setPoints(data?.balance ?? 0)
+        return
+      }
       const { data } = await supabase
         .from('profiles')
         .select('total_points')
@@ -72,7 +86,7 @@ export function useRealtimePoints(userId: string, initialPoints: number): number
       stop()
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
-  }, [userId])
+  }, [userId, app])
 
   return points
 }
