@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { FUTSAL } from '@/lib/points'
 
 interface PendingRedemptionsContextValue {
   count: number
@@ -32,6 +33,7 @@ export function PendingRedemptionsProvider({
     const { count: fresh, error } = await supabase
       .from('redemption_requests')
       .select('*', { count: 'exact', head: true })
+      .eq('app', FUTSAL)
       .eq('status', 'pending')
     if (!error && fresh !== null) setCount(fresh)
   }, [])

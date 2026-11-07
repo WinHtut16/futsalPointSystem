@@ -15,7 +15,7 @@ import type { CustomerEntry } from '@/components/admin/analytics/TopCustomersBar
 import type { BookingKpiData } from '@/components/admin/analytics/BookingKpiCards'
 import type { CourtUtilDay, PeakHourBlock } from '@/components/admin/analytics/BookingChartsRow'
 import type { ActivityFeedItem } from '@/components/admin/analytics/RecentActivityFeed'
-import { POINTS_PER_HOUR } from '@/lib/points'
+import { POINTS_PER_HOUR, FUTSAL } from '@/lib/points'
 
 /** Myanmar UTC+6:30 date as YYYY-MM-DD, offset by `days` days. */
 function yangonDate(offsetDays = 0): string {
@@ -293,6 +293,7 @@ export default async function AdminDashboardPage({
     supabase
       .from('redemption_requests')
       .select('id, status, requested_at, resolved_at, reward:rewards(name), customer:profiles!customer_id(username)')
+      .eq('app', FUTSAL)
       .in('status', ['approved', 'rejected'])
       .order('requested_at', { ascending: false })
       .limit(5),
@@ -382,27 +383,31 @@ export default async function AdminDashboardPage({
       { count: allTimeCustomerCount },
       { data: allTimeTopRewardsData },
     ] = await Promise.all([
-      supabase.from('point_transactions').select('points_delta').eq('transaction_type', 'earn'),
+      supabase.from('point_transactions').select('points_delta').eq('app', FUTSAL).eq('transaction_type', 'earn'),
       supabase
         .from('point_transactions')
         .select('points_delta')
+        .eq('app', FUTSAL)
         .eq('transaction_type', 'earn')
         .gte('created_at', periodStart)
         .lt('created_at', periodEnd),
       supabase
         .from('point_transactions')
         .select('points_delta, transaction_type, created_at')
+        .eq('app', FUTSAL)
         .gte('created_at', periodStart)
         .lt('created_at', periodEnd),
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
+        .eq('app', FUTSAL)
         .eq('status', 'approved')
         .gte('requested_at', periodStart)
         .lt('requested_at', periodEnd),
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
+        .eq('app', FUTSAL)
         .eq('status', 'approved'),
       // Period bookings (for booking KPI cards + charts)
       supabase
@@ -436,7 +441,8 @@ export default async function AdminDashboardPage({
         .gte('created_at', prevPeriodStart)
         .lt('created_at', periodStart),
       // All-time donut data
-      supabase.from('redemption_requests').select('status'),
+      supabase.from('redemption_requests').select('status')
+        .eq('app', FUTSAL),
       // All-time top customers by total_points
       supabase
         .from('profiles')
@@ -450,6 +456,7 @@ export default async function AdminDashboardPage({
       supabase
         .from('redemption_requests')
         .select('reward_id, reward:rewards(name)')
+        .eq('app', FUTSAL)
         .eq('status', 'approved')
         .limit(500),
     ])
@@ -665,14 +672,17 @@ export default async function AdminDashboardPage({
     supabase
       .from('redemption_requests')
       .select('*', { count: 'exact', head: true })
+      .eq('app', FUTSAL)
       .eq('status', 'approved'),
     supabase
       .from('redemption_requests')
       .select('*', { count: 'exact', head: true })
+      .eq('app', FUTSAL)
       .eq('status', 'pending'),
     supabase
       .from('redemption_requests')
       .select('*', { count: 'exact', head: true })
+      .eq('app', FUTSAL)
       .eq('status', 'approved')
       .gte('requested_at', thisMonthStartISO),
   ])

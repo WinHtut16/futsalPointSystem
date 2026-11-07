@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth'
 import { buildBookingFeedItem, buildTxnFeedItem, mergeFeed, type FeedBookingRow, type FeedTxnRow } from '@/lib/account-feed'
 import { serverError } from '@/lib/schemas'
+import { FUTSAL } from '@/lib/points'
 
 const LIMIT = 20
 const MYANMAR_OFFSET_MS = (6 * 60 + 30) * 60 * 1000
@@ -58,6 +59,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('point_transactions')
       .select('id, created_at, points_delta, transaction_type, hours_played, note, reward:rewards(name)')
+      .eq('app', FUTSAL)
       .eq('customer_id', user.id)
       .order('created_at', { ascending: false })
       .limit(LIMIT + 1)
@@ -92,6 +94,7 @@ export async function GET(request: NextRequest) {
       let q = supabase
         .from('point_transactions')
         .select('id, created_at, points_delta, transaction_type, hours_played, note, reward:rewards(name)')
+        .eq('app', FUTSAL)
         .eq('customer_id', user.id)
         .order('created_at', { ascending: false })
         .limit(LIMIT + 1)

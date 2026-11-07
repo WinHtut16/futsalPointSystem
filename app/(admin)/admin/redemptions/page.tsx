@@ -3,6 +3,7 @@ import { getCurrentUser, isFutsalSuperAdmin } from '@/lib/auth'
 import RedemptionsList from '@/components/admin/RedemptionsList'
 import T from '@/components/ui/T'
 import type { RedemptionRequest } from '@/types'
+import { FUTSAL } from '@/lib/points'
 
 export default async function AdminRedemptionsPage() {
   const [supabase, profile] = await Promise.all([createClient(), getCurrentUser()])
@@ -14,11 +15,13 @@ export default async function AdminRedemptionsPage() {
     supabase
       .from('redemption_requests')
       .select(SELECT_QUERY)
+      .eq('app', FUTSAL)
       .eq('status', 'pending')
       .order('requested_at', { ascending: true }),
     supabase
       .from('redemption_requests')
       .select(SELECT_QUERY)
+      .eq('app', FUTSAL)
       .in('status', ['approved', 'rejected', 'cancelled'])
       .order('resolved_at', { ascending: false })
       .limit(200),

@@ -8,6 +8,7 @@ import { PendingRedemptionsProvider } from '@/contexts/PendingRedemptionsContext
 import { PendingBookingsProvider } from '@/contexts/PendingBookingsContext'
 import PendingSoundAlert from '@/components/admin/PendingSoundAlert'
 import PendingBookingsSoundAlert from '@/components/admin/PendingBookingsSoundAlert'
+import { FUTSAL } from '@/lib/points'
 
 // Installable-PWA metadata — scoped to this layout only, so the
 // <link rel="manifest"> and apple-touch-icon never appear on customer-facing
@@ -65,6 +66,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
+        .eq('app', FUTSAL)
         .eq('status', 'pending'),
       svc
         .from('bookings')

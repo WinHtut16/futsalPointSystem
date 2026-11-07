@@ -6,12 +6,14 @@ import RewardAdminRow from '@/components/admin/RewardAdminRow'
 import T from '@/components/ui/T'
 import type { Reward } from '@/types'
 import { Plus, Zap } from 'lucide-react'
+import { FUTSAL } from '@/lib/points'
 
 export default async function AdminRewardsPage() {
   const [supabase, profile] = await Promise.all([createClient(), getCurrentUser()])
   const { data: rewards } = await supabase
     .from('rewards')
     .select('*')
+    .eq('app', FUTSAL)
     .eq('is_deleted', false)
     .order('points_cost', { ascending: true })
 

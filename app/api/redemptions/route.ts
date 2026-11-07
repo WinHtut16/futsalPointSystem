@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser, requireRole } from '@/lib/auth'
 import { RedeemSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
+import { FUTSAL, getWalletBalance } from '@/lib/points'
 
 export async function GET() {
   try {
@@ -14,6 +15,7 @@ export async function GET() {
       const { data, error } = await supabase
         .from('redemption_requests')
         .select('*, reward:rewards(name, points_cost), customer:profiles!customer_id(username, phone, total_points)')
+        .eq('app', FUTSAL)
         .eq('status', 'pending')
         .order('requested_at', { ascending: true })
 
@@ -24,6 +26,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from('redemption_requests')
       .select('*, reward:rewards(name, points_cost)')
+      .eq('app', FUTSAL)
       .eq('customer_id', user.id)
       .order('requested_at', { ascending: false })
 
@@ -50,6 +53,7 @@ export async function POST(request: NextRequest) {
     const { data: reward } = await supabase
       .from('rewards')
       .select('*')
+      .eq('app', FUTSAL)
       .eq('id', reward_id)
       .single()
 
@@ -61,13 +65,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Reward is out of stock.' }, { status: 400 })
     }
 
-    if (customer.total_points < reward.points_cost) {
+    // Balance of the reward's own business: points never cross businesses.
+    // Only an early friendly check - approve_redemption re-checks under lock.
+    const balance = await getWalletBalance(supabase, customer.id, reward.app)
+    if (balance < reward.points_cost) {
       return NextResponse.json({ error: 'Not enough points.' }, { status: 400 })
     }
 
     const { data: existing } = await supabase
       .from('redemption_requests')
       .select('id')
+      .eq('app', FUTSAL)
       .eq('customer_id', customer.id)
       .eq('reward_id', reward_id)
       .eq('status', 'pending')

@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/utils'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import { FUTSAL } from '@/lib/points'
 
 const POLL_MS = 20_000
 const SELECT_QUERY =
@@ -77,6 +78,7 @@ export default function RedemptionsList({
     const { data } = await supabase
       .from('redemption_requests')
       .select(SELECT_QUERY)
+      .eq('app', FUTSAL)
       .eq('status', 'pending')
       .order('requested_at', { ascending: true })
     if (data) setRequests(data as RedemptionRequest[])

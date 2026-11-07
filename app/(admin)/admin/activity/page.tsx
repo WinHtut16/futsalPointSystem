@@ -3,6 +3,7 @@ import { requireAnyAdmin } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import ActivityLogList, { type ActivityLogItem } from '@/components/admin/ActivityLogList'
 import T from '@/components/ui/T'
+import { FUTSAL } from '@/lib/points'
 
 export const dynamic = 'force-dynamic'
 
@@ -115,10 +116,12 @@ export default async function ActivityLogPage({
       supabase
         .from('point_transactions')
         .select('*', { count: 'exact', head: true })
+        .eq('app', FUTSAL)
         .in('transaction_type', ['earn', 'adjustment']),
       supabase
         .from('point_transactions')
         .select('id, transaction_type, points_delta, created_at, customer:profiles!customer_id(username)')
+        .eq('app', FUTSAL)
         .in('transaction_type', ['earn', 'adjustment'])
         .order('created_at', { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1),
@@ -127,10 +130,12 @@ export default async function ActivityLogPage({
     items = ((data ?? []) as unknown as Parameters<typeof txToItem>[0][]).map(txToItem)
   } else if (tab === 'rewards') {
     const [{ count }, { data }] = await Promise.all([
-      supabase.from('redemption_requests').select('*', { count: 'exact', head: true }),
+      supabase.from('redemption_requests').select('*', { count: 'exact', head: true })
+        .eq('app', FUTSAL),
       supabase
         .from('redemption_requests')
         .select('id, status, requested_at, reward:rewards(name), customer:profiles!customer_id(username)')
+        .eq('app', FUTSAL)
         .order('requested_at', { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1),
     ])
@@ -147,12 +152,14 @@ export default async function ActivityLogPage({
       supabase
         .from('point_transactions')
         .select('id, transaction_type, points_delta, created_at, customer:profiles!customer_id(username)')
+        .eq('app', FUTSAL)
         .in('transaction_type', ['earn', 'adjustment'])
         .order('created_at', { ascending: false })
         .limit(ALL_LIMIT),
       supabase
         .from('redemption_requests')
         .select('id, status, requested_at, reward:rewards(name), customer:profiles!customer_id(username)')
+        .eq('app', FUTSAL)
         .order('requested_at', { ascending: false })
         .limit(ALL_LIMIT),
     ])

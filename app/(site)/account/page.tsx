@@ -10,6 +10,7 @@ import UnifiedAccount from '@/components/customer/account/UnifiedAccount'
 import type { DashboardBooking } from '@/components/booking/BookingsDashboard'
 import type { BookingStatus } from '@/components/booking/BookingHistoryCard'
 import type { FeedItem } from '@/components/customer/account/UnifiedTimeline'
+import { FUTSAL } from '@/lib/points'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,6 +65,7 @@ export default async function AccountPage({
       supabase
         .from('point_transactions')
         .select('points_delta, transaction_type')
+        .eq('app', FUTSAL)
         .eq('customer_id', profile.id),
 
       svc
@@ -86,6 +88,7 @@ export default async function AccountPage({
       supabase
         .from('point_transactions')
         .select('id, created_at, points_delta, transaction_type, hours_played, note, reward:rewards(name)')
+        .eq('app', FUTSAL)
         .eq('customer_id', profile.id)
         .order('created_at', { ascending: false })
         .limit(FEED_LIMIT + 1),
@@ -95,6 +98,7 @@ export default async function AccountPage({
       supabase
         .from('redemption_requests')
         .select('id, reward_id')
+        .eq('app', FUTSAL)
         .eq('customer_id', profile.id)
         .eq('status', 'pending'),
     ])

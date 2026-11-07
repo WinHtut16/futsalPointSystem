@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Reward } from '@/types'
 import RewardCard from './RewardCard'
 import RedeemFlowModal from './RedeemFlowModal'
+import { FUTSAL } from '@/lib/points'
 
 interface RewardsGridProps {
   rewards: Reward[]
@@ -27,6 +28,7 @@ export default function RewardsGrid({ rewards, userId, userPoints, initialPendin
     const { data } = await supabase
       .from('redemption_requests')
       .select('id, reward_id')
+      .eq('app', FUTSAL)
       .eq('customer_id', userId)
       .eq('status', 'pending')
     if (data) {

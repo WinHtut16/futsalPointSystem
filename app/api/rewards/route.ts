@@ -3,6 +3,7 @@ import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getCurrentUser, requireSuperAdmin } from '@/lib/auth'
 import { RewardCreateSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
+import { FUTSAL } from '@/lib/points'
 
 export async function GET() {
   try {
@@ -10,7 +11,7 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const supabase = await createServiceClient()
-    let query = supabase.from('rewards').select('*').order('points_cost')
+    let query = supabase.from('rewards').select('*').eq('app', FUTSAL).order('points_cost')
 
     if (user.role === 'customer') {
       query = query.eq('is_active', true).eq('is_deleted', false)

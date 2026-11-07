@@ -130,18 +130,21 @@ beforeEach(() => {
 //
 // DB call order per request:
 //   1. from('rewards').select('*').eq('id').single()
-//   2. from('redemption_requests').select('id')...maybySingle()  [if stock+balance OK]
-//   3. from('redemption_requests').insert(...).select().single() [if no duplicate]
+//   2. from('point_wallets').select('balance')...maybeSingle()   [if stock OK]
+//   3. from('redemption_requests').select('id')...maybySingle()  [if balance OK]
+//   4. from('redemption_requests').insert(...).select().single() [if no duplicate]
 // ============================================================================
 describe('POST /api/redemptions (pending request flow)', () => {
   const url = 'http://t/api/redemptions'
   const body = { reward_id: REWARD_ID }
-  const activeReward = { id: REWARD_ID, name: 'Prize', points_cost: 50, stock: 5, is_active: true }
+  const activeReward = { id: REWARD_ID, name: 'Prize', points_cost: 50, stock: 5, is_active: true, app: 'futsal' }
+  const wallet = (balance: number) => ({ data: { balance } })
 
   it('(1) creates a pending request when balance and stock are sufficient', async () => {
     asCustomer(50)
     mockQuery(
       { data: activeReward },
+      wallet(50),
       { data: null },                                   // no existing pending
       { data: { id: REQUEST_ID, status: 'pending', customer_id: CUSTOMER_ID, reward_id: REWARD_ID } },
     )
@@ -155,7 +158,7 @@ describe('POST /api/redemptions (pending request flow)', () => {
 
   it('(2) returns 400 when customer has insufficient points', async () => {
     asCustomer(30)                                      // needs 50
-    mockQuery({ data: activeReward })
+    mockQuery({ data: activeReward }, wallet(30))
 
     const { POST } = await import('@/app/api/redemptions/route')
     const res = await POST(jsonReq(url, 'POST', body))
@@ -164,10 +167,32 @@ describe('POST /api/redemptions (pending request flow)', () => {
     expect((await res.json()).error).toBe('Not enough points.')
   })
 
+  it('(2b) checks the balance of the reward\'s own business, not the futsal total', async () => {
+    asCustomer(500)                                     // plenty of futsal points...
+    mockQuery({ data: { ...activeReward, app: 'game' } }, wallet(20))  // ...but only 20 game points
+
+    const { POST } = await import('@/app/api/redemptions/route')
+    const res = await POST(jsonReq(url, 'POST', body))
+
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('Not enough points.')
+  })
+
+  it('(2c) a customer with no wallet at that business has 0 there', async () => {
+    asCustomer(500)
+    mockQuery({ data: { ...activeReward, app: 'game' } }, { data: null })
+
+    const { POST } = await import('@/app/api/redemptions/route')
+    const res = await POST(jsonReq(url, 'POST', body))
+
+    expect(res.status).toBe(400)
+  })
+
   it('(3) succeeds when claiming the last item in stock (stock = 1)', async () => {
     asCustomer(100)
     mockQuery(
       { data: { ...activeReward, stock: 1 } },
+      wallet(100),
       { data: null },
       { data: { id: REQUEST_ID, status: 'pending', customer_id: CUSTOMER_ID, reward_id: REWARD_ID } },
     )
@@ -203,6 +228,7 @@ describe('POST /api/redemptions (pending request flow)', () => {
     asCustomer(100)
     mockQuery(
       { data: activeReward },
+      wallet(100),
       { data: { id: 'existing-req' } },                // duplicate found
     )
 
@@ -217,6 +243,7 @@ describe('POST /api/redemptions (pending request flow)', () => {
     asCustomer(100)
     mockQuery(
       { data: activeReward },
+      wallet(100),
       { data: null },                                   // app-level check passes...
       { data: null, error: { code: '23505', message: 'unique_violation' } }, // ...DB rejects
     )
@@ -445,6 +472,8 @@ describe('(5) Concurrent redemption invariants', () => {
     mockQuery(
       { data: reward },     // req1: reward fetch
       { data: reward },     // req2: reward fetch  ← must mirror req1 (same step)
+      { data: { balance: 100 } }, // req1: wallet
+      { data: { balance: 100 } }, // req2: wallet
       { data: null },       // req1: no duplicate found
       { data: null },       // req2: no duplicate found
       { data: { id: REQUEST_ID, status: 'pending', customer_id: CUSTOMER_ID, reward_id: REWARD_ID } },

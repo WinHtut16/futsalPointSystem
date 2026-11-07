@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { RedemptionRequest } from '@/types'
 import PendingRequestItem from './PendingRequestItem'
 import Card from '@/components/ui/Card'
+import { FUTSAL } from '@/lib/points'
 
 interface StatusNotification {
   id: string
@@ -38,6 +39,7 @@ export default function PendingRequestsList({
     const { data } = await supabase
       .from('redemption_requests')
       .select('*, reward:rewards(name, points_cost)')
+      .eq('app', FUTSAL)
       .eq('customer_id', userId)
       .eq('status', 'pending')
       .order('requested_at', { ascending: false })
@@ -66,6 +68,7 @@ export default function PendingRequestsList({
     const { data: settled } = await supabase
       .from('redemption_requests')
       .select('id, status')
+      .eq('app', FUTSAL)
       .in('id', goneIds)
     if (!settled) return
 
