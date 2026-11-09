@@ -11,7 +11,7 @@ npm run dev           # Start dev server at localhost:3000
 npm run build         # Production build
 npm run start         # Start production server
 npm run lint          # Run ESLint
-npm test              # Vitest unit tests (268 tests, no DB required)
+npm test              # Vitest unit tests (384 tests, no DB required)
 npm run test:e2e      # Playwright E2E tests (requires .env.e2e + running server)
 npm run test:e2e:ui   # Playwright with interactive UI
 npm run test:e2e:debug  # Playwright with step-by-step debugger
@@ -20,7 +20,7 @@ npm run test:e2e:debug  # Playwright with step-by-step debugger
 **First-time setup:**
 1. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` (e.g. `http://localhost:3000` locally; `https://myathida-futsal.vercel.app` in Vercel env vars). Also add `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` for CMS image uploads.
 2. Run these SQL files **in order** in the Supabase SQL editor:
-   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `supabase-multilingual-rewards.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → `cms-simplify-migration.sql` → `rls-bookings-fix.sql` → `rls-profiles-insert-fix.sql` → `rls-transactions-fix.sql` → `points-adjust-atomic-fix.sql` → **`confirm-override-atomic-migration.sql`** → `override-booking-date-fix.sql` → `closure-booking-conflict-trigger.sql` → `override-conflict-lock-fix.sql` → `booking-updated-at-migration.sql` → `trigger-else-branch-fix.sql` → `drop-shadow-redemption.sql` → `redemption-cost-snapshot-migration.sql` → `approve-use-snapshot-fix.sql` → `drop-booking-transaction-type.sql` → `points-delta-sign-constraint.sql` → `dead-schema-cleanup.sql` → `rls-rewards-write-fix.sql` → `rls-transactions-delete-fix.sql` → `rls-redemption-cancel-fix.sql` → `admin-booking-entry-migration.sql` → `booking-archive-migration.sql` → `profiles-updated-at-migration.sql` → `realtime-publication-migration.sql` → `redemption-cancel-snapshot-fix.sql` → `realtime-closures-migration.sql` → `enforce-cancel-service-role-fix.sql` → **`app-access-migration.sql`**
+   `supabase-setup.sql` → `supabase-fix-rls.sql` → `supabase-superadmin-migration.sql` → `redemption-requests-migration.sql` → `race-condition-fixes.sql` → `supabase-rls-security-fix.sql` → `soft-delete-rewards-migration.sql` → `handle-new-user-trigger-fix.sql` → `security-rls-rewards-fix.sql` → `security-rls-profiles-fix.sql` → `point-adjustment-migration.sql` → `supabase-multilingual-rewards.sql` → `booking-system-migration.sql` → `pending-override-migration.sql` → `cms-simplify-migration.sql` → `rls-bookings-fix.sql` → `rls-profiles-insert-fix.sql` → `rls-transactions-fix.sql` → `points-adjust-atomic-fix.sql` → **`confirm-override-atomic-migration.sql`** → `override-booking-date-fix.sql` → `closure-booking-conflict-trigger.sql` → `override-conflict-lock-fix.sql` → `booking-updated-at-migration.sql` → `trigger-else-branch-fix.sql` → `drop-shadow-redemption.sql` → `redemption-cost-snapshot-migration.sql` → `approve-use-snapshot-fix.sql` → `drop-booking-transaction-type.sql` → `points-delta-sign-constraint.sql` → `dead-schema-cleanup.sql` → `rls-rewards-write-fix.sql` → `rls-transactions-delete-fix.sql` → `rls-redemption-cancel-fix.sql` → `admin-booking-entry-migration.sql` → `booking-archive-migration.sql` → `profiles-updated-at-migration.sql` → `realtime-publication-migration.sql` → `redemption-cancel-snapshot-fix.sql` → `realtime-closures-migration.sql` → `enforce-cancel-service-role-fix.sql` → **`app-access-migration.sql`** → `handle-new-user-fallback-restore.sql` → **`multi-business-points-migration.sql`** → `session-points-migration.sql` (needs the audit files from the billiards/game rollout)
 3. Run `node --env-file=.env.local setup-admin.mjs` to seed the superadmin account and rewards. **`SUPERADMIN_PASSWORD` env var is required** — the script exits with an error if it is missing (no hardcoded fallback).
 
 **Translations:** `GEMINI_API_KEY=... node scripts/translate.mjs` rewrites the Myanmar (`my`) exports in each `lib/i18n/namespaces/*.ts` file from the English source, preserving structure.
@@ -140,6 +140,19 @@ custom domain.
 - **`app/(admin)/` IS the futsal business** - its layout requires a `futsal` grant,
   not merely an admin role.
 
+### Game & billiards points admin (`/admin/loyalty/<app>`)
+
+Rewards, redemption requests and customer balances for the game shop and billiards are managed in the hub, not in the zones and not in `(admin)` (which IS futsal and needs a futsal grant). Pages live in `app/(portal)/admin/loyalty/[app]/` (tabs: Requests · Rewards · Customers), entered from a link under each tile on `/admin/apps` and from each zone's nav. Access = a grant for THAT business (`getAppRole(app)`); owner rank (`superadmin`) to create/edit/delete rewards and clear history, any admin of it to toggle rewards, approve/decline and correct balances.
+
+- APIs: `app/api/loyalty/[app]/...` (`rewards`, `rewards/[id]`, `redemptions/[id]`, `redemptions/delete`, `points/adjust`). Guard: `requireLoyaltyRole(app, rank)` in `lib/loyalty.server.ts`. Every query is pinned with `.eq('app', app)`, so an id from another business is a 404 rather than a permission question.
+- Futsal's own routes (`/api/rewards/[id]`, `/api/redemptions/[id]`, `/api/admin/redemptions/delete`, the futsal edit-reward page) are pinned to `app = 'futsal'` for the same reason.
+- `lib/loyalty.ts` (client-safe): `LOYALTY_APPS`, `loyaltyPath`, `loyaltyApi`, and `withBusinessBalance` - redemption rows embed `point_wallets` and fold that business's balance into `customer.total_points`, because `profiles.total_points` is futsal only.
+- Reused components take a business: `RedemptionsList` (`app`, `actionBase`, `deleteUrl`), `RedemptionRequestCard` (`actionBase`), `RewardAdminRow` (`apiBase`, `editHref`), `RewardForm` (`apiBase`, `backHref`), `AdjustPointsForm` (`endpoint`). Defaults are the futsal values. Strings: `lib/i18n/namespaces/loyalty.ts`.
+
+### Customer points per business (`/account?biz=`)
+
+`/account` shows one business's points at a time: `?biz=futsal|game|billiards` (`parseBusiness` in `lib/points.ts`, futsal default), chosen with `components/customer/account/BusinessSwitcher.tsx` (plain links: everything is fetched on the server). The header balance, earned/redeemed, Points & Rewards tab, pending requests and the points rows of History follow `biz`; bookings stay futsal. `UnifiedAccount` is keyed by `biz` so the live balance (`useRealtimePoints(userId, initial, app)`, which polls `point_wallets` for non-futsal) restarts from the server figure. `getActiveRewards(app)` caches per business under the same `rewards` tag. `POST /api/redemptions` accepts any business's reward and checks that business's wallet. Sign-up: `/register?from=game|billiards` (counter QR codes) shows a business tagline, always says one account covers all three, and lands on `/account?tab=points&biz=<from>`.
+
 ### Roles
 
 Three roles stored in `profiles.role`: `customer`, `admin`, `superadmin`.
@@ -150,10 +163,13 @@ Three roles stored in `profiles.role`: `customer`, `admin`, `superadmin`.
 | `admin` | Add points, adjust points (correction/audit), manage customers (incl. delete), view all rewards, toggle rewards active/inactive, CMS (create/edit/delete posts + image uploads) |
 | `superadmin` | All admin capabilities + rewards CRUD + staff admin CRUD + forgot-password via email + full analytics dashboard |
 
+**Business access rule (client decision):** an `admin` may act only in the businesses they hold an `app_access` grant for (one or several). Every `superadmin` (`profiles.role = 'superadmin'` — the developer and the owners) is a **global** owner of all three businesses. There is no per-business superadmin: an `app_access` row only ever means `admin` (`retire-per-app-superadmin-migration.sql` enforces this in SQL, demotes legacy rows, and makes `app_role()` / `can_manage_app()` global-only).
+
 Server-side guards in `lib/auth.ts`:
 - `requireRole(role)` — exact role match
-- `requireAnyAdmin()` — `admin` or `superadmin`
-- `requireSuperAdmin()` — `superadmin` only
+- `requireFutsalAdmin()` — **use for every futsal admin API.** Global superadmin, or `admin` holding a futsal grant (`getAppRole('futsal')` not null). Null/failed lookup denies. `isFutsalAdmin(profile)` is the boolean form for routes that serve customers and admins (`bookings/[id]`, `redemptions`).
+- `requireAnyAdmin()` — `admin` or `superadmin` by `profiles.role` only. **Not an authorization check for futsal data**: a game-only or billiards-only admin also passes it. Only used by futsal pages already gated by the `(admin)` layout and by cross-business routes (audit export).
+- `requireSuperAdmin()` / `isSuperAdmin()` (alias `isFutsalSuperAdmin()`) — global `profiles.role = 'superadmin'` only; a per-app `superadmin` row does not count.
 
 ### Customer Password Reset Flow
 
@@ -193,7 +209,9 @@ Authentication → Email Templates → Recovery. Replace `{{ .ConfirmationURL }}
 
 All tables have Row-Level Security enforced. Key patterns:
 - `is_admin()` is a `SECURITY DEFINER` function used in RLS policies to avoid infinite recursion when policies on `profiles` would otherwise re-query `profiles`. Returns true for both `admin` and `superadmin`.
-- `add_points_transaction()` is an RPC function that atomically increments `profiles.total_points` and inserts into `point_transactions`. Always call this via Supabase RPC — never do the two steps separately. Used for all three transaction types: `earn`, `redeem`, and `adjustment`. Pass `p_min_balance: 0` explicitly from app RPC calls so PostgREST resolves the intended overload unambiguously.
+- **Per-business wallets** (`multi-business-points-migration.sql`): balances live in `point_wallets(user_id, app, balance)`, one row per customer per business (`futsal`/`game`/`billiards`), never combined. `point_transactions`, `rewards` and `redemption_requests` carry `app` (default `futsal`; a request's `app` is always forced to its reward's by trigger). `profiles.total_points` is kept as a mirror of the **futsal** wallet only, written in the same transaction, until nothing reads it.
+- `add_points_transaction(..., p_min_balance, p_app DEFAULT 'futsal')` is an RPC function that atomically updates the wallet (and the futsal mirror) and inserts into `point_transactions`. `p_min_balance => NULL` means no floor (automatic reversals only). Always call this via Supabase RPC — never do the two steps separately. Used for all three transaction types: `earn`, `redeem`, and `adjustment`. Pass `p_min_balance: 0` explicitly from app RPC calls so PostgREST resolves the intended overload unambiguously.
+- **Session points** (`session-points-migration.sql`): game/billiards award points automatically. `point_rules(app)` = N points per full block of M **paid** minutes (game 10/60 on; billiards placeholder off), edited only via `set_point_rule()` by that business's superadmin. `sync_session_points()` (internal, called by each zone's sessions trigger) makes the ledger match a session's state - close, record, correct, void, customer change - posting only the difference; the rule is frozen per session on first award. Reversals have no balance floor (wallet may go negative, which blocks redemption). `find_customer_by_phone()` lets any staff attach a **registered** customer by exact phone.
 - `point_transactions.transaction_type` accepts `'earn'` (session play), `'redeem'` (reward redemption), or `'adjustment'` (manual correction by admin). The check constraint was updated by `point-adjustment-migration.sql`.
 - `handle_new_user()` trigger auto-creates a `profiles` row when a new `auth.users` entry is inserted. Uses `COALESCE(raw_user_meta_data->>'username', split_part(email,'@',1))` so it doesn't crash when `raw_user_meta_data` is absent (e.g. users created via the Supabase Auth dashboard).
 - `profiles.phone` is nullable — staff admin accounts have no phone.
@@ -204,7 +222,7 @@ All tables have Row-Level Security enforced. Key patterns:
 
 | File | Purpose |
 |------|---------|
-| `lib/auth.ts` | `getCurrentUser()`, `requireRole()`, `requireAnyAdmin()`, `requireSuperAdmin()` — server-side auth helpers |
+| `lib/auth.ts` | `getCurrentUser()`, `requireRole()`, `requireFutsalAdmin()` / `isFutsalAdmin()`, `requireAnyAdmin()`, `requireSuperAdmin()` / `isSuperAdmin()` — server-side auth helpers (see Roles) |
 | `lib/schemas.ts` | Zod schemas + `badRequest()` / `parseJson()` / `serverError(detail?)` helpers used by every API route. `serverError` logs `detail` server-side and returns generic `{ error: 'An unexpected error occurred' }` (with `detail` also returned in non-production for debugging). Always use `serverError(error.message)` for 500 responses — never expose `error.message` directly to clients. |
 | `lib/points.ts` | `calculatePoints()` — 10 points per hour |
 | `lib/utils.ts` | `formatDate(dateStr, lang?)` — date-only display in Myanmar/Yangon timezone (e.g. `"24 May 2025"`; pass `lang='my'` for Myanmar script month names); `formatDateTime(dateStr, lang?)` — date + time with AM/PM in Myanmar timezone. Both use `timeZone: 'Asia/Yangon'` (UTC+6:30). Always use these helpers for any date/time display — never format raw timestamps without them. `toMyDigits(n: number): string` — converts ASCII digits to Myanmar digits (e.g. `7` → `၇`); used for Myanmar-locale date display. `MY_MONTHS` — record of English month name → Myanmar name (exported for direct lookup). `usernameToAdminEmail()` — maps staff username → `@akoatp-staff.com` email. `safeRedirect(next, fallback)` — validates `?next=` params before use; rejects absolute URLs, protocol-relative (`//`), backslash, and newline injection; returns `fallback` (default `'/'`) if invalid. Use in every place that redirects based on a user-supplied param. |
@@ -287,6 +305,8 @@ Tables enabled: `bookings` (`booking-system-migration.sql`), `profiles` + `redem
 
 ### API Surface
 
+In this table `admin/superadmin` on a futsal route means **futsal** admin (`requireFutsalAdmin()`): a global superadmin, or an admin with a futsal grant.
+
 | Route | Role | Action |
 |-------|------|--------|
 | `POST /api/auth/register` | public | Create customer account |
@@ -355,6 +375,7 @@ Tables enabled: `bookings` (`booking-system-migration.sql`), `profiles` + `redem
 ### Security
 
 **Applied fixes:**
+- Futsal admin APIs use `requireFutsalAdmin()` instead of `requireAnyAdmin()` — a staff account holding only a game or billiards grant (still `profiles.role = 'admin'`) gets 403 from futsal endpoints even when calling them directly (curl/devtools). Grant management (`/api/admin/access`) is global-superadmin only and grants the `admin` rank only. Covered by `__tests__/api-futsal-app-access.test.ts` (runs the real `lib/auth`).
 - `profiles_update` RLS policy scoped to `is_admin()` only — customers cannot escalate their own role or inflate points via the anon key (`supabase-rls-security-fix.sql`)
 - `transactions_insert` RLS policy scoped to `is_admin()` only — customers cannot self-insert point transactions (`supabase-rls-security-fix.sql`)
 - `redemption_requests` unique partial index `(customer_id, reward_id) WHERE status = 'pending'` — prevents duplicate pending requests (race guard) (`supabase-rls-security-fix.sql`)

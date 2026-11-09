@@ -4,7 +4,7 @@ import CustomerSearch from '@/components/admin/CustomerSearch'
 import CustomersTable from '@/components/admin/CustomersTable'
 import T from '@/components/ui/T'
 import type { Profile } from '@/types'
-import { POINTS_PER_HOUR } from '@/lib/points'
+import { POINTS_PER_HOUR, FUTSAL } from '@/lib/points'
 
 export default async function CustomersPage({
   searchParams,
@@ -30,6 +30,7 @@ export default async function CustomersPage({
     supabase
       .from('point_transactions')
       .select('customer_id, points_delta')
+      .eq('app', FUTSAL)
       .eq('transaction_type', 'earn'),
   ])
 

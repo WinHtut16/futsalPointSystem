@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient, broadcastSlotChange } from '@/lib/supabase/server'
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireFutsalAdmin } from '@/lib/auth'
 import { AdminCreateBookingSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 import { priceForHour, tierForHour } from '@/lib/booking'
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAnyAdmin()
+    await requireFutsalAdmin()
 
     const parsed = AdminCreateBookingSchema.safeParse(await parseJson(request))
     if (!parsed.success) return badRequest(parsed.error)

@@ -21,7 +21,10 @@ update public.profiles set role='admin', username='csuper' where id='99990000-00
 update public.profiles set role='admin', username='cadmin' where id='99990000-0000-0000-0000-000000000002';
 
 select public.test_act_as('11111111-1111-1111-1111-111111111111');  -- owner, from 90-access
-select public.grant_app_access('99990000-0000-0000-0000-000000000001','billiards','superadmin','csuper');
+select public.grant_app_access('99990000-0000-0000-0000-000000000001','billiards','admin','csuper');
+-- Owner = GLOBAL superadmin (profiles.role); a per-business grant is only
+-- ever 'admin' (retire-per-app-superadmin-migration.sql).
+update public.profiles set role = 'superadmin' where id = '99990000-0000-0000-0000-000000000001';
 select public.grant_app_access('99990000-0000-0000-0000-000000000002','billiards','admin','cadmin');
 
 insert into billiards.pool_tables (id, name) values ('99991111-0000-0000-0000-000000000001','Table 99');

@@ -38,17 +38,20 @@ begin
   perform chk('a superadmin cannot delete history', deleted, 0);
 end $$;
 
--- Per-business scoping: bmgr runs the hall and nothing else.
+-- No per-business owners any more (client rule): bmgr is the hall's ADMIN.
+-- The audit log is owners-only, so a billiards admin sees none of it - not
+-- even billiards rows - while the global owner sees every business.
 do $$
-declare seen_billiards int; seen_other int;
+declare seen_bmgr int; seen_owner_apps int;
 begin
   perform public.test_act_as('22222222-2222-2222-2222-222222222222');
   perform set_config('role','authenticated',true);
-  select count(*) into seen_billiards from public.audit_log where app='billiards';
-  select count(*) into seen_other     from public.audit_log where app <> 'billiards';
+  select count(*) into seen_bmgr from public.audit_log;
+  perform public.test_act_as('11111111-1111-1111-1111-111111111111');
+  select count(distinct app) into seen_owner_apps from public.audit_log;
   perform set_config('role','postgres',true);
-  perform chk('a billiards-only superadmin sees billiards rows', (seen_billiards > 0)::text, 'true'::text);
-  perform chk('...and none of futsal or the game shop', seen_other, 0);
+  perform chk('a billiards admin (per-business grant) sees no audit rows', seen_bmgr, 0);
+  perform chk('control: the global owner sees more than one business', (seen_owner_apps > 1)::text, 'true'::text);
 end $$;
 
 -- And a plain admin sees nothing at all.

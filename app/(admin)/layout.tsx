@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from 'next'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getMyApps, getAppRole } from '@/lib/apps.server'
+import { getMyApps } from '@/lib/apps.server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AdminShell from '@/components/admin/AdminShell'
 import { PendingRedemptionsProvider } from '@/contexts/PendingRedemptionsContext'
 import { PendingBookingsProvider } from '@/contexts/PendingBookingsContext'
 import PendingSoundAlert from '@/components/admin/PendingSoundAlert'
 import PendingBookingsSoundAlert from '@/components/admin/PendingBookingsSoundAlert'
+import { FUTSAL } from '@/lib/points'
 
 // Installable-PWA metadata — scoped to this layout only, so the
 // <link rel="manifest"> and apple-touch-icon never appear on customer-facing
@@ -42,9 +43,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/admin/apps')
   }
 
-  // Rank inside this business. Falls back to the global role only when the
-  // lookup failed, for the same reason as above.
-  const futsalRole = (await getAppRole('futsal')) ?? (profile.role === 'superadmin' ? 'superadmin' : 'admin')
+  // Rank inside this business. Superadmin is global (profiles.role) only;
+  // a per-business 'superadmin' grant does not raise anyone's rank.
+  const futsalRole = profile.role === 'superadmin' ? 'superadmin' : 'admin'
 
   const supabase = await createClient()
   const svc = createServiceClient()
@@ -65,6 +66,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       supabase
         .from('redemption_requests')
         .select('*', { count: 'exact', head: true })
+        .eq('app', FUTSAL)
         .eq('status', 'pending'),
       svc
         .from('bookings')

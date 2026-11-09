@@ -26,6 +26,8 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/auth', () => ({
   requireAnyAdmin: vi.fn(async () => ({ id: 'me', role: 'admin' })),
+  requireFutsalAdmin: vi.fn(async () => ({ id: 'me', role: 'admin' })),
+  isFutsalAdmin: vi.fn(async (p: { role: string } | null) => !!p && (p.role === 'admin' || p.role === 'superadmin')),
 }))
 
 vi.mock('@/lib/apps.server', () => ({

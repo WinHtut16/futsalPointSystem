@@ -22,6 +22,7 @@ vi.mock('@/lib/auth', () => ({
     if (authState.role !== 'superadmin') throw new Error('FORBIDDEN')
     return { id: 'super-1', role: 'superadmin' }
   }),
+  isFutsalAdmin: vi.fn(async (p: { role: string } | null) => !!p && (p.role === 'admin' || p.role === 'superadmin')),
 }))
 
 // --- Supabase doubles ------------------------------------------------------

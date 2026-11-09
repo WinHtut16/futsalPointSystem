@@ -1,9 +1,12 @@
+import type { AppName } from '@/lib/apps'
 export type UserRole = 'customer' | 'admin' | 'superadmin'
 
 export type RedemptionStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
 
 export interface RedemptionRequest {
   id: string
+  /** Business the reward belongs to; set by the DB from the reward. */
+  app: AppName
   customer_id: string
   reward_id: string
   status: RedemptionStatus
@@ -35,6 +38,8 @@ export interface Reward {
   stock: number | null
   is_active: boolean
   is_deleted: boolean
+  /** Business this reward is redeemed at. Points never cross businesses. */
+  app: AppName
   created_at: string
   updated_at: string
 }
@@ -50,6 +55,8 @@ export interface PointTransaction {
   reward_id: string | null
   note: string | null
   created_by: string | null
+  /** Business whose wallet this row moved. */
+  app: AppName
   created_at: string
   reward?: { name: string }
   creator?: { username: string }

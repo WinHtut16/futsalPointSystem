@@ -138,12 +138,12 @@ select chk('control: NEWGUY clears the auth guard on add_order_item',
   public.test_call('44444444-4444-4444-4444-444444444444','authenticated',
     'billiards.add_order_item(gen_random_uuid(),gen_random_uuid())'),
   'session not active');
-select chk('control: BMGR (billiards superadmin) actually runs delete_closed_sessions',
-  public.test_call('22222222-2222-2222-2222-222222222222','authenticated',
+select chk('control: the owner (global superadmin) actually runs delete_closed_sessions',
+  public.test_call('11111111-1111-1111-1111-111111111111','authenticated',
     'billiards.delete_closed_sessions(now() - interval ''30 days'')'),
   'NO ERROR');
-select chk('control: BMGR clears the auth guard on void_closed_session_time',
-  public.test_call('22222222-2222-2222-2222-222222222222','authenticated',
+select chk('control: the owner clears the auth guard on void_closed_session_time',
+  public.test_call('11111111-1111-1111-1111-111111111111','authenticated',
     'billiards.void_closed_session_time(gen_random_uuid(),''test'')'),
   'session not found, still active, or already corrected');
 
@@ -266,12 +266,12 @@ end $$;
 do $$
 declare v_rows int;
 begin
-  perform public.test_act_as('22222222-2222-2222-2222-222222222222'); -- BMGR: billiards superadmin
+  perform public.test_act_as('11111111-1111-1111-1111-111111111111'); -- the owner (global superadmin)
   perform set_config('role','authenticated',true);
   update billiards.app_settings set hourly_rate = 6000 where id = true;
   get diagnostics v_rows = row_count;
   perform set_config('role','postgres',true);
-  perform chk('control: a billiards superadmin CAN write app_settings', v_rows, 1);
+  perform chk('control: the owner CAN write app_settings', v_rows, 1);
 end $$;
 
 -- ════════════════════════════════════════════════════════════════════════════

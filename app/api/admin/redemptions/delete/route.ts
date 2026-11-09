@@ -2,6 +2,7 @@ import { requireSuperAdmin } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import { serverError, badRequest } from '@/lib/schemas'
 import { z } from 'zod'
+import { FUTSAL } from '@/lib/points'
 
 const Schema = z.object({ ids: z.array(z.string().uuid()).min(1).max(500) })
 
@@ -27,6 +28,8 @@ export async function POST(req: Request) {
     .from('redemption_requests')
     .delete()
     .in('id', parsed.data.ids)
+    // Futsal history only; the other businesses clear theirs via /api/loyalty/<app>.
+    .eq('app', FUTSAL)
     .in('status', ['approved', 'rejected', 'cancelled'])
 
   if (error) return serverError(error.message)

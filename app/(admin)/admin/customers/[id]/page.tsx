@@ -11,6 +11,7 @@ import type { PointTransaction } from '@/types'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
+import { FUTSAL } from '@/lib/points'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -28,6 +29,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   const { data: transactions } = await supabase
     .from('point_transactions')
     .select('*, reward:rewards(name)')
+    .eq('app', FUTSAL)
     .eq('customer_id', id)
     .order('created_at', { ascending: false })
     .limit(20)

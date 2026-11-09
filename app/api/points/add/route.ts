@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireFutsalAdmin } from '@/lib/auth'
 import { calculatePoints } from '@/lib/points'
 import { AddPointsSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = await requireAnyAdmin()
+    const admin = await requireFutsalAdmin()
 
     const parsed = AddPointsSchema.safeParse(await parseJson(request))
     if (!parsed.success) return badRequest(parsed.error)

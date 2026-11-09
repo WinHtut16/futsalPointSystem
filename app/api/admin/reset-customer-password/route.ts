@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireFutsalAdmin } from '@/lib/auth'
 import { z } from 'zod'
 import { badRequest, parseJson, serverError } from '@/lib/schemas'
 
@@ -11,7 +11,7 @@ const ResetCustomerPasswordSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAnyAdmin()
+    await requireFutsalAdmin()
 
     const body = await parseJson(request)
     const parsed = ResetCustomerPasswordSchema.safeParse(body)

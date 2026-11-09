@@ -32,7 +32,7 @@ update public.profiles set role='customer', username='customer1', phone='0977700
   where id='55555555-5555-5555-5555-555555555555';
 
 select public.test_act_as('11111111-1111-1111-1111-111111111111');
-select public.grant_app_access('22222222-2222-2222-2222-222222222222','billiards','superadmin','bmgr');
+select public.grant_app_access('22222222-2222-2222-2222-222222222222','billiards','admin','bmgr');
 select public.grant_app_access('33333333-3333-3333-3333-333333333333','game','admin','shopstaff');
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -107,4 +107,23 @@ end $$;
 select chk('audit() is not executable by anon',
   has_function_privilege('anon','public.audit(text,text,text,text,text,text,jsonb,uuid)','execute')::text,
   'false'::text);
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- Client rule (retire-per-app-superadmin-migration.sql): superadmin is GLOBAL
+-- only. A per-business grant is always 'admin'.
+-- ════════════════════════════════════════════════════════════════════════════
+select chk('a per-business superadmin grant is refused',
+  public.test_call('11111111-1111-1111-1111-111111111111','authenticated',
+    $$public.grant_app_access('22222222-2222-2222-2222-222222222222','game','superadmin','bmgr')$$),
+  'Only the admin rank can be granted per business. Superadmin is a global role.'::text);
+select chk('a granted manager ranks as admin in that business',
+  public.test_value('22222222-2222-2222-2222-222222222222','authenticated', $$public.app_role('billiards')$$),
+  'admin'::text);
+select chk('...and has no rank where they hold no grant',
+  public.test_value('22222222-2222-2222-2222-222222222222','authenticated', $$public.app_role('futsal')$$),
+  null::text);
+select chk('the global owner ranks as superadmin in every business',
+  public.test_value('11111111-1111-1111-1111-111111111111','authenticated',
+    $$(select string_agg(public.app_role(a), ',' order by a) from unnest(array['billiards','futsal','game']) a)$$),
+  'superadmin,superadmin,superadmin'::text);
 

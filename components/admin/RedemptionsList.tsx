@@ -9,6 +9,9 @@ import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/utils'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import { FUTSAL } from '@/lib/points'
+import type { AppName } from '@/lib/apps'
+import { BUSINESS_REDEMPTION_SELECT, withBusinessBalance } from '@/lib/loyalty'
 
 const POLL_MS = 20_000
 const SELECT_QUERY =
@@ -60,10 +63,18 @@ export default function RedemptionsList({
   initialRequests,
   initialHistory,
   isSuperAdmin = false,
+  app = FUTSAL,
+  actionBase = '/api/redemptions',
+  deleteUrl = '/api/admin/redemptions/delete',
 }: {
   initialRequests: RedemptionRequest[]
   initialHistory: RedemptionRequest[]
   isSuperAdmin?: boolean
+  /** Which business's requests. Futsal by default; game/billiards from /admin/loyalty. */
+  app?: AppName
+  /** PATCH <actionBase>/<id> approves/declines. */
+  actionBase?: string
+  deleteUrl?: string
 }) {
   const [requests, setRequests] = useState<RedemptionRequest[]>(initialRequests)
   const [history, setHistory] = useState<RedemptionRequest[]>(initialHistory)
@@ -74,13 +85,17 @@ export default function RedemptionsList({
 
   const fetchAll = useCallback(async () => {
     const supabase = createClient()
+    // Futsal reads profiles.total_points (its balance); the other businesses
+    // embed the wallets and fold in their own balance.
+    const futsal = app === FUTSAL
     const { data } = await supabase
       .from('redemption_requests')
-      .select(SELECT_QUERY)
+      .select(futsal ? SELECT_QUERY : BUSINESS_REDEMPTION_SELECT)
+      .eq('app', app)
       .eq('status', 'pending')
       .order('requested_at', { ascending: true })
-    if (data) setRequests(data as RedemptionRequest[])
-  }, [])
+    if (data) setRequests(futsal ? (data as RedemptionRequest[]) : withBusinessBalance(data, app))
+  }, [app])
 
   const handleResolved = useCallback((id: string) => {
     setRequests((prev) => prev.filter((r) => r.id !== id))
@@ -149,7 +164,7 @@ export default function RedemptionsList({
     if (!confirmState) return
     setDeleting(true)
     try {
-      const res = await fetch('/api/admin/redemptions/delete', {
+      const res = await fetch(deleteUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: confirmState.ids }),
@@ -190,7 +205,7 @@ export default function RedemptionsList({
           </div>
           <div className="space-y-3">
             {requests.map((req) => (
-              <RedemptionRequestCard key={req.id} request={req} onResolved={handleResolved} />
+              <RedemptionRequestCard key={req.id} request={req} onResolved={handleResolved} actionBase={actionBase} />
             ))}
           </div>
         </section>

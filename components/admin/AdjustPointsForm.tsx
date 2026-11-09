@@ -9,9 +9,15 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 interface AdjustPointsFormProps {
   customerId: string
   customerName: string
+  /** Futsal by default; game/billiards use /api/loyalty/<app>/points/adjust. */
+  endpoint?: string
 }
 
-export default function AdjustPointsForm({ customerId, customerName }: AdjustPointsFormProps) {
+export default function AdjustPointsForm({
+  customerId,
+  customerName,
+  endpoint = '/api/points/adjust',
+}: AdjustPointsFormProps) {
   const router = useRouter()
   const { t } = useLanguage()
   const [amount, setAmount] = useState('')
@@ -36,7 +42,7 @@ export default function AdjustPointsForm({ customerId, customerName }: AdjustPoi
     }
 
     setLoading(true)
-    const res = await fetch('/api/points/adjust', {
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

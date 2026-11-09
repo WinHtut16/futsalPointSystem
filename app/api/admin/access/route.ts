@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireSuperAdmin } from '@/lib/auth'
 import { APP_NAMES, type AppName } from '@/lib/apps'
 
 /**
@@ -13,8 +13,10 @@ import { APP_NAMES, type AppName } from '@/lib/apps'
  * and move the decision into this file, where it would have to be
  * re-implemented and could drift from the rule the database enforces.
  *
- * requireAnyAdmin() below is only a cheap early exit for people with no admin
- * role at all; it is not the authorisation. That happens in Postgres.
+ * Only a global superadmin (profiles.role = 'superadmin') manages access, and
+ * the only rank handed out is 'admin': superadmin is a global role, never a
+ * per-business grant. requireSuperAdmin() below is an early exit; Postgres
+ * still re-checks inside grant_app_access().
  */
 
 function isAppName(v: unknown): v is AppName {
@@ -37,7 +39,7 @@ function explain(code: string | undefined, message: string): { status: number; e
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAnyAdmin()
+    await requireSuperAdmin()
     const body = await request.json().catch(() => null)
     const userId = body?.userId
     const app = body?.app
@@ -46,8 +48,11 @@ export async function POST(request: NextRequest) {
     if (typeof userId !== 'string' || !isAppName(app)) {
       return NextResponse.json({ error: 'Missing or unknown business.' }, { status: 400 })
     }
-    if (role !== 'admin' && role !== 'superadmin') {
-      return NextResponse.json({ error: 'Role must be admin or superadmin.' }, { status: 400 })
+    if (role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Only the admin rank can be granted per business. Superadmin is a global role.' },
+        { status: 400 }
+      )
     }
 
     const supabase = await createClient()
@@ -79,7 +84,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    await requireAnyAdmin()
+    await requireSuperAdmin()
     const body = await request.json().catch(() => null)
     const userId = body?.userId
     const app = body?.app

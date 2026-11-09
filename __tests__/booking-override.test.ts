@@ -20,6 +20,7 @@ vi.mock('@/lib/auth', () => ({
     if (!roles.includes(profile.role)) throw new Error('FORBIDDEN')
     return profile
   },
+  isFutsalAdmin: vi.fn(async (p: { role: string } | null) => !!p && (p.role === 'admin' || p.role === 'superadmin')),
 }))
 const mockBroadcastSlotChange = vi.fn().mockResolvedValue(undefined)
 

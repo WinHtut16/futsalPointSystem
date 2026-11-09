@@ -25,6 +25,11 @@ vi.mock('@/lib/auth', () => ({
     return { id: 'admin-7', role: 'superadmin' }
   }),
   isFutsalSuperAdmin: vi.fn(async () => authState.role === 'superadmin'),
+  requireFutsalAdmin: vi.fn(async () => {
+    if (!authState.role) throw new Error('FORBIDDEN')
+    return { id: 'admin-7', role: authState.role }
+  }),
+  isFutsalAdmin: vi.fn(async (p: { role: string } | null) => !!p && (p.role === 'admin' || p.role === 'superadmin')),
 }))
 
 vi.mock('next/cache', () => ({

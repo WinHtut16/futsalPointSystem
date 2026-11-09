@@ -8,6 +8,7 @@ import RealtimePointsBadge from '@/components/customer/RealtimePointsBadge'
 import Card from '@/components/ui/Card'
 import T from '@/components/ui/T'
 import type { PointTransaction, RedemptionRequest } from '@/types'
+import { FUTSAL } from '@/lib/points'
 
 export default async function HistoryPage({
   searchParams,
@@ -28,12 +29,14 @@ export default async function HistoryPage({
     supabase
       .from('point_transactions')
       .select('*, reward:rewards(name)', { count: 'exact' })
+      .eq('app', FUTSAL)
       .eq('customer_id', profile.id)
       .order('created_at', { ascending: false })
       .range(from, to),
     supabase
       .from('redemption_requests')
       .select('*, reward:rewards(name, points_cost)')
+      .eq('app', FUTSAL)
       .eq('customer_id', profile.id)
       .eq('status', 'pending')
       .order('requested_at', { ascending: false }),

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireFutsalAdmin } from '@/lib/auth'
 import { CustomersQuerySchema, badRequest, serverError } from '@/lib/schemas'
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAnyAdmin()
+    await requireFutsalAdmin()
 
     const { searchParams } = new URL(request.url)
     const phoneParam = searchParams.get('phone')

@@ -15,6 +15,11 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
  * key error the moment they recorded anything. grant_app_access() does both
  * in one transaction, so that half-state is no longer reachable.
  *
+ * Only the 'admin' rank is offered. Superadmin is a global role
+ * (profiles.role) that already covers every business; there is no
+ * per-business superadmin. A legacy 'superadmin' row still displays, so the
+ * screen stays truthful until retire-per-app-superadmin-migration.sql runs.
+ *
  * The panel shows what is true, not what this admin may change: a business
  * they cannot manage still renders, disabled. Hiding it would leave them
  * wondering whether the person has access at all.
@@ -119,7 +124,9 @@ export default function AppAccessPanel({
                   >
                     <option value="">{t('admin.accessNone')}</option>
                     <option value="admin">{t('admin.accessAdmin')}</option>
-                    <option value="superadmin">{t('admin.accessSuperadmin')}</option>
+                    {current === 'superadmin' && (
+                      <option value="superadmin" disabled>{t('admin.accessSuperadmin')}</option>
+                    )}
                   </select>
                   {current && <Check className="w-4 h-4 text-green-600" />}
                 </div>
