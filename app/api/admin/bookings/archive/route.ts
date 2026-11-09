@@ -1,4 +1,4 @@
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireFutsalAdmin } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import { serverError, badRequest } from '@/lib/schemas'
 import { z } from 'zod'
@@ -7,7 +7,7 @@ const Schema = z.object({ ids: z.array(z.string().uuid()).min(1).max(100) })
 
 export async function POST(req: Request) {
   try {
-    await requireAnyAdmin()
+    await requireFutsalAdmin()
   } catch {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
   }

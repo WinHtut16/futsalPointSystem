@@ -39,9 +39,12 @@ update public.profiles set role='admin', username='badmin'     where id='6666000
 update public.profiles set role='admin', username='futsalonly' where id='66660000-0000-0000-0000-000000000003';
 
 select public.test_act_as('11111111-1111-1111-1111-111111111111');  -- the owner, from 90-access
-select public.grant_app_access('66660000-0000-0000-0000-000000000001','billiards','superadmin','bsuper');
+select public.grant_app_access('66660000-0000-0000-0000-000000000001','billiards','admin','bsuper');
+-- Owner = GLOBAL superadmin (profiles.role); a per-business grant is only
+-- ever 'admin' (retire-per-app-superadmin-migration.sql).
+update public.profiles set role = 'superadmin' where id = '66660000-0000-0000-0000-000000000001';
 select public.grant_app_access('66660000-0000-0000-0000-000000000002','billiards','admin','badmin');
-select public.grant_app_access('66660000-0000-0000-0000-000000000003','futsal','superadmin','futsalonly');
+select public.grant_app_access('66660000-0000-0000-0000-000000000003','futsal','admin','futsalonly');
 
 insert into billiards.menu_categories (id, name_en, name_my)
   values ('66661111-0000-0000-0000-000000000001','Drinks','Drinks');

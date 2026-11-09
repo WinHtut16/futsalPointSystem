@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, isFutsalAdmin } from '@/lib/auth'
 import { FUTSAL } from '@/lib/points'
 import { IdParamSchema, RedemptionActionSchema, badRequest, parseJson, serverError } from '@/lib/schemas'
 
@@ -58,7 +58,7 @@ export async function PATCH(
       return NextResponse.json({ success: true })
     }
 
-    if (user.role === 'admin' || user.role === 'superadmin') {
+    if (await isFutsalAdmin(user)) {
       if (action !== 'approve' && action !== 'reject')
         return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
 

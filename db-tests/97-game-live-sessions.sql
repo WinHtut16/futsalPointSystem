@@ -23,7 +23,10 @@ update public.profiles set role='admin', username='g_super' where id='88880000-0
 update public.profiles set role='admin', username='g_staff' where id='88880000-0000-0000-0000-000000000002';
 
 select public.test_act_as('11111111-1111-1111-1111-111111111111');
-select public.grant_app_access('88880000-0000-0000-0000-000000000001','game','superadmin','g_super');
+select public.grant_app_access('88880000-0000-0000-0000-000000000001','game','admin','g_super');
+-- Owner = GLOBAL superadmin (profiles.role); a per-business grant is only
+-- ever 'admin' (retire-per-app-superadmin-migration.sql).
+update public.profiles set role = 'superadmin' where id = '88880000-0000-0000-0000-000000000001';
 select public.grant_app_access('88880000-0000-0000-0000-000000000002','game','admin','g_staff');
 
 insert into game.stations (id, name, tier, sort_order)

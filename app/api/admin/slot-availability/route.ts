@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { requireAnyAdmin } from '@/lib/auth'
+import { requireFutsalAdmin } from '@/lib/auth'
 import { serverError } from '@/lib/schemas'
 import { tierForHour, priceForHour, dayHours } from '@/lib/booking'
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAnyAdmin()
+    await requireFutsalAdmin()
 
     const date = new URL(request.url).searchParams.get('date')
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {

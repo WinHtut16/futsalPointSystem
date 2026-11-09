@@ -18,6 +18,11 @@ vi.mock('@/lib/auth', () => ({
     if (apps.value === null) throw new Error('FORBIDDEN')
     return { id: 'admin-3', role: 'admin' }
   }),
+  requireFutsalAdmin: vi.fn(async () => {
+    if (apps.value === null) throw new Error('FORBIDDEN')
+    return { id: 'admin-3', role: 'admin' }
+  }),
+  isFutsalAdmin: vi.fn(async (p: { role: string } | null) => !!p && (p.role === 'admin' || p.role === 'superadmin')),
 }))
 
 vi.mock('@/lib/apps.server', () => ({

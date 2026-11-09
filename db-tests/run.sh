@@ -61,7 +61,8 @@ echo "== portal and audit =="
 for f in app-access-grants-migration.sql admin-provisioning-migration.sql \
          audit-log-migration.sql audit-money-migration.sql audit-catalogue-migration.sql \
          superadmin-directory-migration.sql billiards-permission-alignment-migration.sql \
-         audit-operations-migration.sql session-points-migration.sql; do
+         audit-operations-migration.sql session-points-migration.sql \
+         retire-per-app-superadmin-migration.sql; do
   run "$FUTSAL/$f" || exit 1
 done
 

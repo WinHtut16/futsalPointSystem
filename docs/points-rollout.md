@@ -11,29 +11,22 @@ to re-run.
 
 | Repo | Branch | Contains | State |
 |---|---|---|---|
-| Hub `PointSystem_AkoATP` | `feat/multi-business-points` | 7 commits: wallets, futsal scoping, session-points engine, game/billiards admin (`/admin/loyalty/<app>`), customer switcher (`/account?biz=`), db-tests 103–106 | not pushed; fast-forwards onto `origin/main` |
-| Hub | `fix/futsal-api-app-access` | futsal admin APIs need a futsal grant; superadmin = global only; `retire-per-app-superadmin-migration.sql` | not pushed; 2 behind `main` |
+| Hub `PointSystem_AkoATP` | `feat/multi-business-points` | points work (wallets, futsal scoping, session-points engine, game/billiards admin `/admin/loyalty/<app>`, customer switcher `/account?biz=`) **plus the merged `fix/futsal-api-app-access`** (futsal admin APIs need a futsal grant; superadmin = global only; `retire-per-app-superadmin-migration.sql`); db-tests 90–106 updated for global superadmins | not pushed; fast-forwards onto `origin/main` |
 | Game `MyaThida_Game` | `feat/points` | game-points SQL, customer field, record-session busy-TV fix, points rule card, hub link | not pushed; fast-forwards onto `origin/main` |
 | Billiards `Billiards_MyaThida` | `feat/points` | billiards-points SQL, customer card, record phone, points rule card (ships OFF), hub link | not pushed; merges cleanly into `origin/master` (parity PR #1 already merged) |
 
 Already live in the database (run 2026-11-07, all checks passed):
 `handle-new-user-fallback-restore.sql`, `multi-business-points-migration.sql`.
 
-## 1. Merge the hub branches
+## 1. Hub branches — done 2026-11-09
 
-1. Before merging `fix/futsal-api-app-access`: its retire SQL makes
-   `grant_app_access(..., 'superadmin')` refuse, so **db-tests 90–102 must be
-   updated** to use global superadmins (`profiles.role = 'superadmin'`) for
-   their owner actors (as 104–106 already do). With its SQL loaded, those older
-   files currently fail 31 assertions purely from setup. 103–106 pass both ways.
-2. Merge `fix/futsal-api-app-access` into `feat/multi-business-points`
-   (or both into `main`). Two expected conflicts — **keep both changes**:
-   - `app/api/rewards/[id]/route.ts`: new guard (`requireFutsalAdmin` /
-     global superadmin) **and** `.eq('app', FUTSAL)` on update/delete.
-   - `app/api/redemptions/[id]/route.ts`: new guard **and** the
-     "not a futsal request → 404" check plus `.eq('app', FUTSAL)` on decline.
-3. After merging: `npm test`, `npx tsc --noEmit`, `npm run build`, and the
-   db-tests (`db-tests/run.sh`, or the PGlite runner if Postgres is not local).
+`fix/futsal-api-app-access` is merged into `feat/multi-business-points`
+(import-only conflicts in `app/api/rewards/[id]` and `app/api/redemptions/[id]`;
+both the futsal-grant guard and the futsal-only pinning kept). db-tests now
+load the retire migration in the chain; 90–102 use global superadmins for
+owners and 90 pins the rule itself. Results at merge: 420 unit tests, tsc
+clean, build OK, db-tests 485 pass / 2 known `set_stock` failures (unrelated,
+pre-existing).
 
 ## 2. Database (SQL Editor), in this order
 
