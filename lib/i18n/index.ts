@@ -4,6 +4,7 @@ import { commonEN, commonMY } from './namespaces/common'
 import { adminEN, adminMY } from './namespaces/admin'
 import { bookingEN, bookingMY } from './namespaces/booking'
 import { parkEN, parkMY } from './namespaces/park'
+import { venueEN, venueMY } from './namespaces/venue'
 
 export const en = {
   ...authEN,
@@ -12,6 +13,7 @@ export const en = {
   ...adminEN,
   ...bookingEN,
   ...parkEN,
+  ...venueEN,
 } as const
 
 export const my = {
@@ -21,6 +23,7 @@ export const my = {
   ...adminMY,
   ...bookingMY,
   ...parkMY,
+  ...venueMY,
 } satisfies { [K in keyof typeof en]: string }
 
 export type TranslationKey = keyof typeof en

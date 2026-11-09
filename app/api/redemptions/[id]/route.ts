@@ -63,8 +63,8 @@ export async function PATCH(
         return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
 
       // This route resolves FUTSAL requests only. A game or billiards request
-      // is resolved through /api/loyalty/<app>/redemptions/[id], which checks
-      // that business's grant; here it is simply not found. (No row at all is
+      // is resolved in that business's own admin app (Points section, through
+      // the loyalty_* database functions); here it is simply not found. (No row at all is
       // left to approve_redemption, which reports request_not_found itself.)
       const { data: owner } = await supabase
         .from('redemption_requests')

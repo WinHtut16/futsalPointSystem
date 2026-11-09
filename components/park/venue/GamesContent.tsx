@@ -7,6 +7,7 @@ import { formatAmount } from '@/lib/park/time'
 import type { GameBoard, ShelfTitle } from '@/lib/park/game-board'
 import GameFloor from './GameFloor'
 import GameLibrary from './GameLibrary'
+import VenuePointsBand from './VenuePointsBand'
 import { AcjLogo, COVER_WALL_MIN, CoverWall, LivePill, LiveStrip } from './GamesHero'
 import { useArcadeMotion } from './useArcadeMotion'
 import { useGameBoard } from './useGameBoard'
@@ -79,6 +80,7 @@ export default function GamesContent({ initialBoard, shelf }: { initialBoard: Ga
         />
       )}
       <LiveStrip board={board} price={price} />
+      <VenuePointsBand venue="game" className={theme.ground} buttonClass={theme.primaryBtn} mutedClass={theme.muted} />
 
       <section aria-labelledby="games-floor" className={`${theme.panel} py-20 md:py-24`}>
         <div className="mx-auto grid max-w-[1200px] items-start gap-10 px-4 md:px-8 lg:grid-cols-[5fr_7fr] lg:gap-14">

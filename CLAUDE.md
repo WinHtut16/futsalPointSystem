@@ -144,6 +144,13 @@ custom domain.
 
 Each zone manages its own points & rewards in its own admin app (`/admin/game/points`, `/admin/billiards/points`: requests, rewards, customers), through `loyalty-zone-admin-migration.sql` functions (`public.loyalty_*`) that check the business grant in the database. The hub has no admin pages for them. Futsal's own loyalty routes (`/api/rewards/[id]`, `/api/redemptions/[id]`, `/api/admin/redemptions/delete`, the futsal edit-reward page) are pinned to `app = 'futsal'`, so a game or billiards id is simply not found there. Futsal `/account` is futsal-only; game and billiards customers have their own portals (see below).
 
+### Venue customer portals (`/games/account`, `/billiards/account`)
+
+Same login as futsal, one wallet per business (`point_wallets`). Pages live in the park route group (`app/(park)/{games,billiards}/account`) and share `components/venue/VenueAccountPage.tsx` (server reads, all pinned `app = <venue>`) + `VenueAccount.tsx` (client): venue-coloured header (balance, earned/redeemed, settings, logout) and three tabs — Points & Rewards (`RewardsGrid` with `app`, redeems through the shared `/api/redemptions`), History (`/api/account/history?filter=points&app=`), Played (`/api/account/sessions?app=` → `public.my_venue_sessions`, the caller's own closed sessions). Helpers in `lib/venue-account.ts`; strings in `lib/i18n/namespaces/venue.ts`.
+- Middleware treats both paths as customer routes (signed out → `/login?next=<path>`) and admin-blocked.
+- Settings is the shared `/account/settings?back=<portal>`; `settingsBackHref` only accepts the two portal paths.
+- Entry points: the static "My points" band on `/games` and `/billiards` (`components/park/venue/VenuePointsBand.tsx`; the park pages read no session) and `/register?from=game|billiards`, which lands on the portal.
+
 ### Roles
 
 Three roles stored in `profiles.role`: `customer`, `admin`, `superadmin`.

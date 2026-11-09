@@ -18,9 +18,13 @@ interface RewardsGridProps {
   initialPendingMap: Record<string, string>
   /** Business whose rewards these are; the pending poll is filtered by it. */
   app?: AppName
+  /** Empty-state "back" link; the futsal page by default. */
+  emptyHref?: string
+  /** Passed to the redeem modal's "view my rewards" link. */
+  rewardsHref?: string
 }
 
-export default function RewardsGrid({ rewards, userId, userPoints, initialPendingMap, app = FUTSAL }: RewardsGridProps) {
+export default function RewardsGrid({ rewards, userId, userPoints, initialPendingMap, app = FUTSAL, emptyHref = '/futsal', rewardsHref }: RewardsGridProps) {
   const { t } = useLanguage()
   const [pendingMap, setPendingMap] = useState<Record<string, string>>(initialPendingMap)
   const [flowOpen, setFlowOpen] = useState(false)
@@ -88,7 +92,7 @@ export default function RewardsGrid({ rewards, userId, userPoints, initialPendin
           </p>
         </div>
         <Link
-          href="/futsal"
+          href={emptyHref}
           className="rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
         >
           {t('rewards.noRewardsBack' as never)}
@@ -124,6 +128,7 @@ export default function RewardsGrid({ rewards, userId, userPoints, initialPendin
         userPoints={userPoints}
         initialRewardId={flowRewardId}
         onRequested={handleRequested}
+        rewardsHref={rewardsHref}
       />
     </>
   )

@@ -69,8 +69,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .from('rewards')
       .update(updates)
       .eq('id', id)
-      // Futsal's rewards only: game/billiards rewards go through
-      // /api/loyalty/<app>, guarded by that business's grant.
+      // Futsal's rewards only: game/billiards rewards are edited in their
+      // own admin app, through that business's grant.
       .eq('app', FUTSAL)
       .select()
       .single()
