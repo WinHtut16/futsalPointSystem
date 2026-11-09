@@ -1,3 +1,5 @@
+import { safeRedirect } from '@/lib/utils'
+
 // Customer points portals for the two venues on the park site.
 // Futsal keeps /account; ACJ Gaming and CueX Billiards each get their own page
 // under their park page, with the same login and a wallet per business.
@@ -27,6 +29,16 @@ export function isVenue(value: unknown): value is Venue {
 export function settingsBackHref(back: string | null | undefined): string {
   const portals: readonly string[] = Object.values(VENUE_PORTAL)
   return back && portals.includes(back) ? back : '/account'
+}
+
+/**
+ * Where a signed-in customer who opens /login or /register is sent: the page
+ * they were heading to (`next`), else the venue portal a counter QR code named
+ * (`from=game|billiards`), else futsal's /account.
+ */
+export function customerLanding(next: string | null, from: string | null): string {
+  if (next) return safeRedirect(next, '/account')
+  return isVenue(from) ? VENUE_PORTAL[from] : '/account'
 }
 
 /** One played session, as returned by public.my_venue_sessions. */

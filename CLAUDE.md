@@ -149,7 +149,7 @@ Each zone manages its own points & rewards in its own admin app (`/admin/game/po
 Same login as futsal, one wallet per business (`point_wallets`). Pages live in the park route group (`app/(park)/{games,billiards}/account`) and share `components/venue/VenueAccountPage.tsx` (server reads, all pinned `app = <venue>`) + `VenueAccount.tsx` (client): venue-coloured header (balance, earned/redeemed, settings, logout) and three tabs — Points & Rewards (`RewardsGrid` with `app`, redeems through the shared `/api/redemptions`), History (`/api/account/history?filter=points&app=`), Played (`/api/account/sessions?app=` → `public.my_venue_sessions`, the caller's own closed sessions). Helpers in `lib/venue-account.ts`; strings in `lib/i18n/namespaces/venue.ts`.
 - Middleware treats both paths as customer routes (signed out → `/login?next=<path>`) and admin-blocked.
 - Settings is the shared `/account/settings?back=<portal>`; `settingsBackHref` only accepts the two portal paths.
-- Entry points: the static "My points" band on `/games` and `/billiards` (`components/park/venue/VenuePointsBand.tsx`; the park pages read no session) and `/register?from=game|billiards`, which lands on the portal.
+- Entry points: the static "My points" band on `/games` and `/billiards` (`components/park/venue/VenuePointsBand.tsx`; the park pages read no session) and `/register?from=game|billiards` (the counter QR codes), which lands on the portal — also for a customer already signed in (`customerLanding` in middleware).
 
 ### Roles
 

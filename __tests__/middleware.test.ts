@@ -144,6 +144,19 @@ describe('middleware', () => {
 
   // ── Admin-on-customer-route redirects (new behaviour) ─────────────────────
 
+  it.each([
+    ['/register?from=game', '/games/account'],
+    ['/register?from=billiards', '/billiards/account'],
+    ['/register?from=futsal', '/account'],
+    ['/login?next=%2Fbilliards%2Faccount', '/billiards/account'],
+    ['/login?next=https%3A%2F%2Fevil.example', '/account'],
+  ])('signed-in customer on %s goes to %s', async (path, to) => {
+    mockGetUser.mockResolvedValue({ data: { user: customerUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'customer' }, error: null })
+    const res = await middleware(req(path))
+    expect(res.headers.get('location')).toBe('http://localhost:3000' + to)
+  })
+
   it('admin on /account redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
     mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })

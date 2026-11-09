@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { VENUE_PORTAL, formatMinutes, isVenue, parseVenueSessions, settingsBackHref } from '@/lib/venue-account'
+import { VENUE_PORTAL, customerLanding, formatMinutes, isVenue, parseVenueSessions, settingsBackHref } from '@/lib/venue-account'
 
 describe('venue portals', () => {
   it('maps each venue to its page', () => {
@@ -45,4 +45,11 @@ describe('formatMinutes', () => {
     [135, '2h 15m'],
     [-5, '0m'],
   ])('%i -> %s', (m, out) => expect(formatMinutes(m)).toBe(out))
+})
+
+describe('customerLanding', () => {
+  it('prefers a safe next', () => expect(customerLanding('/games/account?tab=sessions', 'billiards')).toBe('/games/account?tab=sessions'))
+  it('drops an unsafe next', () => expect(customerLanding('//evil.example', 'game')).toBe('/account'))
+  it('uses the venue from the QR code', () => expect(customerLanding(null, 'game')).toBe('/games/account'))
+  it('defaults to /account', () => expect(customerLanding(null, 'nope')).toBe('/account'))
 })

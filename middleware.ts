@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { fetchWithTimeout, MIDDLEWARE_AUTH_TIMEOUT_MS } from '@/lib/fetchWithTimeout'
 import { SUPABASE_AUTH_COOKIE_NAME } from '@/lib/supabase/config'
+import { customerLanding } from '@/lib/venue-account'
 
 // These paths skip the "must be logged in" admin guard
 const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
@@ -121,7 +122,12 @@ export async function middleware(request: NextRequest) {
 
   // ── Logged-in user on auth pages → redirect to their home ────────────────────
   if (pathname === '/login' || pathname === '/register' || isAdminAuthOnlyPath) {
-    return NextResponse.redirect(new URL(isAdmin ? '/admin' : '/account', request.url))
+    // A customer already signed in who scans a venue's QR code
+    // (/register?from=game) goes straight to that venue's points page.
+    const home = isAdmin
+      ? '/admin'
+      : customerLanding(request.nextUrl.searchParams.get('next'), request.nextUrl.searchParams.get('from'))
+    return NextResponse.redirect(new URL(home, request.url))
   }
 
   // ── Admin on customer-facing route → admin panel ─────────────────────────────

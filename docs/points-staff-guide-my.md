@@ -26,11 +26,19 @@ ACJ Gaming နှင့် CueX Billiards ဝန်ထမ်းများအ�
 - Session ကို ပြင်ဆင်လျှင် (correct) ပွိုင့်လည်း အလိုအလျောက် ပြင်သည်။ Void လုပ်လျှင် ပွိုင့် ပြန်နုတ်သည်။
 - **CueX Billiards**: ပိုင်ရှင်က Pricing စာမျက်နှာတွင် သတ်မှတ်ပြီးမှ ပွိုင့်ရမည်။
 
-## ဆုလက်ဆောင် လဲလှယ်ခြင်း
+## ဖောက်သည်၏ ပွိုင့်စာမျက်နှာ
 
-- ဖောက်သည်က ဖုန်းထဲရှိ အကောင့်မှ ဆုလက်ဆောင် တောင်းဆိုသည်။
-- ဝန်ထမ်းက **ပွိုင့်နှင့် ဆုလက်ဆောင်များ → တောင်းဆိုမှုများ** တွင် အတည်ပြု/ငြင်းပယ် လုပ်ပါ။ (Sidebar ရှိ "ပွိုင့်နှင့် ဆုလက်ဆောင်များ" link)
-- ဆုလက်ဆောင် အသစ်ထည့်ခြင်း/ပြင်ခြင်းကို ပိုင်ရှင်သာ လုပ်နိုင်သည်။
+- ဂိမ်းဖောက်သည်: **/games/account** — ဘိလိယက်ဖောက်သည်: **/billiards/account**
+- ဖောက်သည်သည် ထိုစာမျက်နှာတွင် ပွိုင့်လက်ကျန်၊ ပွိုင့်မှတ်တမ်း၊ ကစားခဲ့သော session များကို ကြည့်နိုင်ပြီး ဆုလက်ဆောင် တောင်းဆိုနိုင်သည်။
+- ကောင်တာ QR ကုဒ်ကို scan လုပ်လျှင် ထိုစာမျက်နှာသို့ တိုက်ရိုက်ရောက်သည်။ ပန်းခြံဝက်ဘ်ဆိုက်ရှိ ဂိမ်း/ဘိလိယက် စာမျက်နှာတွင် **ကျွန်ုပ်၏ ပွိုင့်** ခလုတ်လည်း ရှိသည်။
+
+## ဆုလက်ဆောင် လဲလှယ်ခြင်း (Admin app ထဲတွင်)
+
+- ပွိုင့်နှင့် ဆုလက်ဆောင် စီမံခြင်းသည် လုပ်ငန်းတစ်ခုစီ၏ **ကိုယ်ပိုင် admin app** ထဲတွင် ရှိသည် — Sidebar ရှိ **ပွိုင့်** (ဖုန်းတွင် — ဂိမ်း: **နောက်ထပ်** menu၊ ဘိလိယက်: အောက်ခြေ bar)။
+  - **တောင်းဆိုမှုများ**: ဖောက်သည် တောင်းဆိုထားသော ဆုလက်ဆောင်ကို ပေးပြီးမှ **အတည်ပြုမည်** ကို နှိပ်ပါ (သို့) **ငြင်းပယ်မည်** ကို နှိပ်ပါ။ တောင်းဆိုမှုအသစ်ရှိလျှင် **ပွိုင့်** ဘေးတွင် နံပါတ် ပေါ်သည်။
+  - **ဆုလက်ဆောင်များ**: ဆုလက်ဆောင်စာရင်း။ ဖွင့်/ပိတ် လုပ်နိုင်သည်။ အသစ်ထည့်ခြင်း၊ ပြင်ခြင်း၊ ဖျက်ခြင်းကို ပိုင်ရှင်သာ လုပ်နိုင်သည်။
+  - **ဖောက်သည်များ**: ဖုန်းနံပါတ် (သို့) အမည်ဖြင့် ရှာပြီး ပွိုင့်မှတ်တမ်း ကြည့်နိုင်သည်။ ပွိုင့်မှားနေလျှင် အကြောင်းပြချက်ဖြင့် ပြင်နိုင်သည်။
+- ဂိမ်း admin သည် ဘိလိယက်၏ ပွိုင့်ကို မမြင်ရ/မပြင်နိုင်ပါ (ပြောင်းပြန်လည်း ထိုနည်းတူ)။
 
 ---
 
@@ -39,4 +47,6 @@ ACJ Gaming နှင့် CueX Billiards ဝန်ထမ်းများအ�
 - One account (phone + password) works at Futsal, ACJ Gaming and CueX Billiards; points stay separate per business. No account → no points: ask the customer to scan the counter QR code.
 - On the session screen, type the customer's phone in **Customer (points)** → **Add**, confirm the name shown. One phone per session (the payer). Can be added up to 15 minutes after checkout; later changes → ask the owner.
 - Gaming: 10 points per full 60 paid minutes (waived time earns nothing; corrections and voids adjust automatically). Billiards: points start once the owner sets the rule on the Pricing page.
-- Approve or decline reward requests under **Points & rewards → Requests**. Only the owner creates or edits rewards.
+- Customers see their points, history and played sessions, and request rewards, at `/games/account` or `/billiards/account` (the counter QR code and the **My points** button on the park site lead there).
+- Points admin lives in each business's own admin app: **Points** in the sidebar (on a phone: game → **More** menu, billiards → bottom bar). **Requests**: approve once the item is handed over, or decline; a number on **Points** means new requests. **Rewards**: switch on/off; only the owner creates, edits or deletes. **Customers**: search by phone or name, see history, correct points with a reason.
+- A game admin cannot see or change billiards points, and the other way round.
