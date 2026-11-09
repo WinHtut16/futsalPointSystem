@@ -18,9 +18,9 @@ export default function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   // /register?from=game|billiards (the QR code at that counter): land on
-  // that business's points after signing up. Same account everywhere.
+  // that venue's own customer portal after signing up. Same account everywhere.
   const fromBiz = parseBusiness(searchParams.get('from'))
-  const afterSignUp = fromBiz === 'futsal' ? '/account' : `/account?tab=points&biz=${fromBiz}`
+  const afterSignUp = fromBiz === 'game' ? '/games/account' : fromBiz === 'billiards' ? '/billiards/account' : '/account'
   const { t } = useLanguage()
   const [phone, setPhone] = useState('')
   const [username, setUsername] = useState('')

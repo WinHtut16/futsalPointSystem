@@ -11,18 +11,9 @@ import type { Reward } from '@/types'
 interface RewardFormProps {
   reward?: Reward
   mode?: 'create' | 'edit'
-  /** Futsal by default; game/billiards use /api/loyalty/<app>/rewards. */
-  apiBase?: string
-  /** Where to go after saving. */
-  backHref?: string
 }
 
-export default function RewardForm({
-  reward,
-  mode = 'create',
-  apiBase = '/api/rewards',
-  backHref = '/admin/rewards',
-}: RewardFormProps) {
+export default function RewardForm({ reward, mode = 'create' }: RewardFormProps) {
   const router = useRouter()
   const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
@@ -52,7 +43,7 @@ export default function RewardForm({
     }
 
     setLoading(true)
-    const url = mode === 'edit' ? `${apiBase}/${reward!.id}` : apiBase
+    const url = mode === 'edit' ? `/api/rewards/${reward!.id}` : '/api/rewards'
     const method = mode === 'edit' ? 'PUT' : 'POST'
     const res = await fetch(url, {
       method,
@@ -74,7 +65,7 @@ export default function RewardForm({
       return
     }
 
-    router.push(backHref)
+    router.push('/admin/rewards')
     router.refresh()
   }
 

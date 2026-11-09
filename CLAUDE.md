@@ -140,18 +140,9 @@ custom domain.
 - **`app/(admin)/` IS the futsal business** - its layout requires a `futsal` grant,
   not merely an admin role.
 
-### Game & billiards points admin (`/admin/loyalty/<app>`)
+### Game & billiards points
 
-Rewards, redemption requests and customer balances for the game shop and billiards are managed in the hub, not in the zones and not in `(admin)` (which IS futsal and needs a futsal grant). Pages live in `app/(portal)/admin/loyalty/[app]/` (tabs: Requests · Rewards · Customers), entered from a link under each tile on `/admin/apps` and from each zone's nav. Access = a grant for THAT business (`getAppRole(app)`); owner rank (`superadmin`) to create/edit/delete rewards and clear history, any admin of it to toggle rewards, approve/decline and correct balances.
-
-- APIs: `app/api/loyalty/[app]/...` (`rewards`, `rewards/[id]`, `redemptions/[id]`, `redemptions/delete`, `points/adjust`). Guard: `requireLoyaltyRole(app, rank)` in `lib/loyalty.server.ts`. Every query is pinned with `.eq('app', app)`, so an id from another business is a 404 rather than a permission question.
-- Futsal's own routes (`/api/rewards/[id]`, `/api/redemptions/[id]`, `/api/admin/redemptions/delete`, the futsal edit-reward page) are pinned to `app = 'futsal'` for the same reason.
-- `lib/loyalty.ts` (client-safe): `LOYALTY_APPS`, `loyaltyPath`, `loyaltyApi`, and `withBusinessBalance` - redemption rows embed `point_wallets` and fold that business's balance into `customer.total_points`, because `profiles.total_points` is futsal only.
-- Reused components take a business: `RedemptionsList` (`app`, `actionBase`, `deleteUrl`), `RedemptionRequestCard` (`actionBase`), `RewardAdminRow` (`apiBase`, `editHref`), `RewardForm` (`apiBase`, `backHref`), `AdjustPointsForm` (`endpoint`). Defaults are the futsal values. Strings: `lib/i18n/namespaces/loyalty.ts`.
-
-### Customer points per business (`/account?biz=`)
-
-`/account` shows one business's points at a time: `?biz=futsal|game|billiards` (`parseBusiness` in `lib/points.ts`, futsal default), chosen with `components/customer/account/BusinessSwitcher.tsx` (plain links: everything is fetched on the server). The header balance, earned/redeemed, Points & Rewards tab, pending requests and the points rows of History follow `biz`; bookings stay futsal. `UnifiedAccount` is keyed by `biz` so the live balance (`useRealtimePoints(userId, initial, app)`, which polls `point_wallets` for non-futsal) restarts from the server figure. `getActiveRewards(app)` caches per business under the same `rewards` tag. `POST /api/redemptions` accepts any business's reward and checks that business's wallet. Sign-up: `/register?from=game|billiards` (counter QR codes) shows a business tagline, always says one account covers all three, and lands on `/account?tab=points&biz=<from>`.
+Each zone manages its own points & rewards in its own admin app (`/admin/game/points`, `/admin/billiards/points`: requests, rewards, customers), through `loyalty-zone-admin-migration.sql` functions (`public.loyalty_*`) that check the business grant in the database. The hub has no admin pages for them. Futsal's own loyalty routes (`/api/rewards/[id]`, `/api/redemptions/[id]`, `/api/admin/redemptions/delete`, the futsal edit-reward page) are pinned to `app = 'futsal'`, so a game or billiards id is simply not found there. Futsal `/account` is futsal-only; game and billiards customers have their own portals (see below).
 
 ### Roles
 
