@@ -35,4 +35,21 @@ describe('toBoardStation (game.stations row -> public board)', () => {
     expect(toBoardStation(row({ tier: 'Switch' }))).toBeNull()
     expect(toBoardStation(row({ name: 'Corner screen' }))).toBeNull()
   })
+
+  it('keeps mini-cinema TVs with their own id', () => {
+    expect(toBoardStation(row({ name: 'Cinema 1', tier: 'CINEMA' }))).toEqual({
+      id: 'cinema1', n: 1, tier: 'CINEMA', status: 'free',
+    })
+  })
+
+  it('cinema TVs map status the same way (maintenance first)', () => {
+    expect(toBoardStation(row({ name: 'Cinema 2', tier: 'CINEMA', status: 'maintenance', state: 'occupied' }))?.status)
+      .toBe('maintenance')
+    expect(toBoardStation(row({ name: 'Cinema 2', tier: 'CINEMA', state: 'occupied' }))?.status).toBe('busy')
+    expect(toBoardStation(row({ name: 'Cinema 2', tier: 'cinema', state: 'reserved' }))?.status).toBe('reserved')
+  })
+
+  it('an unnumbered cinema TV still shows, keyed by its name', () => {
+    expect(toBoardStation(row({ name: 'Big Screen', tier: 'CINEMA' }))?.id).toBe('cinema-big-screen')
+  })
 })

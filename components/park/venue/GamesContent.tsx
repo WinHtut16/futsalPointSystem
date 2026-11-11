@@ -5,6 +5,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { GAME, HOURS, PARK } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
 import type { GameBoard, ShelfTitle } from '@/lib/park/game-board'
+import CinemaRow from './CinemaRow'
 import GameFloor from './GameFloor'
 import GameLibrary from './GameLibrary'
 import VenuePointsBand from './VenuePointsBand'
@@ -93,9 +94,24 @@ export default function GamesContent({ initialBoard, shelf }: { initialBoard: Ga
               <li className="flex items-center gap-2"><span className="arc-swatch tube-blue h-3.5 w-3.5 rounded" />{t('park.games.ps4')}</li>
               <li className="flex items-center gap-2"><span className="arc-swatch tube-cyan h-3.5 w-3.5 rounded" />{t('park.games.ps5')}</li>
               <li className="flex items-center gap-2"><span className="arc-swatch tube-amber h-3.5 w-3.5 rounded" />{t('park.games.vip')}</li>
+              {(board?.cinema?.length ?? 1) > 0 && (
+                <li className="flex items-center gap-2"><span className="arc-swatch tube-magenta h-3.5 w-3.5 rounded" />{t('park.games.cinema')}</li>
+              )}
             </ul>
+            {board?.points && (
+              <p className={`max-w-[42ch] text-[15px] leading-relaxed ${theme.muted}`}>
+                {t('park.games.pointsByTier', {
+                  ps4: n(board.points.ps4),
+                  ps5: n(board.points.ps5),
+                  vip: n(board.points.vip),
+                })}
+              </p>
+            )}
           </div>
-          <GameFloor board={board} rates={rates} now={now} />
+          <div className="flex flex-col gap-10">
+            <GameFloor board={board} rates={rates} now={now} />
+            <CinemaRow board={board} />
+          </div>
         </div>
       </section>
 

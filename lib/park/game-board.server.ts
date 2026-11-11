@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import {
   SHELF_GENRES,
   toBoardStation,
+  type BoardPoints,
   type BoardRates,
   type BoardStation,
   type GameBoard,
@@ -19,18 +20,23 @@ import {
 // until its next poll.)
 async function readGameBoard(): Promise<GameBoard | null> {
   const game = createServiceClient().schema('game')
-  const [stationsRes, pricingRes] = await Promise.all([
+  const [stationsRes, pricingRes, pointsRes] = await Promise.all([
     game.from('stations').select('name, tier, status, state, sort_order').order('sort_order'),
     game.from('pricing').select('tier, rate_per_hour, min_minutes, increment_minutes, grace_minutes'),
+    // Separate read: before game-tier-points-migration.sql the column is
+    // missing (42703), which must not hide the rates.
+    game.from('pricing').select('tier, points_per_hour'),
   ])
   if (stationsRes.error || !stationsRes.data) {
     console.error('[park] game board: stations read failed', stationsRes.error?.message)
     return null
   }
 
-  const stations = stationsRes.data
+  const all = stationsRes.data
     .map(toBoardStation)
     .filter((s): s is BoardStation => s !== null)
+  const stations = all.filter((s) => s.tier !== 'CINEMA')
+  const cinema = all.filter((s) => s.tier === 'CINEMA')
 
   let rates: BoardRates | null = null
   if (!pricingRes.error && pricingRes.data) {
@@ -38,11 +44,13 @@ async function readGameBoard(): Promise<GameBoard | null> {
     const ps4 = byTier.get('PS4')
     const ps5 = byTier.get('PS5')
     const vip = byTier.get('VIP')
+    const cin = byTier.get('CINEMA')
     if (ps4 && ps5 && vip) {
       rates = {
         ps4: Number(ps4.rate_per_hour),
         ps5: Number(ps5.rate_per_hour),
         vip: Number(vip.rate_per_hour),
+        cinema: cin ? Number(cin.rate_per_hour) : null,
         // The rules are per tier in the admin; the page states one set, so it
         // uses the PS4 row (all tiers share them today).
         minMinutes: Number(ps4.min_minutes),
@@ -52,7 +60,30 @@ async function readGameBoard(): Promise<GameBoard | null> {
     }
   }
 
-  return { stations, rates, at: new Date().toISOString() }
+  return { stations, cinema, rates, points: await readPoints(pointsRes), at: new Date().toISOString() }
+}
+
+// Points per full hour by tier, or null (migration not run, or the shop's
+// points switch is off - then the page promises nothing).
+async function readPoints(res: {
+  data: { tier: string; points_per_hour: number | null }[] | null
+  error: { code?: string; message: string } | null
+}): Promise<BoardPoints | null> {
+  if (res.error || !res.data) {
+    if (res.error && res.error.code !== '42703') {
+      console.error('[park] game board: points read failed', res.error.message)
+    }
+    return null
+  }
+  const rule = await createServiceClient()
+    .from('point_rules')
+    .select('is_active')
+    .eq('app', 'game')
+    .maybeSingle()
+  if (rule.error || !rule.data?.is_active) return null
+
+  const by = new Map(res.data.map((p) => [String(p.tier).toUpperCase(), Number(p.points_per_hour) || 0]))
+  return { ps4: by.get('PS4') ?? 0, ps5: by.get('PS5') ?? 0, vip: by.get('VIP') ?? 0, cinema: by.get('CINEMA') ?? 0 }
 }
 
 export async function getGameBoard(): Promise<GameBoard | null> {
