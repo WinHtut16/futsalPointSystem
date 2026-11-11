@@ -7,6 +7,7 @@ import { ArrowLeft, LogOut, Settings } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useRealtimePoints } from '@/hooks/useRealtimePoints'
 import RewardsGrid from '@/components/customer/RewardsGrid'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 import UnifiedTimeline, { type FeedItem } from '@/components/customer/account/UnifiedTimeline'
 import { VENUE_PAGE, VENUE_PORTAL, formatMinutes, type Venue, type VenueSession } from '@/lib/venue-account'
 import { formatDate } from '@/lib/utils'
@@ -102,7 +103,12 @@ export default function VenueAccount(props: Props) {
     }
   }, [loading, sessions, venue])
 
+  // The icon is easy to tap by accident, so it asks first.
+  const [confirmLogout, setConfirmLogout] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
+
   async function logout() {
+    setLoggingOut(true)
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
     router.push(VENUE_PAGE[venue])
     router.refresh()
@@ -123,6 +129,17 @@ export default function VenueAccount(props: Props) {
 
   return (
     <div>
+      <ConfirmModal
+        isOpen={confirmLogout}
+        onClose={() => !loggingOut && setConfirmLogout(false)}
+        onConfirm={logout}
+        title={t('venue.portal.logoutTitle')}
+        message={t('venue.portal.logoutBody')}
+        confirmLabel={t('venue.portal.logout')}
+        cancelLabel={t('venue.portal.logoutStay')}
+        variant="warning"
+        isLoading={loggingOut}
+      />
       {/* Header band in the venue's colours */}
       <section className={`${h.band} px-4 pb-8 pt-6 md:px-8`}>
         <div className="mx-auto flex max-w-2xl flex-col gap-5">
@@ -145,7 +162,8 @@ export default function VenueAccount(props: Props) {
               </Link>
               <button
                 type="button"
-                onClick={logout}
+                onClick={() => setConfirmLogout(true)}
+                aria-haspopup="dialog"
                 aria-label={t('venue.portal.logout')}
                 title={t('venue.portal.logout')}
                 className={`flex h-10 w-10 items-center justify-center rounded-full border ${h.chip}`}
