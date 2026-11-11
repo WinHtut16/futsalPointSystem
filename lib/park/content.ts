@@ -81,6 +81,9 @@ export const GAME = {
   ps4Screens: [1, 2, 3, 4, 5],
   ps5Screens: [6, 7, 8, 9],
   rates: { ps4: 3000, ps5: 5000, vip: 7000 },
+  // Streaming on the mini-cinema TVs (client list, 2026-11-11). Brand names,
+  // shown as text in both languages. Same list on every cinema TV.
+  cinemaChannels: ['Netflix', 'Bioscope', 'Canal+', 'Mahar', 'YouTube', 'Free-to-Air TV'],
   minimumMinutes: 30,
   blockMinutes: 30,
   graceMinutes: 10,

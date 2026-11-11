@@ -131,6 +131,11 @@ for f in 105-game-points.sql 107-loyalty-zone-admin.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 
+# Points per tier (PS4 3, PS5 5, VIP/CINEMA 7). After 105: those sessions froze
+# the old flat rule and must keep it.
+run "$GAME/game-tier-points-migration.sql" || exit 1
+psql -d "$DB" -q -f "$HERE/108-game-tier-points.sql" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
+
 echo
 psql -d "$DB" -tA -F' | ' -c \
   "select case when ok then 'PASS' else 'FAIL' end, label, case when ok then '' else detail end
