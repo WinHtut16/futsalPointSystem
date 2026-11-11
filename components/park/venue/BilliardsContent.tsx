@@ -6,6 +6,7 @@ import { formatAmount } from '@/lib/park/time'
 import BreakTable, { TableSvg } from './BreakTable'
 import OpeningBadge from '../OpeningBadge'
 import ViberLink from '../ViberLink'
+import VenuePointsBand from './VenuePointsBand'
 import { MenuList, VenueHero, VenueStrip, type Theme } from './VenueParts'
 
 // Oxblood and brass, the billiards room's colours from its admin system.
@@ -44,6 +45,7 @@ export default function BilliardsContent() {
         secondary={{ href: '#menu', label: 'park.billiards.ctaMenu' }}
         glow="shadow-[0_30px_90px_rgb(217_178_106/0.22)]"
       />
+      <VenuePointsBand venue="billiards" className={theme.ground} buttonClass={theme.primaryBtn} mutedClass={theme.muted} />
 
       <section aria-labelledby="billiards-table" className={`${theme.panel} py-20 text-[#f6ece6] md:py-24`}>
         <div className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 md:px-8 lg:grid-cols-[5fr_7fr] lg:gap-14">

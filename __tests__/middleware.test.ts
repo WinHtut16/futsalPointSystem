@@ -60,11 +60,30 @@ describe('middleware', () => {
 
   // ── Unauthenticated guards ─────────────────────────────────────────────────
 
-  it('unauthenticated GET /dashboard redirects to /login', async () => {
+  it('unauthenticated GET /dashboard redirects to /login carrying ?next=', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } })
     const res = await middleware(req('/dashboard'))
-    expect(res.headers.get('location')).toBe('http://localhost:3000/login')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/login?next=%2Fdashboard')
     expect(mockProfileSingle).not.toHaveBeenCalled()
+  })
+
+  it.each(['/games/account', '/billiards/account'])('unauthenticated %s goes to login and back', async (path) => {
+    const res = await middleware(req(path + '?tab=sessions'))
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3000/login?next=' + encodeURIComponent(path + '?tab=sessions')
+    )
+  })
+
+  it.each(['/games', '/billiards'])('venue page %s stays public', async (path) => {
+    const res = await middleware(req(path))
+    expect(res.headers.get('location')).toBeNull()
+  })
+
+  it.each(['/games/account', '/billiards/account'])('admin on %s redirects to /admin', async (path) => {
+    mockGetUser.mockResolvedValue({ data: { user: adminUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'admin' }, error: null })
+    const res = await middleware(req(path))
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin')
   })
 
   it('unauthenticated GET /admin/dashboard redirects to /admin/login carrying ?next=', async () => {
@@ -124,6 +143,19 @@ describe('middleware', () => {
   })
 
   // ── Admin-on-customer-route redirects (new behaviour) ─────────────────────
+
+  it.each([
+    ['/register?from=game', '/games/account'],
+    ['/register?from=billiards', '/billiards/account'],
+    ['/register?from=futsal', '/account'],
+    ['/login?next=%2Fbilliards%2Faccount', '/billiards/account'],
+    ['/login?next=https%3A%2F%2Fevil.example', '/account'],
+  ])('signed-in customer on %s goes to %s', async (path, to) => {
+    mockGetUser.mockResolvedValue({ data: { user: customerUser() } })
+    mockProfileSingle.mockResolvedValue({ data: { role: 'customer' }, error: null })
+    const res = await middleware(req(path))
+    expect(res.headers.get('location')).toBe('http://localhost:3000' + to)
+  })
 
   it('admin on /account redirects to /admin', async () => {
     mockGetUser.mockResolvedValue({ data: { user: adminUser() } })

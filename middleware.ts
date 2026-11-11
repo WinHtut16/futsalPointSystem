@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { fetchWithTimeout, MIDDLEWARE_AUTH_TIMEOUT_MS } from '@/lib/fetchWithTimeout'
 import { SUPABASE_AUTH_COOKIE_NAME } from '@/lib/supabase/config'
+import { customerLanding } from '@/lib/venue-account'
 
 // These paths skip the "must be logged in" admin guard
 const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
@@ -18,11 +19,11 @@ const ZONE_PREFIXES: { path: string; app: string }[] = [
 ]
 
 // Routes that require a logged-in session (any role)
-const CUSTOMER_AUTH_ROUTES = ['/dashboard', '/history', '/rewards', '/bookings', '/account']
+const CUSTOMER_AUTH_ROUTES = ['/dashboard', '/history', '/rewards', '/bookings', '/account', '/games/account', '/billiards/account']
 // Customer-facing routes that an authenticated admin should never land on — redirect to admin panel.
 // Note: /book is listed here but NOT in CUSTOMER_AUTH_ROUTES because it is publicly accessible
 // (unauthenticated visitors see a login-to-book CTA). Only logged-in admins are redirected away.
-const ADMIN_BLOCKED_ROUTES = ['/dashboard', '/bookings', '/book', '/rewards', '/account']
+const ADMIN_BLOCKED_ROUTES = ['/dashboard', '/bookings', '/book', '/rewards', '/account', '/games/account', '/billiards/account']
 // Park showcase pages (app/(park)) are static and session-free. Skipping them
 // avoids a getUser() round trip on the most-visited pages of the site.
 const PARK_PUBLIC_PATHS = ['/', '/games', '/billiards']
@@ -80,7 +81,13 @@ export async function middleware(request: NextRequest) {
 
   // ── Unauthenticated guards (no DB query needed) ──────────────────────────────
   if (!user) {
-    if (isCustomerAuthRoute) return NextResponse.redirect(new URL('/login', request.url))
+    if (isCustomerAuthRoute) {
+      // Back to the page they asked for after signing in (e.g. a venue's
+      // points portal reached from a QR code).
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('next', pathname + request.nextUrl.search)
+      return NextResponse.redirect(loginUrl)
+    }
     if (isAdminRoute) {
       // Carry the intended destination so a deep link survives the login round
       // trip. This matters more once billiards and game arrive as zones under
@@ -115,7 +122,12 @@ export async function middleware(request: NextRequest) {
 
   // ── Logged-in user on auth pages → redirect to their home ────────────────────
   if (pathname === '/login' || pathname === '/register' || isAdminAuthOnlyPath) {
-    return NextResponse.redirect(new URL(isAdmin ? '/admin' : '/account', request.url))
+    // A customer already signed in who scans a venue's QR code
+    // (/register?from=game) goes straight to that venue's points page.
+    const home = isAdmin
+      ? '/admin'
+      : customerLanding(request.nextUrl.searchParams.get('next'), request.nextUrl.searchParams.get('from'))
+    return NextResponse.redirect(new URL(home, request.url))
   }
 
   // ── Admin on customer-facing route → admin panel ─────────────────────────────

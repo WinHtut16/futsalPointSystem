@@ -12,9 +12,11 @@ import Modal from '@/components/ui/Modal'
 interface Props {
   initialName: string
   initialPhone: string
+  /** Where the back arrow goes; /account unless opened from a venue portal. */
+  backHref?: string
 }
 
-export default function AccountSettingsForm({ initialName, initialPhone }: Props) {
+export default function AccountSettingsForm({ initialName, initialPhone, backHref = '/account' }: Props) {
   const { t, lang } = useLanguage()
   const my = lang === 'my' ? 'my' : ''
 
@@ -110,7 +112,7 @@ export default function AccountSettingsForm({ initialName, initialPhone }: Props
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
         <Link
-          href="/account"
+          href={backHref}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line text-ink-muted transition-colors hover:bg-black/5"
         >
           <ArrowLeft size={18} />

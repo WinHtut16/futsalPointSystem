@@ -15,6 +15,8 @@ interface RedeemFlowModalProps {
   userPoints: number
   initialRewardId?: string
   onRequested?: (rewardId: string, requestId: string) => void
+  /** "View my rewards" after a request; futsal's account by default. */
+  rewardsHref?: string
 }
 
 type Step = 0 | 1 | 2
@@ -34,6 +36,7 @@ export default function RedeemFlowModal({
   userPoints,
   initialRewardId,
   onRequested,
+  rewardsHref = '/account?tab=points',
 }: RedeemFlowModalProps) {
   const { t, lang } = useLanguage()
   const [step, setStep] = useState<Step>(0)
@@ -328,7 +331,7 @@ export default function RedeemFlowModal({
 
             <div className="px-4 pb-5 pt-3 border-t border-gray-100 flex gap-2.5">
               <a
-                href="/account?tab=points"
+                href={rewardsHref}
                 className="flex flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 {t('booking.viewMyRewards')}

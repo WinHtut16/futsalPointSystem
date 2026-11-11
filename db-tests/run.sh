@@ -125,7 +125,9 @@ for f in game-station-state-migration.sql game-pricing-tiers-migration.sql \
          game-edit-session-snacks-migration.sql game-points-migration.sql; do
   run "$GAME/$f" || exit 1
 done
-for f in 105-game-points.sql; do
+# Needs game-points (just above) and billiards-points (main chain).
+run "$FUTSAL/loyalty-zone-admin-migration.sql" || exit 1
+for f in 105-game-points.sql 107-loyalty-zone-admin.sql; do
   psql -d "$DB" -q -f "$HERE/$f" 2>&1 | grep -E "^psql.*ERROR|FATAL" | head -5
 done
 

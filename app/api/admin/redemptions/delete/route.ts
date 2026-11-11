@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     .from('redemption_requests')
     .delete()
     .in('id', parsed.data.ids)
-    // Futsal history only; the other businesses clear theirs via /api/loyalty/<app>.
+    // Futsal history only; the other businesses clear theirs in their own admin app.
     .eq('app', FUTSAL)
     .in('status', ['approved', 'rejected', 'cancelled'])
 
