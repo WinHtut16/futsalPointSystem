@@ -59,8 +59,10 @@ export interface AppMeta {
    * be prepended to a hub path).
    */
   crossZone: boolean
-  /** Optional brand image shown on the portal tile in place of the generic glyph. */
-  logoSrc?: string
+  /** Brand logo shown on the portal tile. */
+  logoSrc: string
+  /** Backdrop behind the logo; needed for logos with a transparent background. */
+  logoBg: string
 }
 
 export const APPS: Record<AppName, AppMeta> = {
@@ -72,6 +74,8 @@ export const APPS: Record<AppName, AppMeta> = {
     accent: '#0b4327',
     live: true,
     crossZone: false,
+    logoSrc: '/logo_black.jpg',
+    logoBg: '#000000',
   },
   billiards: {
     name: 'billiards',
@@ -82,6 +86,7 @@ export const APPS: Record<AppName, AppMeta> = {
     live: true,
     crossZone: true,
     logoSrc: '/cuex/icon.jpg',
+    logoBg: '#202b47',
   },
   game: {
     name: 'game',
@@ -91,6 +96,8 @@ export const APPS: Record<AppName, AppMeta> = {
     accent: '#2f5fd0',
     live: true,
     crossZone: true,
+    logoSrc: '/acj/logo.png',
+    logoBg: '#090816',
   },
 }
 
