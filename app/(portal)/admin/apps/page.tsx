@@ -111,13 +111,24 @@ function AppGrid({ apps }: { apps: AppGrant[] }) {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="flex items-center gap-1.5 font-display text-base font-bold text-ink-primary">
-                  <Icon
-                    size={16}
-                    className="shrink-0"
-                    style={{ color: meta.accent }}
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
+                  {meta.logoSrc ? (
+                    <Image
+                      src={meta.logoSrc}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="shrink-0 rounded-md"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <Icon
+                      size={16}
+                      className="shrink-0"
+                      style={{ color: meta.accent }}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  )}
                   <T k={meta.titleKey} />
                 </h2>
                 <p className="mt-0.5 text-sm text-gray-500">

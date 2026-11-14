@@ -59,6 +59,8 @@ export interface AppMeta {
    * be prepended to a hub path).
    */
   crossZone: boolean
+  /** Optional brand image shown on the portal tile in place of the generic glyph. */
+  logoSrc?: string
 }
 
 export const APPS: Record<AppName, AppMeta> = {
@@ -79,6 +81,7 @@ export const APPS: Record<AppName, AppMeta> = {
     accent: '#8a3324',
     live: true,
     crossZone: true,
+    logoSrc: '/cuex/icon.jpg',
   },
   game: {
     name: 'game',
