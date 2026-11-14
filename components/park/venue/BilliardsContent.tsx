@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { BILLIARDS, HOURS, PARK, billiardsOpening } from '@/lib/park/content'
 import { formatAmount } from '@/lib/park/time'
@@ -30,9 +31,19 @@ export default function BilliardsContent() {
         title="park.billiards.title"
         lead={billiardsOpening() ? 'park.billiards.openingBody' : 'park.billiards.lead'}
         badge={
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="font-semibold text-venue-brass">{t('park.billiards.club')}</span>
-            <OpeningBadge />
+          <div className="flex flex-col items-start gap-4">
+            <Image
+              src="/cuex/lockup.jpg"
+              alt="CueX Billiard and Snooker Club"
+              width={1340}
+              height={430}
+              priority
+              className="h-auto w-[240px] rounded-2xl md:w-[300px]"
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-semibold text-venue-brass">{t('park.billiards.club')}</span>
+              <OpeningBadge />
+            </div>
           </div>
         }
         media={

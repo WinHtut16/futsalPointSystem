@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, LogOut, Settings } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -174,7 +175,16 @@ export default function VenueAccount(props: Props) {
           </div>
 
           <div>
-            <p className={`text-sm font-semibold ${h.accent} ${my}`}>
+            <p className={`flex items-center gap-2 text-sm font-semibold ${h.accent} ${my}`}>
+              {venue === 'billiards' && (
+                <Image
+                  src="/cuex/icon.jpg"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="size-7 rounded-md"
+                />
+              )}
               {t(venue === 'game' ? 'venue.portal.game' : 'venue.portal.billiards')}
             </p>
             <h1 className={`park-display mt-1 text-[28px] leading-tight md:text-[34px] ${my}`}>{props.name}</h1>
